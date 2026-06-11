@@ -4,7 +4,7 @@ import { BookOpen, Layers, Clock, ChevronLeft } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getCompletedLessonIds, pct } from "@/lib/progress";
-import { canSeeCourse } from "@/lib/courses";
+import { canSeeCourse, getViewer } from "@/lib/courses";
 import { ModuloAccordion } from "@/components/curso/ModuloAccordion";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,7 @@ export default async function CursoDetallePage({
   const curso = await prisma.course.findUnique({
     where: { id: params.id },
     include: {
+      grupos: { select: { id: true } },
       modules: {
         orderBy: { order: "asc" },
         include: {
@@ -57,13 +58,8 @@ export default async function CursoDetallePage({
   const session = await auth();
   const userId = session?.user?.id;
 
-  // Acceso por área/rol: si no le corresponde el curso, lo devolvemos al catálogo.
-  const viewer = userId
-    ? await prisma.user.findUnique({
-        where: { id: userId },
-        select: { role: true, area: true },
-      })
-    : null;
+  // Acceso por grupo/rol: si no le corresponde el curso, lo devolvemos al catálogo.
+  const viewer = userId ? await getViewer(userId) : null;
   if (!canSeeCourse(viewer ?? {}, curso)) redirect("/cursos");
 
   const completedIds = userId

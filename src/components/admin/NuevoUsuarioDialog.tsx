@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { UserPlus } from "lucide-react";
+import { toast } from "sonner";
 import { createUser } from "@/lib/actions/usuarios";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +18,11 @@ import { Label } from "@/components/ui/label";
 const selectClass =
   "h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring";
 
-export function NuevoUsuarioDialog() {
+export function NuevoUsuarioDialog({
+  grupos,
+}: {
+  grupos: { id: string; name: string }[];
+}) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -34,6 +39,7 @@ export function NuevoUsuarioDialog() {
       } else {
         formRef.current?.reset();
         setOpen(false);
+        toast.success("Usuario creado");
       }
     });
   }
@@ -95,12 +101,30 @@ export function NuevoUsuarioDialog() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="area">Área</Label>
-              <Input
-                id="area"
-                name="area"
-                placeholder="Comercial, Técnico, Compras, Bodega…"
-              />
+              <Label>Grupos (definen qué cursos verá)</Label>
+              {grupos.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  No hay grupos creados todavía. Puedes crearlos en la sección
+                  Grupos.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {grupos.map((g) => (
+                    <label
+                      key={g.id}
+                      className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/8"
+                    >
+                      <input
+                        type="checkbox"
+                        name="grupoIds"
+                        value={g.id}
+                        className="accent-primary"
+                      />
+                      {g.name}
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
             {error && (

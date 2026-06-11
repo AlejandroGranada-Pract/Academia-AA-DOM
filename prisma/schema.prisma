@@ -81,6 +81,18 @@ model User {
   progress     UserProgress[]
   examAttempts ExamAttempt[]
   certificates Certificate[]
+  grupos       Grupo[]            @relation("UserGrupos")
+}
+
+// Grupo / rol funcional (Técnico, Compras, Comercial...) que decide qué cursos
+// ve cada usuario. El admin crea grupos y les asocia cursos y usuarios.
+model Grupo {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  users   User[]   @relation("UserGrupos")
+  courses Course[] @relation("CourseGrupos")
 }
 
 model Course {
@@ -102,6 +114,7 @@ model Course {
   modules      Module[]
   assignments  CourseAssignment[]
   certificates Certificate[]
+  grupos       Grupo[]            @relation("CourseGrupos")
 }
 
 model Module {

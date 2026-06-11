@@ -8,6 +8,7 @@ import {
   LayoutGrid,
   BarChart3,
   Sparkles,
+  Boxes,
   type LucideIcon,
 } from "lucide-react";
 import { signOutAction } from "@/lib/actions/auth";
@@ -24,6 +25,7 @@ type SidebarUser = {
 // en la Fase 2; por ahora los enlaces quedan listos.
 const ADMIN_NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/usuarios", label: "Usuarios", icon: Users },
+  { href: "/grupos", label: "Grupos", icon: Boxes },
   { href: "/admin/cursos", label: "Gestionar Cursos", icon: LayoutGrid },
   { href: "/reportes", label: "Reportes", icon: BarChart3 },
 ];

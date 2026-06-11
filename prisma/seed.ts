@@ -383,6 +383,42 @@ async function main() {
     console.log(`  ✅ Curso creado: ${c.title}`);
   }
 
+  // ---------------------------------------------------------------------------
+  // Grupos (roles funcionales) con sus cursos y usuarios.
+  // ---------------------------------------------------------------------------
+  const piscinas = await prisma.course.findFirst({
+    where: { title: "Instalación de Piscinas en Fibra de Vidrio" },
+  });
+  const dom = await prisma.course.findFirst({
+    where: { title: "Portafolio DOM Design — Enchapes y Mosaicos" },
+  });
+
+  await prisma.grupo.upsert({
+    where: { name: "Técnico" },
+    update: {
+      users: { set: [{ id: tecnico.id }] },
+      courses: piscinas ? { set: [{ id: piscinas.id }] } : { set: [] },
+    },
+    create: {
+      name: "Técnico",
+      users: { connect: [{ id: tecnico.id }] },
+      courses: piscinas ? { connect: [{ id: piscinas.id }] } : undefined,
+    },
+  });
+  await prisma.grupo.upsert({
+    where: { name: "Comercial" },
+    update: {
+      users: { set: [{ id: empleado.id }] },
+      courses: dom ? { set: [{ id: dom.id }] } : { set: [] },
+    },
+    create: {
+      name: "Comercial",
+      users: { connect: [{ id: empleado.id }] },
+      courses: dom ? { connect: [{ id: dom.id }] } : undefined,
+    },
+  });
+  console.log("  ✅ Grupos: Técnico, Comercial");
+
   console.log("🌱 Seed completado.");
 }
 

@@ -2,19 +2,14 @@ import { BookOpen } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getCompletedLessonIds, pct } from "@/lib/progress";
-import { visibleCoursesWhere } from "@/lib/courses";
+import { visibleCoursesWhere, getViewer } from "@/lib/courses";
 import { Header } from "@/components/layout/Header";
 import { CursoCard } from "@/components/curso/CursoCard";
 
 export default async function CursosPage() {
   const session = await auth();
   const userId = session?.user?.id;
-  const viewer = userId
-    ? await prisma.user.findUnique({
-        where: { id: userId },
-        select: { role: true, area: true },
-      })
-    : null;
+  const viewer = userId ? await getViewer(userId) : null;
   const completed = userId ? await getCompletedLessonIds(userId) : new Set<string>();
 
   // Cursos visibles según el área/rol del usuario.

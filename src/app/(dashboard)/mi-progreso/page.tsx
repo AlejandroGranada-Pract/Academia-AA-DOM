@@ -8,18 +8,13 @@ import {
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getCompletedLessonIds, pct } from "@/lib/progress";
-import { visibleCoursesWhere } from "@/lib/courses";
+import { visibleCoursesWhere, getViewer } from "@/lib/courses";
 import { Header } from "@/components/layout/Header";
 
 export default async function MiProgresoPage() {
   const session = await auth();
   const userId = session?.user?.id;
-  const viewer = userId
-    ? await prisma.user.findUnique({
-        where: { id: userId },
-        select: { role: true, area: true },
-      })
-    : null;
+  const viewer = userId ? await getViewer(userId) : null;
   const completedIds = userId
     ? await getCompletedLessonIds(userId)
     : new Set<string>();
