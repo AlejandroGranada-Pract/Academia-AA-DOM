@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import {
   Accordion,
@@ -55,18 +56,31 @@ export function ModuloAccordion({
   modules,
   completedLessonIds = [],
   unlockedLessonIds = [],
+  openModuleId,
 }: {
   courseId: string;
   modules: ModuleLite[];
   completedLessonIds?: string[];
   unlockedLessonIds?: string[];
+  openModuleId?: string;
 }) {
   const completed = new Set(completedLessonIds);
   const unlocked = new Set(unlockedLessonIds);
+  const defaultOpen = openModuleId ?? modules[0]?.id;
+
+  // Al volver de completar una lección (#continuar), hace scroll al módulo
+  // pendiente en vez de saltar al inicio de la página.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash !== "#continuar") return;
+    const el = defaultOpen ? document.getElementById(`mod-${defaultOpen}`) : null;
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  }, [defaultOpen]);
 
   return (
     <Accordion
-      defaultValue={modules[0] ? [modules[0].id] : []}
+      defaultValue={defaultOpen ? [defaultOpen] : []}
       className="flex flex-col gap-3"
     >
       {modules.map((m, i) => {
@@ -76,8 +90,9 @@ export function ModuloAccordion({
         return (
           <AccordionItem
             key={m.id}
+            id={`mod-${m.id}`}
             value={m.id}
-            className="overflow-hidden rounded-xl border bg-card not-last:border-b"
+            className="scroll-mt-6 overflow-hidden rounded-xl border bg-card not-last:border-b"
           >
             <AccordionTrigger className="items-center px-5 py-4 hover:no-underline">
               <span className="flex items-center gap-3">

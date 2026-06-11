@@ -49,7 +49,8 @@ export function LeccionActions({
     setIsCompleted(true);
     try {
       await setLessonProgress(lessonId, courseId, true);
-      router.push(courseHref);
+      // #continuar: el acordeón del curso hace scroll al módulo pendiente (sin saltar arriba)
+      router.push(`${courseHref}#continuar`, { scroll: false });
     } catch {
       setPending(false);
     }
