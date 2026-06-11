@@ -1,7 +1,7 @@
 import { BookOpen } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { getCompletedLessonIds, pct } from "@/lib/progress";
+import { getCompletedLessonIds, getPassedExamIds, pct } from "@/lib/progress";
 import { visibleCoursesWhere, getViewer } from "@/lib/courses";
 import { Header } from "@/components/layout/Header";
 import { CursoCard } from "@/components/curso/CursoCard";
@@ -11,13 +11,19 @@ export default async function CursosPage() {
   const userId = session?.user?.id;
   const viewer = userId ? await getViewer(userId) : null;
   const completed = userId ? await getCompletedLessonIds(userId) : new Set<string>();
+  const passedExams = userId ? await getPassedExamIds(userId) : new Set<string>();
 
   // Cursos visibles según el área/rol del usuario.
   const cursos = await prisma.course.findMany({
     where: visibleCoursesWhere(viewer ?? {}),
     orderBy: { createdAt: "asc" },
     include: {
-      modules: { include: { lessons: { select: { id: true } } } },
+      modules: {
+        include: {
+          lessons: { select: { id: true } },
+          exams: { select: { id: true } },
+        },
+      },
     },
   });
 
@@ -45,7 +51,12 @@ export default async function CursosPage() {
             const lessonIds = c.modules.flatMap((m) =>
               m.lessons.map((l) => l.id),
             );
-            const done = lessonIds.filter((id) => completed.has(id)).length;
+            const examIds = c.modules.flatMap((m) => m.exams.map((e) => e.id));
+            // El avance incluye lecciones completadas + exámenes aprobados.
+            const done =
+              lessonIds.filter((id) => completed.has(id)).length +
+              examIds.filter((id) => passedExams.has(id)).length;
+            const total = lessonIds.length + examIds.length;
             return (
               <CursoCard
                 key={c.id}
@@ -57,7 +68,7 @@ export default async function CursosPage() {
                   company: c.company,
                   estimatedHours: c.estimatedHours,
                   lessonCount: lessonIds.length,
-                  progressPct: pct(done, lessonIds.length),
+                  progressPct: pct(done, total),
                 }}
               />
             );

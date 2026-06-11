@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { getCompletedLessonIds, pct } from "@/lib/progress";
+import { getCompletedLessonIds, getPassedExamIds, pct } from "@/lib/progress";
 import { visibleCoursesWhere, getViewer } from "@/lib/courses";
 import { Header } from "@/components/layout/Header";
 
@@ -18,17 +18,30 @@ export default async function MiProgresoPage() {
   const completedIds = userId
     ? await getCompletedLessonIds(userId)
     : new Set<string>();
+  const passedExams = userId ? await getPassedExamIds(userId) : new Set<string>();
 
   const courses = await prisma.course.findMany({
     where: visibleCoursesWhere(viewer ?? {}),
     orderBy: { createdAt: "asc" },
-    include: { modules: { include: { lessons: { select: { id: true } } } } },
+    include: {
+      modules: {
+        include: {
+          lessons: { select: { id: true } },
+          exams: { select: { id: true } },
+        },
+      },
+    },
   });
 
   const cursos = courses.map((c) => {
-    const ids = c.modules.flatMap((m) => m.lessons.map((l) => l.id));
-    const done = ids.filter((id) => completedIds.has(id)).length;
-    return { id: c.id, title: c.title, total: ids.length, done, p: pct(done, ids.length) };
+    const lessonIds = c.modules.flatMap((m) => m.lessons.map((l) => l.id));
+    const examIds = c.modules.flatMap((m) => m.exams.map((e) => e.id));
+    const total = lessonIds.length + examIds.length;
+    // Avance = lecciones completadas + exámenes aprobados.
+    const done =
+      lessonIds.filter((id) => completedIds.has(id)).length +
+      examIds.filter((id) => passedExams.has(id)).length;
+    return { id: c.id, title: c.title, total, done, p: pct(done, total) };
   });
 
   // Exámenes: mejor puntaje por examen.

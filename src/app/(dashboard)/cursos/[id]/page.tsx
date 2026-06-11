@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { BookOpen, Layers, Clock, ChevronLeft } from "lucide-react";
+import { BookOpen, Layers, Clock, ChevronLeft, CheckCircle2 } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getCompletedLessonIds, pct } from "@/lib/progress";
@@ -110,9 +110,13 @@ export default async function CursoDetallePage({
         )
       : null;
 
-  const doneCount = lessons.filter((l) => completedIds.has(l.id)).length;
-  const coursePct = pct(doneCount, lessonCount);
-  const started = doneCount > 0;
+  // Avance del curso = lecciones completadas + exámenes aprobados.
+  const doneLessons = lessons.filter((l) => completedIds.has(l.id)).length;
+  const donePassedExams = examIds.filter((id) => passedExamIds.has(id)).length;
+  const doneItems = doneLessons + donePassedExams;
+  const totalItems = lessonCount + examIds.length;
+  const coursePct = pct(doneItems, totalItems);
+  const started = doneItems > 0;
 
   // Bloqueo secuencial: desbloqueadas = todas hasta la primera sin completar.
   const firstIncomplete = lessons.findIndex((l) => !completedIds.has(l.id));
@@ -121,6 +125,15 @@ export default async function CursoDetallePage({
 
   // Lección donde retomar: la primera sin completar (o la primera del curso).
   const resumeLesson = lessons.find((l) => !completedIds.has(l.id)) ?? firstLesson;
+
+  // Módulo que el acordeón deja abierto: el primero con algo pendiente
+  // (lección sin completar o examen sin aprobar). Así "qué sigue" incluye el examen.
+  const openModuleId =
+    curso.modules.find(
+      (m) =>
+        m.lessons.some((l) => !completedIds.has(l.id)) ||
+        m.exams.some((e) => !passedExamIds.has(e.id)),
+    )?.id ?? curso.modules[0]?.id;
 
   return (
     <div>
@@ -179,6 +192,7 @@ export default async function CursoDetallePage({
           <h2 className="mb-4 text-2xl text-foreground">Contenido del curso</h2>
           <ModuloAccordion
             courseId={curso.id}
+            openModuleId={openModuleId}
             completedLessonIds={Array.from(completedIds)}
             unlockedLessonIds={unlockedIds}
             modules={curso.modules.map((m) => ({
@@ -226,13 +240,30 @@ export default async function CursoDetallePage({
               />
             </dl>
 
-            {resumeLesson && (
-              <Link
-                href={`/cursos/${curso.id}/leccion/${resumeLesson.id}`}
-                className={cn(buttonVariants({ size: "lg" }), "mt-5 w-full")}
-              >
-                {started ? "Continuar curso" : "Comenzar curso"}
-              </Link>
+            {coursePct === 100 ? (
+              <div className="mt-5 space-y-2">
+                <div className="flex items-center justify-center gap-2 rounded-lg bg-success/10 py-2.5 text-sm font-semibold text-success">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Curso completado
+                </div>
+                {firstLesson && (
+                  <Link
+                    href={`/cursos/${curso.id}/leccion/${firstLesson.id}`}
+                    className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+                  >
+                    Repasar curso
+                  </Link>
+                )}
+              </div>
+            ) : (
+              resumeLesson && (
+                <Link
+                  href={`/cursos/${curso.id}/leccion/${resumeLesson.id}`}
+                  className={cn(buttonVariants({ size: "lg" }), "mt-5 w-full")}
+                >
+                  {started ? "Continuar curso" : "Comenzar curso"}
+                </Link>
+              )
             )}
           </div>
 
