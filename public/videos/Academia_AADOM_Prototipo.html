@@ -1,0 +1,2155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Academia AA | DOM — Prototipo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #76B8E0;
+    --primary-dark: #5A9BC7;
+    --accent: #BE9B60;
+    --accent-light: #D4B87A;
+    --dark: #1F1F1F;
+    --text: #353535;
+    --text-light: #6B7280;
+    --bg: #F8F7F4;
+    --surface: #FFFFFF;
+    --error: #DC2626;
+    --success: #16A34A;
+    --warning: #F59E0B;
+    --border: #E5E7EB;
+    --sidebar-w: 260px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.5px; font-weight: 400; }
+
+  /* ========== PROTOTYPE NAVIGATION BAR ========== */
+  .proto-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    background: var(--dark);
+    display: flex; align-items: center; gap: 4px;
+    padding: 8px 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .proto-nav-label {
+    color: var(--accent);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 1px;
+    margin-right: 12px;
+    white-space: nowrap;
+  }
+  .proto-nav button {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #ccc;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .proto-nav button:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .proto-nav button.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ========== SCREENS ========== */
+  .screen { display: none; min-height: 100vh; padding-top: 52px; }
+  .screen.active { display: block; }
+
+  /* ========== LOGIN SCREEN ========== */
+  .login-screen {
+    display: none;
+    min-height: 100vh;
+    padding-top: 52px;
+    background: linear-gradient(135deg, var(--dark) 0%, #2a2a2a 50%, var(--dark) 100%);
+    align-items: center;
+    justify-content: center;
+  }
+  .login-screen.active { display: flex; }
+
+  .login-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+  }
+  .login-logos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 12px;
+  }
+  .login-logo-aa {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--primary);
+    letter-spacing: 2px;
+  }
+  .login-logo-divider {
+    width: 1px;
+    height: 36px;
+    background: rgba(255,255,255,0.2);
+  }
+  .login-logo-dom {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--accent);
+    letter-spacing: 4px;
+  }
+  .login-subtitle {
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+  .login-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 40px 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .login-card h2 {
+    font-size: 28px;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+  .login-card p {
+    color: var(--text-light);
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .form-group input:focus { border-color: var(--primary); }
+  .form-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .form-row label {
+    font-size: 13px;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .form-row a {
+    font-size: 13px;
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--primary-dark); }
+
+  /* ========== APP LAYOUT ========== */
+  .app-layout {
+    display: flex;
+    min-height: calc(100vh - 52px);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--dark);
+    color: #fff;
+    padding: 24px 0;
+    position: fixed;
+    top: 52px;
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+    z-index: 100;
+  }
+  .sidebar-brand {
+    padding: 0 20px;
+    margin-bottom: 32px;
+  }
+  .sidebar-brand-logos {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .sidebar-aa {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: var(--primary);
+    letter-spacing: 1px;
+  }
+  .sidebar-div {
+    width: 1px;
+    height: 20px;
+    background: rgba(255,255,255,0.15);
+  }
+  .sidebar-dom {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+  .sidebar-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .sidebar-section {
+    margin-bottom: 8px;
+    padding: 0 12px;
+  }
+  .sidebar-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.3);
+    padding: 8px 12px;
+    margin-top: 16px;
+  }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: rgba(255,255,255,0.65);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .sidebar-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .sidebar-item.active { background: rgba(118,184,224,0.15); color: var(--primary); }
+  .sidebar-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .sidebar-item .badge {
+    margin-left: auto;
+    background: var(--primary);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .sidebar-user {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sidebar-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+  }
+  .sidebar-user-info { flex: 1; }
+  .sidebar-user-name { font-size: 13px; font-weight: 500; color: #fff; }
+  .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+  /* Main content */
+  .main-content {
+    flex: 1;
+    margin-left: var(--sidebar-w);
+    padding: 28px 32px;
+  }
+
+  /* Header */
+  .page-header {
+    margin-bottom: 28px;
+  }
+  .page-header h1 {
+    font-size: 32px;
+    color: var(--dark);
+    line-height: 1.1;
+  }
+  .page-header p {
+    color: var(--text-light);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  /* ========== DASHBOARD ========== */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border);
+  }
+  .stat-card .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    font-size: 20px;
+  }
+  .stat-card .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: var(--dark);
+    line-height: 1;
+  }
+  .stat-card .stat-label {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-top: 2px;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-header h3 {
+    font-size: 20px;
+    color: var(--dark);
+  }
+  .card-body { padding: 20px; }
+
+  .course-progress-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .course-progress-item:last-child { border-bottom: none; }
+  .course-progress-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .course-progress-info { flex: 1; min-width: 0; }
+  .course-progress-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .course-progress-meta {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 2px;
+  }
+  .progress-bar-container {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: #E5E7EB;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+  .progress-bar-fill.blue { background: var(--primary); }
+  .progress-bar-fill.gold { background: var(--accent); }
+  .progress-bar-fill.green { background: var(--success); }
+  .progress-pct {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .activity-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+  .activity-text { font-size: 13px; color: var(--text); }
+  .activity-time { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+  /* ========== COURSE CATALOG ========== */
+  .catalog-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-light);
+  }
+  .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .filter-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+
+  .courses-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .course-card {
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .course-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+  .course-card-img {
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    position: relative;
+  }
+  .course-card-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-obligatorio { background: rgba(220,38,38,0.1); color: var(--error); }
+  .badge-nuevo { background: rgba(22,163,74,0.1); color: var(--success); }
+  .badge-continua { background: rgba(118,184,224,0.15); color: var(--primary-dark); }
+  .course-card-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(0,0,0,0.1);
+  }
+  .course-card-progress-fill {
+    height: 100%;
+    background: var(--primary);
+  }
+  .course-card-body { padding: 16px; }
+  .course-card-category {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .course-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .course-card-desc {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .course-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-light);
+  }
+  .course-card-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ========== COURSE DETAIL ========== */
+  .course-hero {
+    background: linear-gradient(135deg, var(--dark) 0%, #2d3748 100%);
+    padding: 40px 32px;
+    margin: -28px -32px 28px;
+    color: #fff;
+  }
+  .course-hero-breadcrumb {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 16px;
+  }
+  .course-hero-breadcrumb a { color: var(--primary); text-decoration: none; }
+  .course-hero h1 {
+    font-size: 40px;
+    margin-bottom: 8px;
+  }
+  .course-hero-desc {
+    font-size: 15px;
+    color: rgba(255,255,255,0.7);
+    max-width: 640px;
+    margin-bottom: 20px;
+  }
+  .course-hero-stats {
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+  }
+  .course-hero-stats span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .course-hero-progress {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .course-hero-progress .progress-bar { flex: 1; max-width: 400px; height: 8px; background: rgba(255,255,255,0.15); }
+  .course-hero-progress .progress-bar-fill { background: var(--primary); }
+  .course-hero-progress .pct { font-weight: 600; font-size: 14px; color: var(--primary); }
+
+  .course-detail-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+  }
+
+  .module-accordion {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .module-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .module-header:hover { background: #fafafa; }
+  .module-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .module-title-area { flex: 1; }
+  .module-title { font-weight: 600; font-size: 15px; color: var(--dark); }
+  .module-meta { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+  .module-chevron {
+    color: var(--text-light);
+    font-size: 18px;
+    transition: transform 0.2s;
+  }
+  .module-accordion.open .module-chevron { transform: rotate(180deg); }
+
+  .module-lessons {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+  .module-accordion.open .module-lessons { display: block; }
+
+  .lesson-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px 12px 64px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .lesson-item:last-child { border-bottom: none; }
+  .lesson-item:hover { background: #f9fafb; }
+  .lesson-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .lesson-icon.text { background: rgba(118,184,224,0.15); color: var(--primary); }
+  .lesson-icon.video { background: rgba(220,38,38,0.1); color: var(--error); }
+  .lesson-icon.exam { background: rgba(190,155,96,0.15); color: var(--accent); }
+  .lesson-icon.pdf { background: rgba(22,163,74,0.1); color: var(--success); }
+  .lesson-title { flex: 1; font-size: 14px; color: var(--text); }
+  .lesson-duration { font-size: 12px; color: var(--text-light); }
+  .lesson-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .lesson-check.done {
+    background: var(--success);
+    border-color: var(--success);
+    color: #fff;
+  }
+
+  .course-sidebar-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .course-sidebar-card h4 {
+    font-size: 18px;
+    color: var(--dark);
+    margin-bottom: 12px;
+  }
+  .sidebar-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-info-row:last-child { border-bottom: none; }
+  .sidebar-info-label { color: var(--text-light); }
+  .sidebar-info-value { font-weight: 600; color: var(--text); }
+  .btn-continue {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 16px;
+    transition: background 0.15s;
+  }
+  .btn-continue:hover { background: var(--primary-dark); }
+
+  /* ========== LESSON VIEWER ========== */
+  .lesson-viewer {
+    max-width: 860px;
+  }
+  .lesson-viewer-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .lesson-back {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: var(--surface);
+    font-size: 16px;
+    transition: all 0.15s;
+  }
+  .lesson-back:hover { border-color: var(--primary); color: var(--primary); }
+  .lesson-viewer-crumb {
+    font-size: 12px;
+    color: var(--text-light);
+  }
+  .lesson-viewer-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark);
+  }
+  .lesson-content {
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 32px;
+  }
+  .lesson-content h2 {
+    font-size: 28px;
+    color: var(--dark);
+    margin-bottom: 16px;
+  }
+  .lesson-content p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .lesson-content .video-embed {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 10px;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .video-embed::after {
+    content: 'Video embebido de YouTube';
+    position: absolute;
+    bottom: 16px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+  }
+  .lesson-content .callout {
+    border-left: 4px solid var(--primary);
+    background: rgba(118,184,224,0.08);
+    padding: 16px 20px;
+    border-radius: 0 10px 10px 0;
+    margin: 20px 0;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .lesson-content .callout.tip { border-left-color: var(--accent); background: rgba(190,155,96,0.08); }
+  .lesson-content .callout strong { display: block; margin-bottom: 4px; }
+  .lesson-content .img-block {
+    width: 100%;
+    border-radius: 10px;
+    background: #e8e8e8;
+    height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    font-size: 14px;
+    margin: 20px 0;
+  }
+  .lesson-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .lesson-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+  }
+  .lesson-nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .lesson-nav-btn.next {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .lesson-nav-btn.next:hover { background: var(--primary-dark); }
+  .btn-mark-complete {
+    padding: 10px 24px;
+    border-radius: 10px;
+    background: var(--success);
+    color: #fff;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+  }
+
+  /* ========== EXAM VIEW ========== */
+  .exam-container { max-width: 740px; }
+  .exam-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .exam-title-area h2 { font-size: 24px; color: var(--dark); }
+  .exam-title-area p { font-size: 13px; color: var(--text-light); }
+  .exam-timer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--dark);
+  }
+  .exam-timer-icon { font-size: 20px; }
+  .exam-progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 24px;
+  }
+  .exam-progress-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 2px;
+    width: 40%;
+  }
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .question-number {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .question-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--dark);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .option-list { list-style: none; }
+  .option-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 14px;
+  }
+  .option-item:hover { border-color: var(--primary); background: rgba(118,184,224,0.04); }
+  .option-item.selected { border-color: var(--primary); background: rgba(118,184,224,0.08); }
+  .option-item.correct { border-color: var(--success); background: rgba(22,163,74,0.06); }
+  .option-item.incorrect { border-color: var(--error); background: rgba(220,38,38,0.04); }
+  .option-radio {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .option-item.selected .option-radio { border-color: var(--primary); }
+  .option-item.selected .option-radio::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--primary);
+  }
+  .option-item.correct .option-radio { border-color: var(--success); }
+  .option-item.correct .option-radio::after {
+    content: '✓';
+    color: var(--success);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  /* ========== ADMIN METRICS ========== */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .metric-chart-placeholder {
+    height: 200px;
+    background: linear-gradient(180deg, rgba(118,184,224,0.08) 0%, rgba(118,184,224,0.02) 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    padding: 0 16px 16px;
+  }
+  .chart-bar {
+    width: 32px;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.4s ease;
+  }
+  .employee-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .employee-table th {
+    text-align: left;
+    padding: 10px 12px;
+    background: #f9fafb;
+    color: var(--text-light);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .employee-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .employee-table tr:hover { background: #fafbfc; }
+  .employee-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mini-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .status-pill {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .status-pill.completado { background: rgba(22,163,74,0.1); color: var(--success); }
+  .status-pill.en-curso { background: rgba(118,184,224,0.15); color: var(--primary-dark); }
+  .status-pill.pendiente { background: rgba(245,158,11,0.1); color: var(--warning); }
+  .status-pill.vencido { background: rgba(220,38,38,0.08); color: var(--error); }
+
+  /* ========== MOBILE BOTTOM NAV ========== */
+  .mobile-nav {
+    display: none;
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 1024px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .courses-grid { grid-template-columns: repeat(2, 1fr); }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .course-detail-grid { grid-template-columns: 1fr; }
+    .metrics-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main-content { margin-left: 0; padding: 20px 16px 80px; }
+    .mobile-nav {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 8px 0;
+      justify-content: space-around;
+      z-index: 100;
+    }
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 10px;
+      color: var(--text-light);
+      cursor: pointer;
+      padding: 4px 12px;
+    }
+    .mobile-nav-item.active { color: var(--primary); }
+    .mobile-nav-item svg { width: 22px; height: 22px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .courses-grid { grid-template-columns: 1fr; }
+    .course-hero { padding: 24px 16px; margin: -20px -16px 20px; }
+    .course-hero h1 { font-size: 28px; }
+    .proto-nav { padding: 6px 10px; }
+    .proto-nav button { padding: 5px 10px; font-size: 11px; }
+  }
+
+  /* ========== CERTIFICATE PREVIEW ========== */
+  .certificate-preview {
+    background: #fff;
+    border: 3px solid var(--accent);
+    border-radius: 2px;
+    padding: 48px;
+    text-align: center;
+    position: relative;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .certificate-preview::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid var(--accent-light);
+    pointer-events: none;
+  }
+  .cert-logos {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+  }
+  .cert-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: var(--accent);
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+  }
+  .cert-subtitle {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 32px;
+  }
+  .cert-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: var(--dark);
+    margin-bottom: 8px;
+  }
+  .cert-course {
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 32px;
+  }
+  .cert-details {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 24px;
+  }
+  .cert-details strong { display: block; color: var(--text); font-size: 13px; }
+  .cert-code {
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--text-light);
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== PROTOTYPE NAV ===== -->
+<div class="proto-nav">
+  <span class="proto-nav-label">PROTOTIPO</span>
+  <button class="active" onclick="showScreen('login')">Login</button>
+  <button onclick="showScreen('dashboard')">Dashboard</button>
+  <button onclick="showScreen('catalog')">Cursos</button>
+  <button onclick="showScreen('course-detail')">Detalle Curso</button>
+  <button onclick="showScreen('lesson')">Leccion</button>
+  <button onclick="showScreen('exam')">Examen</button>
+  <button onclick="showScreen('metrics')">Metricas Admin</button>
+  <button onclick="showScreen('certificate')">Certificado</button>
+</div>
+
+<!-- ===== 1. LOGIN ===== -->
+<div id="screen-login" class="login-screen active">
+  <div class="login-container">
+    <div class="login-logos">
+      <span class="login-logo-aa">AMBIENTE AZUL</span>
+      <div class="login-logo-divider"></div>
+      <span class="login-logo-dom">DOM</span>
+    </div>
+    <div class="login-subtitle">Academia de Formacion</div>
+    <div class="login-card">
+      <h2>Bienvenido</h2>
+      <p>Ingresa con tus credenciales para continuar</p>
+      <div class="form-group">
+        <label>Correo electronico</label>
+        <input type="email" placeholder="tu@ambienteazul.com" />
+      </div>
+      <div class="form-group">
+        <label>Contrasena</label>
+        <input type="password" placeholder="••••••••" />
+      </div>
+      <div class="form-row">
+        <label><input type="checkbox" /> Recordarme</label>
+        <a href="#">Olvide mi contrasena</a>
+      </div>
+      <button class="btn-primary" onclick="showScreen('dashboard')">Iniciar Sesion</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 2. DASHBOARD ===== -->
+<div id="screen-dashboard" class="screen">
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-logos">
+          <span class="sidebar-aa">AMBIENTE AZUL</span>
+          <div class="sidebar-div"></div>
+          <span class="sidebar-dom">DOM</span>
+        </div>
+        <div class="sidebar-label">Academia</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Dashboard
+        </div>
+        <div class="sidebar-item" onclick="showScreen('catalog')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+          Mis Cursos
+          <span class="badge">3</span>
+        </div>
+        <div class="sidebar-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Mi Progreso
+        </div>
+        <div class="sidebar-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+          Certificados
+        </div>
+      </div>
+      <div class="sidebar-section-title">Administracion</div>
+      <div class="sidebar-section">
+        <div class="sidebar-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          Usuarios
+        </div>
+        <div class="sidebar-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          Gestionar Cursos
+        </div>
+        <div class="sidebar-item" onclick="showScreen('metrics')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Reportes
+        </div>
+        <div class="sidebar-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Configuracion
+        </div>
+        <div class="sidebar-item" style="color: var(--accent);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Asistente IA
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">IA</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Isabel Arango</div>
+          <div class="sidebar-user-role">Super Admin</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Buen dia, Isabel</h1>
+        <p>Tienes 2 cursos en progreso y 1 examen pendiente</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(118,184,224,0.12);">📚</div>
+          <div class="stat-value">3</div>
+          <div class="stat-label">Cursos asignados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(22,163,74,0.1);">✅</div>
+          <div class="stat-value">1</div>
+          <div class="stat-label">Completados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(190,155,96,0.12);">🏆</div>
+          <div class="stat-value">85%</div>
+          <div class="stat-label">Promedio examenes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(245,158,11,0.12);">⏳</div>
+          <div class="stat-value">12h</div>
+          <div class="stat-label">Tiempo invertido</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-header">
+            <h3>Cursos en Progreso</h3>
+            <a href="#" style="font-size:13px; color: var(--primary); text-decoration:none; font-weight:500;">Ver todos</a>
+          </div>
+          <div class="card-body">
+            <div class="course-progress-item">
+              <div class="course-progress-thumb" style="background: linear-gradient(135deg, #76B8E0, #5A9BC7);">🏊</div>
+              <div class="course-progress-info">
+                <div class="course-progress-title">Instalacion de Piscinas en Fibra de Vidrio</div>
+                <div class="course-progress-meta">8 de 12 lecciones &bull; Tecnico</div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar"><div class="progress-bar-fill blue" style="width:67%"></div></div>
+                  <span class="progress-pct">67%</span>
+                </div>
+              </div>
+            </div>
+            <div class="course-progress-item">
+              <div class="course-progress-thumb" style="background: linear-gradient(135deg, #BE9B60, #D4B87A);">🎨</div>
+              <div class="course-progress-info">
+                <div class="course-progress-title">Portafolio DOM Design — Enchapes y Mosaicos</div>
+                <div class="course-progress-meta">3 de 8 lecciones &bull; Producto</div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar"><div class="progress-bar-fill gold" style="width:38%"></div></div>
+                  <span class="progress-pct">38%</span>
+                </div>
+              </div>
+            </div>
+            <div class="course-progress-item">
+              <div class="course-progress-thumb" style="background: linear-gradient(135deg, #16A34A, #22c55e);">📋</div>
+              <div class="course-progress-info">
+                <div class="course-progress-title">Induccion General AA | DOM</div>
+                <div class="course-progress-meta">10 de 10 lecciones &bull; Induccion</div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar"><div class="progress-bar-fill green" style="width:100%"></div></div>
+                  <span class="progress-pct">100%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-header"><h3>Actividad Reciente</h3></div>
+            <div class="card-body">
+              <div class="activity-item">
+                <div class="activity-dot" style="background: var(--success);"></div>
+                <div>
+                  <div class="activity-text">Completaste <strong>Leccion 8: Sistemas de filtracion</strong></div>
+                  <div class="activity-time">Hace 2 horas</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot" style="background: var(--primary);"></div>
+                <div>
+                  <div class="activity-text">Obtuviste <strong>90%</strong> en el examen del Modulo 2</div>
+                  <div class="activity-time">Ayer, 3:45 PM</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot" style="background: var(--accent);"></div>
+                <div>
+                  <div class="activity-text">Certificado obtenido: <strong>Induccion General</strong></div>
+                  <div class="activity-time">8 Jun 2026</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot" style="background: var(--warning);"></div>
+                <div>
+                  <div class="activity-text">Nuevo curso asignado: <strong>Portafolio DOM</strong></div>
+                  <div class="activity-time">5 Jun 2026</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h3>Pendientes</h3></div>
+            <div class="card-body">
+              <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom: 1px solid var(--border);">
+                <span style="font-size:18px;">📝</span>
+                <div>
+                  <div style="font-size:13px; font-weight:500;">Examen Modulo 3: PVC</div>
+                  <div style="font-size:11px; color:var(--error);">Vence en 3 dias</div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; padding:8px 0;">
+                <span style="font-size:18px;">📖</span>
+                <div>
+                  <div style="font-size:13px; font-weight:500;">Leccion 9: Plomeria basica</div>
+                  <div style="font-size:11px; color:var(--text-light);">Siguiente leccion</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="mobile-nav">
+    <div class="mobile-nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Inicio
+    </div>
+    <div class="mobile-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      Cursos
+    </div>
+    <div class="mobile-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Progreso
+    </div>
+    <div class="mobile-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09"/></svg>
+      Mas
+    </div>
+  </div>
+</div>
+
+<!-- ===== 3. COURSE CATALOG ===== -->
+<div id="screen-catalog" class="screen">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-logos">
+          <span class="sidebar-aa">AMBIENTE AZUL</span>
+          <div class="sidebar-div"></div>
+          <span class="sidebar-dom">DOM</span>
+        </div>
+        <div class="sidebar-label">Academia</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-item" onclick="showScreen('dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Dashboard
+        </div>
+        <div class="sidebar-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+          Mis Cursos
+          <span class="badge">3</span>
+        </div>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">IA</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Isabel Arango</div>
+          <div class="sidebar-user-role">Super Admin</div>
+        </div>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Catalogo de Cursos</h1>
+        <p>Explora todos los programas de formacion disponibles</p>
+      </div>
+
+      <div class="catalog-filters">
+        <button class="filter-btn active">Todos</button>
+        <button class="filter-btn">Induccion</button>
+        <button class="filter-btn">Tecnico</button>
+        <button class="filter-btn">Producto</button>
+        <button class="filter-btn">Proceso</button>
+        <button class="filter-btn">Ambiente Azul</button>
+        <button class="filter-btn">DOM Design</button>
+      </div>
+
+      <div class="courses-grid">
+        <div class="course-card" onclick="showScreen('course-detail')">
+          <div class="course-card-img" style="background: linear-gradient(135deg, #76B8E0, #4A90B8);">
+            🏊
+            <span class="course-card-badge badge-obligatorio">Obligatorio</span>
+            <div class="course-card-progress"><div class="course-card-progress-fill" style="width:67%"></div></div>
+          </div>
+          <div class="course-card-body">
+            <div class="course-card-category">Tecnico &bull; Ambiente Azul</div>
+            <div class="course-card-title">Instalacion de Piscinas en Fibra de Vidrio</div>
+            <div class="course-card-desc">Proceso completo de instalacion: excavacion, nivelacion, plomeria, relleno y entrega. Incluye normativa colombiana.</div>
+            <div class="course-card-meta">
+              <span>📖 12 lecciones</span>
+              <span>⏱ 8 horas</span>
+              <span>67%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-card-img" style="background: linear-gradient(135deg, #BE9B60, #8B7340);">
+            🎨
+            <span class="course-card-badge badge-nuevo">Nuevo</span>
+            <div class="course-card-progress"><div class="course-card-progress-fill" style="width:38%"></div></div>
+          </div>
+          <div class="course-card-body">
+            <div class="course-card-category">Producto &bull; DOM Design</div>
+            <div class="course-card-title">Portafolio DOM Design — Enchapes y Mosaicos</div>
+            <div class="course-card-desc">Conoce nuestras marcas representadas: Rosa Gres, Ezarri, Ceramica Mayor, Ceramica Euro. Aplicaciones y argumentos de venta.</div>
+            <div class="course-card-meta">
+              <span>📖 8 lecciones</span>
+              <span>⏱ 5 horas</span>
+              <span>38%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-card-img" style="background: linear-gradient(135deg, #16A34A, #15803d);">
+            📋
+            <div class="course-card-progress"><div class="course-card-progress-fill" style="width:100%"></div></div>
+          </div>
+          <div class="course-card-body">
+            <div class="course-card-category">Induccion &bull; Ambas</div>
+            <div class="course-card-title">Induccion General AA | DOM</div>
+            <div class="course-card-desc">Historia, cultura, valores, estructura organizacional, reglamento interno y beneficios.</div>
+            <div class="course-card-meta">
+              <span>📖 10 lecciones</span>
+              <span>⏱ 4 horas</span>
+              <span style="color: var(--success); font-weight:600;">Completado</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-card-img" style="background: linear-gradient(135deg, #6366f1, #4338ca);">
+            🔧
+            <span class="course-card-badge badge-obligatorio">Obligatorio</span>
+          </div>
+          <div class="course-card-body">
+            <div class="course-card-category">Tecnico &bull; Ambiente Azul</div>
+            <div class="course-card-title">Mantenimiento de Spas Hot Spring</div>
+            <div class="course-card-desc">Diagnostico, mantenimiento preventivo y correctivo de spas Highlife, Limelight y HotSpot. Protocolos de servicio.</div>
+            <div class="course-card-meta">
+              <span>📖 15 lecciones</span>
+              <span>⏱ 10 horas</span>
+              <span>Sin iniciar</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-card-img" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+            🏗
+            <span class="course-card-badge badge-continua">Continua</span>
+          </div>
+          <div class="course-card-body">
+            <div class="course-card-category">Proceso &bull; Ambas</div>
+            <div class="course-card-title">Proceso Comercial y CRM</div>
+            <div class="course-card-desc">Flujo de venta, seguimiento de prospectos, manejo de cotizaciones y cierre de negocios.</div>
+            <div class="course-card-meta">
+              <span>📖 6 lecciones</span>
+              <span>⏱ 3 horas</span>
+              <span>Sin iniciar</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-card-img" style="background: linear-gradient(135deg, #ec4899, #be185d);">
+            ♨️
+          </div>
+          <div class="course-card-body">
+            <div class="course-card-category">Tecnico &bull; Ambiente Azul</div>
+            <div class="course-card-title">Saunas, Turcos y Cold Plunge</div>
+            <div class="course-card-desc">Instalacion y mantenimiento de sistemas de calor y frio. Normativa y especificaciones tecnicas.</div>
+            <div class="course-card-meta">
+              <span>📖 9 lecciones</span>
+              <span>⏱ 6 horas</span>
+              <span>Sin iniciar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <div class="mobile-nav">
+    <div class="mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio</div>
+    <div class="mobile-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>Cursos</div>
+    <div class="mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Progreso</div>
+    <div class="mobile-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Mas</div>
+  </div>
+</div>
+
+<!-- ===== 4. COURSE DETAIL ===== -->
+<div id="screen-course-detail" class="screen">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand"><div class="sidebar-brand-logos"><span class="sidebar-aa">AMBIENTE AZUL</span><div class="sidebar-div"></div><span class="sidebar-dom">DOM</span></div><div class="sidebar-label">Academia</div></div>
+      <div class="sidebar-user"><div class="sidebar-avatar">IA</div><div class="sidebar-user-info"><div class="sidebar-user-name">Isabel Arango</div><div class="sidebar-user-role">Super Admin</div></div></div>
+    </aside>
+    <main class="main-content">
+      <div class="course-hero">
+        <div class="course-hero-breadcrumb"><a href="#" onclick="showScreen('catalog');event.preventDefault();">Cursos</a> / Instalacion de Piscinas</div>
+        <h1>Instalacion de Piscinas en Fibra de Vidrio</h1>
+        <div class="course-hero-desc">Proceso completo de instalacion de piscinas desde la excavacion hasta la entrega al cliente. Incluye normativa colombiana NTC, sistemas de filtracion, plomeria y acabados.</div>
+        <div class="course-hero-stats">
+          <span>📖 4 modulos &bull; 12 lecciones</span>
+          <span>⏱ 8 horas estimadas</span>
+          <span>📝 3 examenes</span>
+          <span>🏢 Ambiente Azul</span>
+        </div>
+        <div class="course-hero-progress">
+          <div class="progress-bar"><div class="progress-bar-fill" style="width:67%; background: var(--primary);"></div></div>
+          <span class="pct">67% completado</span>
+        </div>
+      </div>
+
+      <div class="course-detail-grid">
+        <div>
+          <!-- Modulo 1 -->
+          <div class="module-accordion open">
+            <div class="module-header" onclick="this.parentElement.classList.toggle('open')">
+              <div class="module-number">1</div>
+              <div class="module-title-area">
+                <div class="module-title">Fundamentos y Planeacion</div>
+                <div class="module-meta">3 lecciones &bull; 2 horas &bull; Completado</div>
+              </div>
+              <div class="module-chevron">▼</div>
+            </div>
+            <div class="module-lessons">
+              <div class="lesson-item" onclick="showScreen('lesson')">
+                <div class="lesson-icon text">📄</div>
+                <span class="lesson-title">Tipos de piscinas y fibra de vidrio</span>
+                <span class="lesson-duration">20 min</span>
+                <div class="lesson-check done">✓</div>
+              </div>
+              <div class="lesson-item">
+                <div class="lesson-icon video">▶</div>
+                <span class="lesson-title">Video: Proceso de fabricacion</span>
+                <span class="lesson-duration">35 min</span>
+                <div class="lesson-check done">✓</div>
+              </div>
+              <div class="lesson-item">
+                <div class="lesson-icon pdf">📑</div>
+                <span class="lesson-title">Normativa NTC para piscinas residenciales</span>
+                <span class="lesson-duration">25 min</span>
+                <div class="lesson-check done">✓</div>
+              </div>
+              <div class="lesson-item">
+                <div class="lesson-icon exam">📝</div>
+                <span class="lesson-title">Examen Modulo 1</span>
+                <span class="lesson-duration">15 min</span>
+                <div class="lesson-check done">✓</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modulo 2 -->
+          <div class="module-accordion open">
+            <div class="module-header" onclick="this.parentElement.classList.toggle('open')">
+              <div class="module-number">2</div>
+              <div class="module-title-area">
+                <div class="module-title">Excavacion e Instalacion</div>
+                <div class="module-meta">4 lecciones &bull; 2.5 horas &bull; Completado</div>
+              </div>
+              <div class="module-chevron">▼</div>
+            </div>
+            <div class="module-lessons">
+              <div class="lesson-item">
+                <div class="lesson-icon text">📄</div>
+                <span class="lesson-title">Estudio de suelo y excavacion</span>
+                <span class="lesson-duration">30 min</span>
+                <div class="lesson-check done">✓</div>
+              </div>
+              <div class="lesson-item">
+                <div class="lesson-icon video">▶</div>
+                <span class="lesson-title">Video: Excavacion paso a paso</span>
+                <span class="lesson-duration">45 min</span>
+                <div class="lesson-check done">✓</div>
+              </div>
+              <div class="lesson-item">
+                <div class="lesson-icon text">📄</div>
+                <span class="lesson-title">Nivelacion y cama de arena</span>
+                <span class="lesson-duration">20 min</span>
+                <div class="lesson-check done">✓</div>
+              </div>
+              <div class="lesson-item">
+                <div class="lesson-icon text">📄</div>
+                <span class="lesson-title">Colocacion y alineacion del casco</span>
+                <span class="lesson-duration">25 min</span>
+                <div class="lesson-check done">✓</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modulo 3 -->
+          <div class="module-accordion">
+            <div class="module-header" onclick="this.parentElement.classList.toggle('open')">
+              <div class="module-number" style="background: var(--accent);">3</div>
+              <div class="module-title-area">
+                <div class="module-title">Sistemas Hidraulicos y PVC</div>
+                <div class="module-meta">3 lecciones &bull; 2 horas &bull; En progreso</div>
+              </div>
+              <div class="module-chevron">▼</div>
+            </div>
+            <div class="module-lessons">
+              <div class="lesson-item">
+                <div class="lesson-icon text">📄</div>
+                <span class="lesson-title">Sistemas de filtracion</span>
+                <span class="lesson-duration">30 min</span>
+                <div class="lesson-check done">✓</div>
+              </div>
+              <div class="lesson-item" style="background: rgba(118,184,224,0.04);">
+                <div class="lesson-icon text">📄</div>
+                <span class="lesson-title" style="font-weight:600; color: var(--primary);">Plomeria y tuberia PVC (Siguiente)</span>
+                <span class="lesson-duration">35 min</span>
+                <div class="lesson-check"></div>
+              </div>
+              <div class="lesson-item">
+                <div class="lesson-icon exam">📝</div>
+                <span class="lesson-title">Examen Modulo 3</span>
+                <span class="lesson-duration">20 min</span>
+                <div class="lesson-check"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modulo 4 -->
+          <div class="module-accordion">
+            <div class="module-header" onclick="this.parentElement.classList.toggle('open')">
+              <div class="module-number" style="background: #9ca3af;">4</div>
+              <div class="module-title-area">
+                <div class="module-title">Acabados y Entrega</div>
+                <div class="module-meta">2 lecciones &bull; 1.5 horas &bull; Bloqueado</div>
+              </div>
+              <div class="module-chevron">▼</div>
+            </div>
+            <div class="module-lessons">
+              <div class="lesson-item" style="opacity:0.5;">
+                <div class="lesson-icon text">📄</div>
+                <span class="lesson-title">Relleno, deck y entorno</span>
+                <span class="lesson-duration">40 min</span>
+                <div class="lesson-check">🔒</div>
+              </div>
+              <div class="lesson-item" style="opacity:0.5;">
+                <div class="lesson-icon video">▶</div>
+                <span class="lesson-title">Video: Entrega y capacitacion al cliente</span>
+                <span class="lesson-duration">30 min</span>
+                <div class="lesson-check">🔒</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="course-sidebar-card">
+            <h4>Informacion del Curso</h4>
+            <div class="sidebar-info-row"><span class="sidebar-info-label">Empresa</span><span class="sidebar-info-value">Ambiente Azul</span></div>
+            <div class="sidebar-info-row"><span class="sidebar-info-label">Categoria</span><span class="sidebar-info-value">Tecnico</span></div>
+            <div class="sidebar-info-row"><span class="sidebar-info-label">Duracion</span><span class="sidebar-info-value">8 horas</span></div>
+            <div class="sidebar-info-row"><span class="sidebar-info-label">Modulos</span><span class="sidebar-info-value">4</span></div>
+            <div class="sidebar-info-row"><span class="sidebar-info-label">Examenes</span><span class="sidebar-info-value">3</span></div>
+            <div class="sidebar-info-row"><span class="sidebar-info-label">Puntaje min.</span><span class="sidebar-info-value">70%</span></div>
+            <div class="sidebar-info-row"><span class="sidebar-info-label">Fecha limite</span><span class="sidebar-info-value" style="color: var(--error);">30 Jun 2026</span></div>
+            <button class="btn-continue" onclick="showScreen('lesson')">Continuar Leccion →</button>
+          </div>
+
+          <div class="course-sidebar-card">
+            <h4>Tu Rendimiento</h4>
+            <div class="sidebar-info-row"><span class="sidebar-info-label">Examen Mod. 1</span><span class="sidebar-info-value" style="color: var(--success);">92%</span></div>
+            <div class="sidebar-info-row"><span class="sidebar-info-label">Examen Mod. 2</span><span class="sidebar-info-value" style="color: var(--success);">88%</span></div>
+            <div class="sidebar-info-row"><span class="sidebar-info-label">Examen Mod. 3</span><span class="sidebar-info-value" style="color: var(--text-light);">Pendiente</span></div>
+            <div class="sidebar-info-row"><span class="sidebar-info-label">Promedio</span><span class="sidebar-info-value">90%</span></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ===== 5. LESSON VIEWER ===== -->
+<div id="screen-lesson" class="screen">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand"><div class="sidebar-brand-logos"><span class="sidebar-aa">AMBIENTE AZUL</span><div class="sidebar-div"></div><span class="sidebar-dom">DOM</span></div><div class="sidebar-label">Academia</div></div>
+      <div class="sidebar-user"><div class="sidebar-avatar">IA</div><div class="sidebar-user-info"><div class="sidebar-user-name">Isabel Arango</div><div class="sidebar-user-role">Super Admin</div></div></div>
+    </aside>
+    <main class="main-content">
+      <div class="lesson-viewer">
+        <div class="lesson-viewer-header">
+          <div class="lesson-back" onclick="showScreen('course-detail')">←</div>
+          <div>
+            <div class="lesson-viewer-crumb">Piscinas en Fibra &bull; Modulo 3: Sistemas Hidraulicos</div>
+            <div class="lesson-viewer-title">Leccion 9: Plomeria y Tuberia PVC</div>
+          </div>
+        </div>
+
+        <div class="lesson-content">
+          <h2>Plomeria y Tuberia PVC para Piscinas</h2>
+          <p>El sistema de plomeria es uno de los componentes mas criticos en la instalacion de una piscina. Un sistema bien instalado garantiza la correcta circulacion del agua, filtracion eficiente y durabilidad a largo plazo.</p>
+
+          <div class="callout">
+            <strong>Importante</strong>
+            Toda la tuberia utilizada debe ser PVC presion, segun la norma NTC 382. No se debe usar tuberia PVC sanitaria en sistemas de piscinas.
+          </div>
+
+          <p>En Ambiente Azul utilizamos un sistema de plomeria que incluye los siguientes circuitos principales:</p>
+
+          <div class="img-block">Imagen: Diagrama de circuitos hidraulicos de una piscina</div>
+
+          <h2>Circuitos Principales</h2>
+          <p><strong>1. Circuito de succion:</strong> Conecta los skimmers y el desague de fondo con la bomba. Es el encargado de llevar el agua desde la piscina hasta el equipo de filtracion.</p>
+          <p><strong>2. Circuito de retorno:</strong> Lleva el agua filtrada de vuelta a la piscina a traves de los jets de retorno. La cantidad de retornos depende del tamano de la piscina.</p>
+          <p><strong>3. Circuito de drenaje:</strong> Permite el vaciado total o parcial de la piscina. Debe incluir valvula de compuerta para control.</p>
+
+          <div class="video-embed">▶</div>
+
+          <p>Como viste en el video, la soldadura de PVC debe realizarse de manera limpia y rapida. Los pasos criticos son:</p>
+
+          <div class="callout tip">
+            <strong>Tip del tecnico</strong>
+            Siempre aplica limpiador antes de la soldadura. Un corte limpio y una union bien soldada previenen el 90% de las fugas futuras.
+          </div>
+        </div>
+
+        <div class="lesson-nav">
+          <button class="lesson-nav-btn">← Leccion anterior</button>
+          <button class="btn-mark-complete">✓ Marcar como completada</button>
+          <button class="lesson-nav-btn next" onclick="showScreen('exam')">Siguiente: Examen →</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ===== 6. EXAM VIEW ===== -->
+<div id="screen-exam" class="screen">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand"><div class="sidebar-brand-logos"><span class="sidebar-aa">AMBIENTE AZUL</span><div class="sidebar-div"></div><span class="sidebar-dom">DOM</span></div><div class="sidebar-label">Academia</div></div>
+      <div class="sidebar-user"><div class="sidebar-avatar">IA</div><div class="sidebar-user-info"><div class="sidebar-user-name">Isabel Arango</div><div class="sidebar-user-role">Super Admin</div></div></div>
+    </aside>
+    <main class="main-content">
+      <div class="exam-container">
+        <div class="exam-top-bar">
+          <div class="exam-title-area">
+            <h2>Examen — Modulo 3</h2>
+            <p>Sistemas Hidraulicos y PVC &bull; Pregunta 2 de 5 &bull; Intento 1 de 3</p>
+          </div>
+          <div class="exam-timer">
+            <span class="exam-timer-icon">⏱</span>
+            14:32
+          </div>
+        </div>
+
+        <div class="exam-progress-bar"><div class="exam-progress-fill"></div></div>
+
+        <div class="question-card">
+          <div class="question-number">Pregunta 2 de 5 &bull; 2 puntos</div>
+          <div class="question-text">Segun la normativa colombiana NTC, ¿que tipo de tuberia PVC se debe utilizar en los sistemas de plomeria de piscinas?</div>
+          <ul class="option-list">
+            <li class="option-item" onclick="selectOption(this)">
+              <div class="option-radio"></div>
+              PVC sanitaria de alta resistencia
+            </li>
+            <li class="option-item selected" onclick="selectOption(this)">
+              <div class="option-radio"></div>
+              PVC presion, segun norma NTC 382
+            </li>
+            <li class="option-item" onclick="selectOption(this)">
+              <div class="option-radio"></div>
+              Tuberia PVC corrugada para drenaje
+            </li>
+            <li class="option-item" onclick="selectOption(this)">
+              <div class="option-radio"></div>
+              Cualquier tipo de PVC con certificacion
+            </li>
+          </ul>
+        </div>
+
+        <div class="question-card">
+          <div class="question-number">Pregunta 3 de 5 &bull; 2 puntos</div>
+          <div class="question-text">¿Cual es el paso mas importante antes de aplicar soldadura PVC en las uniones de tuberia?</div>
+          <ul class="option-list">
+            <li class="option-item" onclick="selectOption(this)">
+              <div class="option-radio"></div>
+              Calentar la tuberia con soplete
+            </li>
+            <li class="option-item" onclick="selectOption(this)">
+              <div class="option-radio"></div>
+              Aplicar limpiador PVC en ambas superficies
+            </li>
+            <li class="option-item" onclick="selectOption(this)">
+              <div class="option-radio"></div>
+              Lijar la superficie exterior
+            </li>
+            <li class="option-item" onclick="selectOption(this)">
+              <div class="option-radio"></div>
+              Sumergir la pieza en agua
+            </li>
+          </ul>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 24px;">
+          <button class="lesson-nav-btn">← Anterior</button>
+          <button class="lesson-nav-btn next">Siguiente →</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ===== 7. ADMIN METRICS ===== -->
+<div id="screen-metrics" class="screen">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand"><div class="sidebar-brand-logos"><span class="sidebar-aa">AMBIENTE AZUL</span><div class="sidebar-div"></div><span class="sidebar-dom">DOM</span></div><div class="sidebar-label">Academia</div></div>
+      <div class="sidebar-section">
+        <div class="sidebar-item" onclick="showScreen('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Dashboard</div>
+        <div class="sidebar-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Reportes</div>
+      </div>
+      <div class="sidebar-user"><div class="sidebar-avatar">IA</div><div class="sidebar-user-info"><div class="sidebar-user-name">Isabel Arango</div><div class="sidebar-user-role">Super Admin</div></div></div>
+    </aside>
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Reportes y Metricas</h1>
+        <p>Vision global del progreso de formacion de todos los equipos</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(118,184,224,0.12);">👥</div>
+          <div class="stat-value">43</div>
+          <div class="stat-label">Usuarios activos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(22,163,74,0.1);">📊</div>
+          <div class="stat-value">72%</div>
+          <div class="stat-label">Tasa de finalizacion</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(190,155,96,0.12);">🎯</div>
+          <div class="stat-value">81%</div>
+          <div class="stat-label">Promedio examenes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(220,38,38,0.1);">⚠️</div>
+          <div class="stat-value">5</div>
+          <div class="stat-label">Cursos vencidos</div>
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="card">
+          <div class="card-header"><h3>Progreso por Area</h3></div>
+          <div class="card-body">
+            <div class="metric-chart-placeholder">
+              <div style="text-align:center"><div class="chart-bar" style="height:140px; background: var(--primary);"></div><div style="font-size:11px; color: var(--text-light); margin-top:6px;">Tecnico<br><strong>85%</strong></div></div>
+              <div style="text-align:center"><div class="chart-bar" style="height:110px; background: var(--accent);"></div><div style="font-size:11px; color: var(--text-light); margin-top:6px;">Comercial<br><strong>68%</strong></div></div>
+              <div style="text-align:center"><div class="chart-bar" style="height:90px; background: var(--primary); opacity: 0.7;"></div><div style="font-size:11px; color: var(--text-light); margin-top:6px;">Admin<br><strong>55%</strong></div></div>
+              <div style="text-align:center"><div class="chart-bar" style="height:130px; background: var(--success);"></div><div style="font-size:11px; color: var(--text-light); margin-top:6px;">Bodega<br><strong>80%</strong></div></div>
+              <div style="text-align:center"><div class="chart-bar" style="height:70px; background: var(--warning);"></div><div style="font-size:11px; color: var(--text-light); margin-top:6px;">Externos<br><strong>42%</strong></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>Cursos Mas Completados</h3></div>
+          <div class="card-body">
+            <div style="margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;"><span>Induccion General</span><strong>95%</strong></div>
+              <div class="progress-bar"><div class="progress-bar-fill green" style="width:95%"></div></div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;"><span>Piscinas Fibra de Vidrio</span><strong>72%</strong></div>
+              <div class="progress-bar"><div class="progress-bar-fill blue" style="width:72%"></div></div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;"><span>Portafolio DOM</span><strong>58%</strong></div>
+              <div class="progress-bar"><div class="progress-bar-fill gold" style="width:58%"></div></div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;"><span>Mantenimiento Spas</span><strong>35%</strong></div>
+              <div class="progress-bar"><div class="progress-bar-fill blue" style="width:35%"></div></div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;"><span>Proceso Comercial</span><strong>22%</strong></div>
+              <div class="progress-bar"><div class="progress-bar-fill blue" style="width:22%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="grid-column: span 2;">
+          <div class="card-header">
+            <h3>Progreso por Empleado</h3>
+            <div style="display:flex; gap:8px;">
+              <select style="padding:6px 12px; border: 1px solid var(--border); border-radius:6px; font-size:12px; font-family:'Inter',sans-serif;">
+                <option>Todas las areas</option>
+                <option>Tecnico</option>
+                <option>Comercial</option>
+                <option>Administrativo</option>
+              </select>
+              <button style="padding:6px 16px; background: var(--primary); color:#fff; border:none; border-radius:6px; font-size:12px; cursor:pointer; font-family:'Inter',sans-serif;">Exportar Excel</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <table class="employee-table">
+              <thead>
+                <tr>
+                  <th>Empleado</th>
+                  <th>Area</th>
+                  <th>Empresa</th>
+                  <th>Cursos</th>
+                  <th>Promedio</th>
+                  <th>Estado</th>
+                  <th>Ultimo acceso</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="employee-name-cell"><div class="mini-avatar" style="background: var(--primary);">CA</div><div><strong>Carlos Alvarez</strong><br><span style="font-size:11px; color:var(--text-light)">carlos@ambienteazul.com</span></div></div></td>
+                  <td>Tecnico</td>
+                  <td>AA</td>
+                  <td>3/3</td>
+                  <td><strong style="color: var(--success);">92%</strong></td>
+                  <td><span class="status-pill completado">Completado</span></td>
+                  <td>Hoy</td>
+                </tr>
+                <tr>
+                  <td><div class="employee-name-cell"><div class="mini-avatar" style="background: var(--accent);">MR</div><div><strong>Maria Restrepo</strong><br><span style="font-size:11px; color:var(--text-light)">maria@domdesign.co</span></div></div></td>
+                  <td>Comercial</td>
+                  <td>DOM</td>
+                  <td>2/3</td>
+                  <td><strong>78%</strong></td>
+                  <td><span class="status-pill en-curso">En curso</span></td>
+                  <td>Ayer</td>
+                </tr>
+                <tr>
+                  <td><div class="employee-name-cell"><div class="mini-avatar" style="background: #6366f1;">JP</div><div><strong>Juan Pablo Mesa</strong><br><span style="font-size:11px; color:var(--text-light)">juan@ambienteazul.com</span></div></div></td>
+                  <td>Tecnico</td>
+                  <td>AA</td>
+                  <td>2/3</td>
+                  <td><strong>85%</strong></td>
+                  <td><span class="status-pill en-curso">En curso</span></td>
+                  <td>Hoy</td>
+                </tr>
+                <tr>
+                  <td><div class="employee-name-cell"><div class="mini-avatar" style="background: #ec4899;">LV</div><div><strong>Laura Velez</strong><br><span style="font-size:11px; color:var(--text-light)">laura@domdesign.co</span></div></div></td>
+                  <td>Admin</td>
+                  <td>DOM</td>
+                  <td>1/2</td>
+                  <td><strong>70%</strong></td>
+                  <td><span class="status-pill pendiente">Pendiente</span></td>
+                  <td>8 Jun</td>
+                </tr>
+                <tr>
+                  <td><div class="employee-name-cell"><div class="mini-avatar" style="background: var(--error);">DG</div><div><strong>Diego Gomez</strong><br><span style="font-size:11px; color:var(--text-light)">diego@ambienteazul.com</span></div></div></td>
+                  <td>Bodega</td>
+                  <td>AA</td>
+                  <td>0/2</td>
+                  <td><strong style="color: var(--text-light);">—</strong></td>
+                  <td><span class="status-pill vencido">Vencido</span></td>
+                  <td>28 May</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ===== 8. CERTIFICATE ===== -->
+<div id="screen-certificate" class="screen">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand"><div class="sidebar-brand-logos"><span class="sidebar-aa">AMBIENTE AZUL</span><div class="sidebar-div"></div><span class="sidebar-dom">DOM</span></div><div class="sidebar-label">Academia</div></div>
+      <div class="sidebar-user"><div class="sidebar-avatar">IA</div><div class="sidebar-user-info"><div class="sidebar-user-name">Isabel Arango</div><div class="sidebar-user-role">Super Admin</div></div></div>
+    </aside>
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Certificado de Finalizacion</h1>
+        <p>Vista previa del certificado generado automaticamente</p>
+      </div>
+
+      <div class="certificate-preview">
+        <div class="cert-logos">
+          <span style="color: var(--primary);">AMBIENTE AZUL</span>
+          <span style="color: var(--border);">|</span>
+          <span style="color: var(--accent);">DOM</span>
+        </div>
+        <div class="cert-title">CERTIFICADO DE FORMACION</div>
+        <div class="cert-subtitle">La Academia AA | DOM certifica que</div>
+        <div class="cert-name">ISABEL ARANGO</div>
+        <div class="cert-course">
+          Ha completado satisfactoriamente el programa de formacion<br>
+          <strong style="font-size:18px;">"Induccion General AA | DOM"</strong>
+        </div>
+        <div class="cert-details">
+          <div>Puntaje<br><strong style="color: var(--success);">92%</strong></div>
+          <div>Duracion<br><strong>4 horas</strong></div>
+          <div>Fecha<br><strong>8 Jun 2026</strong></div>
+        </div>
+        <div class="cert-code">CERT-2026-AA-00142</div>
+      </div>
+
+      <div style="text-align:center; margin-top:24px;">
+        <button class="btn-primary" style="width:auto; padding: 12px 32px; display:inline-flex; align-items:center; gap:8px;">
+          📥 Descargar PDF
+        </button>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  function showScreen(name) {
+    document.querySelectorAll('.screen, .login-screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    document.querySelectorAll('.proto-nav button').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function selectOption(el) {
+    const list = el.closest('.option-list');
+    list.querySelectorAll('.option-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.closest('.catalog-filters').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

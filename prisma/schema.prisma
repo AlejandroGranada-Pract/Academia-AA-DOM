@@ -1,0 +1,216 @@
+// Academia AA | DOM — Esquema de base de datos
+// Stack: Prisma 7 (generador prisma-client) + PostgreSQL + driver adapter (@prisma/adapter-pg)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  // La URL de conexión vive en prisma.config.ts (Prisma 7 ya no la acepta aquí).
+}
+
+// ===================== ENUMS =====================
+
+enum Role {
+  SUPER_ADMIN // Isa / TI: gestión total
+  AREA_LEADER // Líderes: ve métricas de su equipo, asigna cursos
+  EMPLOYEE    // Empleados: ve cursos asignados, avanza
+  EXTERNAL    // Técnicos externos: acceso limitado
+}
+
+enum Company {
+  AMBIENTE_AZUL
+  DOM_DESIGN
+  AMBAS
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CourseCategory {
+  INDUCCION          // Inducción general (todos)
+  CAPACITACION_AREA  // Capacitación inicial por área
+  FORMACION_CONTINUA // Formación continua / actualizaciones
+  TECNICO            // Capacitaciones técnicas especializadas
+  PRODUCTO           // Conocimiento de producto
+  PROCESO            // Procesos internos
+}
+
+enum LessonType {
+  TEXT  // Texto con formato (Markdown o HTML)
+  VIDEO // Video embebido (YouTube/Drive)
+  IMAGE // Imagen con descripción
+  PDF   // PDF embebido o descargable
+  MIXED // Combinación de contenido
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE // Una respuesta correcta
+  MULTI_SELECT    // Varias respuestas correctas
+  TRUE_FALSE      // Verdadero/Falso
+  FILL_BLANK      // Completar espacio
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+// ===================== MODELOS =====================
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(EMPLOYEE)
+  company      Company
+  area         String? // Comercial, Técnico, Administrativo, Bodega, etc.
+  avatar       String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assignments  CourseAssignment[]
+  progress     UserProgress[]
+  examAttempts ExamAttempt[]
+  certificates Certificate[]
+}
+
+model Course {
+  id             String         @id @default(cuid())
+  title          String
+  description    String
+  thumbnail      String? // URL de imagen
+  category       CourseCategory
+  company        Company // Para cuál empresa aplica
+  status         CourseStatus   @default(DRAFT)
+  requiredAreas  String[] // Áreas que deben completarlo (vacío = opcional)
+  dueDate        DateTime? // Fecha límite (null = sin límite)
+  estimatedHours Float? // Duración estimada
+  passingScore   Int            @default(70) // % mínimo para aprobar
+  createdBy      String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  modules      Module[]
+  assignments  CourseAssignment[]
+  certificates Certificate[]
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  order       Int // Orden dentro del curso
+  createdAt   DateTime @default(now())
+
+  lessons Lesson[]
+  exams   Exam[]
+}
+
+model Lesson {
+  id          String     @id @default(cuid())
+  moduleId    String
+  module      Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title       String
+  type        LessonType
+  content     Json // Estructura flexible según tipo (ver spec sección 6)
+  order       Int
+  durationMin Int? // Duración estimada en minutos
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  progress UserProgress[]
+}
+
+model Exam {
+  id               String   @id @default(cuid())
+  moduleId         String?
+  module           Module?  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  passingScore     Int      @default(70) // % mínimo
+  maxAttempts      Int      @default(3) // Intentos permitidos
+  timeLimitMin     Int? // Tiempo límite en minutos (null = sin límite)
+  shuffleQuestions Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  questions ExamQuestion[]
+  attempts  ExamAttempt[]
+}
+
+model ExamQuestion {
+  id            String       @id @default(cuid())
+  examId        String
+  exam          Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question      String
+  type          QuestionType
+  options       Json // ["opcion1", "opcion2", ...] o null para FILL_BLANK
+  correctAnswer Json // índice(s) correctos o texto esperado
+  points        Int          @default(1)
+  explanation   String? // Explicación mostrada al revisar
+  order         Int
+}
+
+model CourseAssignment {
+  id         String    @id @default(cuid())
+  courseId   String
+  course     Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy String
+  assignedAt DateTime  @default(now())
+  dueDate    DateTime?
+
+  @@unique([courseId, userId])
+}
+
+model UserProgress {
+  id           String         @id @default(cuid())
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId     String
+  lesson       Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  status       ProgressStatus @default(NOT_STARTED)
+  timeSpentSec Int            @default(0) // Tiempo real en la lección
+  startedAt    DateTime?
+  completedAt  DateTime?
+
+  @@unique([userId, lessonId])
+}
+
+model ExamAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId      String
+  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  score       Float // Porcentaje obtenido
+  answers     Json // {questionId: respuesta_dada, ...}
+  passed      Boolean
+  startedAt   DateTime
+  completedAt DateTime
+
+  @@index([userId, examId])
+}
+
+model Certificate {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  issuedAt DateTime @default(now())
+  code     String   @unique // Código verificable (ej: CERT-2026-XXXXX)
+
+  @@unique([userId, courseId])
+}
