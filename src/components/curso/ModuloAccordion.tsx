@@ -22,24 +22,21 @@ import {
 
 type LessonType = "TEXT" | "VIDEO" | "IMAGE" | "PDF" | "MIXED";
 
-type LessonLite = {
-  id: string;
-  title: string;
-  type: LessonType;
-  durationMin: number | null;
-};
-
-type ExamLite = {
-  id: string;
-  title: string;
-  passed: boolean;
-};
+// Ítem de la secuencia del módulo: lección o examen, ya en orden.
+export type ItemLite =
+  | {
+      kind: "lesson";
+      id: string;
+      title: string;
+      type: LessonType;
+      durationMin: number | null;
+    }
+  | { kind: "exam"; id: string; title: string };
 
 type ModuleLite = {
   id: string;
   title: string;
-  lessons: LessonLite[];
-  exam?: ExamLite | null;
+  items: ItemLite[];
 };
 
 const LESSON_ICON: Record<LessonType, { icon: LucideIcon; className: string }> =
@@ -54,18 +51,18 @@ const LESSON_ICON: Record<LessonType, { icon: LucideIcon; className: string }> =
 export function ModuloAccordion({
   courseId,
   modules,
-  completedLessonIds = [],
-  unlockedLessonIds = [],
+  doneIds = [],
+  unlockedIds = [],
   openModuleId,
 }: {
   courseId: string;
   modules: ModuleLite[];
-  completedLessonIds?: string[];
-  unlockedLessonIds?: string[];
+  doneIds?: string[]; // lecciones completadas + exámenes aprobados
+  unlockedIds?: string[];
   openModuleId?: string;
 }) {
-  const completed = new Set(completedLessonIds);
-  const unlocked = new Set(unlockedLessonIds);
+  const done = new Set(doneIds);
+  const unlocked = new Set(unlockedIds);
   const defaultOpen = openModuleId ?? modules[0]?.id;
 
   // Al volver de completar una lección (#continuar), hace scroll al módulo
@@ -84,9 +81,9 @@ export function ModuloAccordion({
       className="flex flex-col gap-3"
     >
       {modules.map((m, i) => {
-        const doneInModule = m.lessons.filter((l) => completed.has(l.id)).length;
-        const allLessonsDone =
-          m.lessons.length > 0 && doneInModule === m.lessons.length;
+        const doneInModule = m.items.filter((it) => done.has(it.id)).length;
+        const moduleComplete =
+          m.items.length > 0 && doneInModule === m.items.length;
         return (
           <AccordionItem
             key={m.id}
@@ -96,16 +93,23 @@ export function ModuloAccordion({
           >
             <AccordionTrigger className="items-center px-5 py-4 hover:no-underline">
               <span className="flex items-center gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-white">
-                  {i + 1}
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white ${
+                    moduleComplete ? "bg-gold" : "bg-primary"
+                  }`}
+                >
+                  {moduleComplete ? "✓" : i + 1}
                 </span>
                 <span>
                   <span className="block font-semibold text-foreground">
                     {m.title}
                   </span>
-                  <span className="block text-xs text-muted-foreground">
-                    {doneInModule}/{m.lessons.length}{" "}
-                    {m.lessons.length === 1 ? "lección" : "lecciones"}
+                  <span
+                    className={`block text-xs ${
+                      moduleComplete ? "font-medium text-gold" : "text-muted-foreground"
+                    }`}
+                  >
+                    {doneInModule}/{m.items.length} completados
                   </span>
                 </span>
               </span>
@@ -113,16 +117,20 @@ export function ModuloAccordion({
 
             <AccordionContent className="px-0 [&_a]:no-underline">
               <div className="border-t">
-                {m.lessons.map((l) => {
-                  const { icon: Icon, className } = LESSON_ICON[l.type];
-                  const isDone = completed.has(l.id);
-                  const isUnlocked = unlocked.has(l.id);
+                {m.items.map((it) => {
+                  const isDone = done.has(it.id);
+                  const isUnlocked = unlocked.has(it.id);
+                  const isExam = it.kind === "exam";
+                  const iconMeta = isExam
+                    ? { icon: ClipboardCheck, className: "bg-gold/15 text-gold" }
+                    : LESSON_ICON[it.type];
+                  const Icon = iconMeta.icon;
 
                   const inner = (
                     <>
                       <span
                         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
-                          isUnlocked ? className : "bg-muted text-muted-foreground"
+                          isUnlocked ? iconMeta.className : "bg-muted text-muted-foreground"
                         }`}
                       >
                         {isUnlocked ? (
@@ -134,16 +142,28 @@ export function ModuloAccordion({
                       <span
                         className={`flex-1 text-sm ${
                           isUnlocked
-                            ? "text-foreground"
+                            ? isExam
+                              ? "font-medium text-foreground"
+                              : "text-foreground"
                             : "text-muted-foreground"
                         }`}
                       >
-                        {l.title}
+                        {it.title}
                       </span>
-                      {l.durationMin != null && (
-                        <span className="text-xs text-muted-foreground">
-                          {l.durationMin} min
+                      {isExam ? (
+                        <span
+                          className={`text-xs font-semibold uppercase tracking-wide ${
+                            isUnlocked ? "text-gold" : "text-muted-foreground"
+                          }`}
+                        >
+                          Examen
                         </span>
+                      ) : (
+                        it.durationMin != null && (
+                          <span className="text-xs text-muted-foreground">
+                            {it.durationMin} min
+                          </span>
+                        )
                       )}
                       {isDone ? (
                         <CheckCircle2 className="h-5 w-5 text-success" />
@@ -155,64 +175,28 @@ export function ModuloAccordion({
                     </>
                   );
 
+                  const href = isExam
+                    ? `/examenes/${it.id}`
+                    : `/cursos/${courseId}/leccion/${it.id}`;
+
                   return isUnlocked ? (
                     <Link
-                      key={l.id}
-                      href={`/cursos/${courseId}/leccion/${l.id}`}
+                      key={`${it.kind}-${it.id}`}
+                      href={href}
                       className="flex items-center gap-3 border-b px-5 py-3 pl-6 transition-colors last:border-b-0 hover:bg-muted/50"
                     >
                       {inner}
                     </Link>
                   ) : (
                     <div
-                      key={l.id}
+                      key={`${it.kind}-${it.id}`}
                       className="flex cursor-not-allowed items-center gap-3 border-b px-5 py-3 pl-6 opacity-70 last:border-b-0"
-                      title="Completa la lección anterior para desbloquear"
+                      title="Completa lo anterior para desbloquear"
                     >
                       {inner}
                     </div>
                   );
                 })}
-
-                {/* Examen del módulo (se desbloquea al terminar las lecciones) */}
-                {m.exam &&
-                  (allLessonsDone ? (
-                    <Link
-                      href={`/examenes/${m.exam.id}`}
-                      className="flex items-center gap-3 border-b px-5 py-3 pl-6 transition-colors last:border-b-0 hover:bg-muted/50"
-                    >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gold/15 text-gold">
-                        <ClipboardCheck className="h-4 w-4" />
-                      </span>
-                      <span className="flex-1 text-sm font-medium text-foreground">
-                        {m.exam.title}
-                      </span>
-                      <span className="text-xs font-semibold uppercase tracking-wide text-gold">
-                        Examen
-                      </span>
-                      {m.exam.passed ? (
-                        <CheckCircle2 className="h-5 w-5 text-success" />
-                      ) : (
-                        <Circle className="h-4 w-4 text-border" />
-                      )}
-                    </Link>
-                  ) : (
-                    <div
-                      className="flex cursor-not-allowed items-center gap-3 border-b px-5 py-3 pl-6 opacity-70 last:border-b-0"
-                      title="Completa las lecciones del módulo para desbloquear el examen"
-                    >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                        <Lock className="h-4 w-4" />
-                      </span>
-                      <span className="flex-1 text-sm text-muted-foreground">
-                        {m.exam.title}
-                      </span>
-                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Examen
-                      </span>
-                      <Lock className="h-3.5 w-3.5 text-muted-foreground/60" />
-                    </div>
-                  ))}
               </div>
             </AccordionContent>
           </AccordionItem>

@@ -133,9 +133,19 @@ export function NuevoUsuarioDialog({
               </p>
             )}
 
-            <Button type="submit" disabled={pending} className="w-full">
-              {pending ? "Creando..." : "Crear usuario"}
-            </Button>
+            <div className="flex gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={pending} className="flex-1">
+                {pending ? "Creando..." : "Crear usuario"}
+              </Button>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

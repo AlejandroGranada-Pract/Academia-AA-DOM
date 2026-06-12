@@ -323,9 +323,19 @@ function EditarForm({
           {error}
         </p>
       )}
-      <Button type="submit" disabled={pending} className="w-full">
-        {pending ? "Guardando..." : "Guardar cambios"}
-      </Button>
+      <div className="flex gap-2 pt-1">
+        <Button
+          type="button"
+          variant="outline"
+          className="flex-1"
+          onClick={onDone}
+        >
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={pending} className="flex-1">
+          {pending ? "Guardando..." : "Guardar cambios"}
+        </Button>
+      </div>
     </form>
   );
 }

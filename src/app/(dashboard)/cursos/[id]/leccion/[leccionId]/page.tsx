@@ -3,7 +3,12 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { getCompletedLessonIds } from "@/lib/progress";
+import {
+  getCompletedLessonIds,
+  getPassedExamIds,
+  buildCourseItems,
+  computeUnlockedIds,
+} from "@/lib/progress";
 import { LeccionViewer } from "@/components/curso/LeccionViewer";
 import { LeccionActions } from "@/components/curso/LeccionActions";
 import { LeccionGate } from "@/components/curso/LeccionGate";
@@ -18,35 +23,42 @@ export default async function LeccionPage({
     include: {
       modules: {
         orderBy: { order: "asc" },
-        include: { lessons: { orderBy: { order: "asc" } } },
+        include: {
+          lessons: { orderBy: { order: "asc" } },
+          exams: { select: { id: true, order: true } },
+        },
       },
     },
   });
   if (!course) notFound();
 
-  // Lista plana de lecciones en orden, para anterior/siguiente y bloqueo.
   const flat = course.modules.flatMap((m) =>
     m.lessons.map((l) => ({ ...l, moduleTitle: m.title })),
   );
-  const idx = flat.findIndex((l) => l.id === params.leccionId);
-  if (idx === -1) notFound();
+  const lesson = flat.find((l) => l.id === params.leccionId);
+  if (!lesson) notFound();
 
   const session = await auth();
   const userId = session?.user?.id;
   const completedIds = userId
     ? await getCompletedLessonIds(userId)
     : new Set<string>();
+  const passedExamIds = userId
+    ? await getPassedExamIds(userId)
+    : new Set<string>();
 
-  // Frontera de avance: primera lección sin completar (todo lo anterior está abierto).
-  const firstIncomplete = flat.findIndex((l) => !completedIds.has(l.id));
-  const frontier = firstIncomplete === -1 ? flat.length - 1 : firstIncomplete;
-
-  // Bloqueo secuencial: si intenta entrar a una lección más allá de la frontera, redirige.
-  if (idx > frontier) {
+  // Bloqueo secuencial sobre la secuencia mezclada (lecciones + exámenes):
+  // si la lección no está desbloqueada, vuelve al curso.
+  const items = buildCourseItems(course.modules);
+  const doneIds = new Set<string>([
+    ...Array.from(completedIds),
+    ...Array.from(passedExamIds),
+  ]);
+  const unlockedIds = computeUnlockedIds(items, doneIds);
+  if (!unlockedIds.has(lesson.id)) {
     redirect(`/cursos/${course.id}`);
   }
 
-  const lesson = flat[idx];
   const completed = completedIds.has(lesson.id);
 
   return (

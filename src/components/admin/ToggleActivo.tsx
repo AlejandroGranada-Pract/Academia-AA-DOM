@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { toggleUserActive } from "@/lib/actions/usuarios";
+import { Switch } from "@/components/ui/switch";
 
 export function ToggleActivo({
   userId,
@@ -13,22 +14,24 @@ export function ToggleActivo({
   const [pending, startTransition] = useTransition();
 
   return (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={() =>
-        startTransition(() => {
-          void toggleUserActive(userId, !active);
-        })
-      }
-      className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-50 ${
-        active
-          ? "bg-success/15 text-success"
-          : "bg-muted text-muted-foreground"
-      }`}
-      title={active ? "Clic para desactivar" : "Clic para activar"}
-    >
-      {active ? "Activo" : "Inactivo"}
-    </button>
+    <span className="flex items-center gap-1.5">
+      <Switch
+        checked={active}
+        disabled={pending}
+        onCheckedChange={(v) =>
+          startTransition(() => {
+            void toggleUserActive(userId, v);
+          })
+        }
+        title={active ? "Desactivar usuario" : "Activar usuario"}
+      />
+      <span
+        className={`text-[11px] font-semibold ${
+          active ? "text-success" : "text-muted-foreground"
+        }`}
+      >
+        {active ? "Activo" : "Inactivo"}
+      </span>
+    </span>
   );
 }

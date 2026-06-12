@@ -3,7 +3,12 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { getCompletedLessonIds } from "@/lib/progress";
+import {
+  getCompletedLessonIds,
+  getPassedExamIds,
+  buildCourseItems,
+  computeUnlockedIds,
+} from "@/lib/progress";
 import { ExamenTomar } from "@/components/examen/ExamenTomar";
 import type { PreguntaLite } from "@/components/examen/PreguntaCard";
 import { buttonVariants } from "@/components/ui/button";
@@ -22,12 +27,7 @@ export default async function ExamenPage({
         orderBy: { order: "asc" },
         select: { id: true, question: true, type: true, options: true },
       },
-      module: {
-        include: {
-          course: { select: { id: true, title: true } },
-          lessons: { select: { id: true } },
-        },
-      },
+      module: { include: { course: { select: { id: true, title: true } } } },
     },
   });
   if (!exam) notFound();
@@ -38,13 +38,30 @@ export default async function ExamenPage({
   const session = await auth();
   const userId = session?.user?.id;
 
-  // Bloqueo: hay que terminar las lecciones del módulo para entrar al examen.
-  if (exam.module) {
+  // Bloqueo secuencial: el examen se desbloquea cuando todos los ítems
+  // anteriores de la secuencia del curso están hechos.
+  if (courseId) {
+    const courseModules = await prisma.module.findMany({
+      where: { courseId },
+      orderBy: { order: "asc" },
+      include: {
+        lessons: { select: { id: true, order: true } },
+        exams: { select: { id: true, order: true } },
+      },
+    });
     const completedIds = userId
       ? await getCompletedLessonIds(userId)
       : new Set<string>();
-    const allDone = exam.module.lessons.every((l) => completedIds.has(l.id));
-    if (!allDone) redirect(courseHref);
+    const passedExamIds = userId
+      ? await getPassedExamIds(userId)
+      : new Set<string>();
+    const items = buildCourseItems(courseModules);
+    const doneIds = new Set<string>([
+      ...Array.from(completedIds),
+      ...Array.from(passedExamIds),
+    ]);
+    const unlockedIds = computeUnlockedIds(items, doneIds);
+    if (!unlockedIds.has(exam.id)) redirect(courseHref);
   }
 
   // Intentos

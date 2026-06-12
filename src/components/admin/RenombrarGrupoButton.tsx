@@ -73,9 +73,19 @@ export function RenombrarGrupoButton({
               {error}
             </p>
           )}
-          <Button onClick={save} disabled={pending} className="w-full">
-            {pending ? "Guardando..." : "Guardar"}
-          </Button>
+          <div className="flex gap-2 pt-1">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => setOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={save} disabled={pending} className="flex-1">
+              {pending ? "Guardando..." : "Guardar"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

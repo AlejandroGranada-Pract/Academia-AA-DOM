@@ -5,7 +5,9 @@ import type { NextAuthConfig } from "next-auth";
 export const authConfig = {
   secret: process.env.NEXTAUTH_SECRET,
   trustHost: true,
-  session: { strategy: "jwt" },
+  // Sesión de 2 días: balance entre comodidad (no loguearse a diario)
+  // y seguridad (la sesión no queda abierta por semanas).
+  session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 2 },
   pages: {
     signIn: "/login",
   },

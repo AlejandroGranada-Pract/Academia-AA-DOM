@@ -155,6 +155,7 @@ model Exam {
   maxAttempts      Int      @default(3) // Intentos permitidos
   timeLimitMin     Int? // Tiempo límite en minutos (null = sin límite)
   shuffleQuestions Boolean  @default(true)
+  order            Int      @default(0) // Posición en la secuencia del módulo (comparte orden con lecciones)
   createdAt        DateTime @default(now())
 
   questions ExamQuestion[]
@@ -214,6 +215,17 @@ model ExamAttempt {
   completedAt DateTime
 
   @@index([userId, examId])
+}
+
+// Imágenes subidas por el admin para lecciones/cursos (se sirven en /api/imagenes/[id]).
+// Pequeñas y comprimidas (≤1 MB): viven en la base para sobrevivir los deploys de Heroku.
+model ImageAsset {
+  id        String   @id @default(cuid())
+  name      String
+  mime      String
+  size      Int // bytes
+  data      Bytes
+  createdAt DateTime @default(now())
 }
 
 model Certificate {

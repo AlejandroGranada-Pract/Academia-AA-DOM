@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { LogOut } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { AsistenteFlotante } from "@/components/admin/AsistenteFlotante";
 import { signOutAction } from "@/lib/actions/auth";
 
 // Marco compartido de todas las páginas autenticadas (dashboard y admin).
@@ -47,6 +48,9 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <MobileNav />
+
+      {/* Asistente IA flotante — solo para administradores */}
+      {user?.role === "SUPER_ADMIN" && <AsistenteFlotante />}
     </div>
   );
 }

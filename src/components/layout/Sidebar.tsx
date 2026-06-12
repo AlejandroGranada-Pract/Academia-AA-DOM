@@ -7,7 +7,6 @@ import {
   Users,
   LayoutGrid,
   BarChart3,
-  Sparkles,
   Boxes,
   type LucideIcon,
 } from "lucide-react";
@@ -100,7 +99,7 @@ export function Sidebar({ user }: { user: SidebarUser }) {
             DOM
           </span>
         </div>
-        <p className="mt-1 text-[10px] uppercase tracking-[0.2em] text-white/35">
+        <p className="mt-1 text-[10px] uppercase tracking-[0.2em] text-gold/80">
           Academia
         </p>
       </div>
@@ -122,13 +121,6 @@ export function Sidebar({ user }: { user: SidebarUser }) {
               {ADMIN_NAV.map((item) => (
                 <SidebarLink key={item.href} {...item} pathname={pathname} />
               ))}
-              <SidebarLink
-                href="/asistente"
-                label="Asistente IA"
-                icon={Sparkles}
-                pathname={pathname}
-                accent
-              />
             </div>
           </>
         )}

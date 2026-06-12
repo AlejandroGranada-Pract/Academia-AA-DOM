@@ -118,7 +118,10 @@ export default async function MiProgresoPage() {
 
       {/* Avance por curso */}
       <section className="mb-8">
-        <h2 className="mb-4 text-2xl text-foreground">Mis cursos</h2>
+        <h2 className="mb-4 flex items-center gap-2 text-2xl text-foreground">
+          <span className="h-5 w-1 rounded-full bg-gold" />
+          Mis cursos
+        </h2>
         <div className="space-y-3">
           {cursos.map((c) => (
             <Link
@@ -134,7 +137,7 @@ export default async function MiProgresoPage() {
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div
-                  className={`h-full rounded-full ${c.p === 100 ? "bg-success" : "bg-primary"}`}
+                  className={`h-full rounded-full ${c.p === 100 ? "bg-gold" : "bg-primary"}`}
                   style={{ width: `${c.p}%` }}
                 />
               </div>
@@ -145,7 +148,10 @@ export default async function MiProgresoPage() {
 
       {/* Exámenes */}
       <section>
-        <h2 className="mb-4 text-2xl text-foreground">Exámenes</h2>
+        <h2 className="mb-4 flex items-center gap-2 text-2xl text-foreground">
+          <span className="h-5 w-1 rounded-full bg-gold" />
+          Exámenes
+        </h2>
         {examenes.length === 0 ? (
           <p className="rounded-xl border border-dashed bg-card/50 p-6 text-center text-sm text-muted-foreground">
             Aún no has presentado exámenes.

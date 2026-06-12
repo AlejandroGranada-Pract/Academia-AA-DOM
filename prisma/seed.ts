@@ -89,7 +89,7 @@ async function main() {
       company: "AMBAS",
       status: "PUBLISHED",
       estimatedHours: 2,
-      passingScore: 100,
+      passingScore: 85,
       dueDate: new Date("2026-07-31"),
       requiredAreas: [],
       createdBy: admin.id,
@@ -390,9 +390,10 @@ async function main() {
               create: [
                 {
                   title: "Evaluación final de Inducción",
+                  order: 4,
                   description:
                     "Confirma lo aprendido sobre quiénes somos, los valores y el reglamento.",
-                  passingScore: 100,
+                  passingScore: 85,
                   maxAttempts: 3,
                   timeLimitMin: 10,
                   questions: {
@@ -614,6 +615,7 @@ async function main() {
               create: [
                 {
                   title: "Evaluación: Portafolio Ambiente Azul",
+                  order: 3,
                   description: "Repasa los productos clave de Ambiente Azul.",
                   passingScore: 70,
                   maxAttempts: 3,
@@ -774,6 +776,7 @@ async function main() {
               create: [
                 {
                   title: "Evaluación: Portafolio DOM Design",
+                  order: 3,
                   description: "Repasa los materiales y soluciones de DOM Design.",
                   passingScore: 70,
                   maxAttempts: 3,

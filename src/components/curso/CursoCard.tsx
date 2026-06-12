@@ -107,12 +107,18 @@ export function CursoCard({ course }: { course: CursoCardData }) {
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <div
               className={`h-full rounded-full ${
-                course.progressPct === 100 ? "bg-success" : "bg-primary"
+                course.progressPct === 100 ? "bg-gold" : "bg-primary"
               }`}
               style={{ width: `${course.progressPct}%` }}
             />
           </div>
-          <p className="mt-1.5 text-[11px] text-muted-foreground">
+          <p
+            className={`mt-1.5 text-[11px] ${
+              course.progressPct === 100
+                ? "font-semibold text-gold"
+                : "text-muted-foreground"
+            }`}
+          >
             {course.progressPct === 0
               ? "No iniciado"
               : course.progressPct === 100

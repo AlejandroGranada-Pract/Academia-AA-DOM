@@ -3,8 +3,14 @@ import { notFound, redirect } from "next/navigation";
 import { BookOpen, Layers, Clock, ChevronLeft, CheckCircle2 } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { getCompletedLessonIds, pct } from "@/lib/progress";
+import {
+  getCompletedLessonIds,
+  pct,
+  buildCourseItems,
+  computeUnlockedIds,
+} from "@/lib/progress";
 import { canSeeCourse, getViewer } from "@/lib/courses";
+import type { ItemLite } from "@/components/curso/ModuloAccordion";
 import { ModuloAccordion } from "@/components/curso/ModuloAccordion";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -42,7 +48,7 @@ export default async function CursoDetallePage({
         orderBy: { order: "asc" },
         include: {
           lessons: { orderBy: { order: "asc" } },
-          exams: { select: { id: true, title: true } },
+          exams: { select: { id: true, title: true, order: true } },
         },
       },
     },
@@ -52,7 +58,6 @@ export default async function CursoDetallePage({
 
   const lessons = curso.modules.flatMap((m) => m.lessons);
   const lessonCount = lessons.length;
-  const firstLesson = lessons[0];
 
   // Progreso del usuario en este curso
   const session = await auth();
@@ -88,20 +93,16 @@ export default async function CursoDetallePage({
       .map(([k]) => k),
   );
 
-  // "Tu Rendimiento": una fila por módulo que tenga examen.
-  type RendItem = { label: string; best: number | null; passed: boolean };
-  const rendimiento = curso.modules
-    .map((m, i): RendItem | null => {
-      const ex = m.exams[0];
-      if (!ex) return null;
-      const b = bestByExam.get(ex.id);
-      return {
-        label: `Examen Mód. ${i + 1}`,
-        best: b?.score ?? null,
-        passed: b?.passed ?? false,
-      };
-    })
-    .filter((r): r is RendItem => r !== null);
+  // "Tu Rendimiento": una fila por examen del curso.
+  const allExams = curso.modules.flatMap((m) => m.exams);
+  const rendimiento = allExams.map((ex) => {
+    const b = bestByExam.get(ex.id);
+    return {
+      label: ex.title,
+      best: b?.score ?? null,
+      passed: b?.passed ?? false,
+    };
+  });
   const tomados = rendimiento.filter((r) => r.best != null);
   const promedio =
     tomados.length > 0
@@ -110,30 +111,66 @@ export default async function CursoDetallePage({
         )
       : null;
 
-  // Avance del curso = lecciones completadas + exámenes aprobados.
-  const doneLessons = lessons.filter((l) => completedIds.has(l.id)).length;
-  const donePassedExams = examIds.filter((id) => passedExamIds.has(id)).length;
-  const doneItems = doneLessons + donePassedExams;
-  const totalItems = lessonCount + examIds.length;
+  // Secuencia del curso (lecciones y exámenes en su orden) + desbloqueo.
+  const courseItems = buildCourseItems(curso.modules);
+  const doneIds = new Set<string>([
+    ...Array.from(completedIds),
+    ...Array.from(passedExamIds),
+  ]);
+  const unlockedIds = computeUnlockedIds(courseItems, doneIds);
+
+  // Avance del curso = ítems hechos / total.
+  const doneItems = courseItems.filter((it) => doneIds.has(it.id)).length;
+  const totalItems = courseItems.length;
   const coursePct = pct(doneItems, totalItems);
   const started = doneItems > 0;
 
-  // Bloqueo secuencial: desbloqueadas = todas hasta la primera sin completar.
-  const firstIncomplete = lessons.findIndex((l) => !completedIds.has(l.id));
-  const frontier = firstIncomplete === -1 ? lessons.length - 1 : firstIncomplete;
-  const unlockedIds = lessons.filter((_, i) => i <= frontier).map((l) => l.id);
+  // Dónde retomar: el primer ítem pendiente (lección o examen).
+  const resumeItem =
+    courseItems.find((it) => !doneIds.has(it.id)) ?? courseItems[0];
+  const resumeHref = resumeItem
+    ? resumeItem.kind === "exam"
+      ? `/examenes/${resumeItem.id}`
+      : `/cursos/${curso.id}/leccion/${resumeItem.id}`
+    : null;
+  const firstHref = courseItems[0]
+    ? courseItems[0].kind === "exam"
+      ? `/examenes/${courseItems[0].id}`
+      : `/cursos/${curso.id}/leccion/${courseItems[0].id}`
+    : null;
 
-  // Lección donde retomar: la primera sin completar (o la primera del curso).
-  const resumeLesson = lessons.find((l) => !completedIds.has(l.id)) ?? firstLesson;
-
-  // Módulo que el acordeón deja abierto: el primero con algo pendiente
-  // (lección sin completar o examen sin aprobar). Así "qué sigue" incluye el examen.
+  // Módulo que el acordeón deja abierto: el del primer ítem pendiente.
   const openModuleId =
     curso.modules.find(
       (m) =>
-        m.lessons.some((l) => !completedIds.has(l.id)) ||
-        m.exams.some((e) => !passedExamIds.has(e.id)),
+        m.lessons.some((l) => !doneIds.has(l.id)) ||
+        m.exams.some((e) => !doneIds.has(e.id)),
     )?.id ?? curso.modules[0]?.id;
+
+  // Módulos con su secuencia mezclada para el acordeón.
+  const modulesForAccordion = curso.modules.map((m) => {
+    const items: (ItemLite & { order: number })[] = [
+      ...m.lessons.map((l) => ({
+        kind: "lesson" as const,
+        id: l.id,
+        title: l.title,
+        type: l.type,
+        durationMin: l.durationMin,
+        order: l.order,
+      })),
+      ...m.exams.map((e) => ({
+        kind: "exam" as const,
+        id: e.id,
+        title: e.title,
+        order: e.order,
+      })),
+    ].sort((a, b) => a.order - b.order);
+    return {
+      id: m.id,
+      title: m.title,
+      items: items.map(({ order: _o, ...rest }) => rest as ItemLite),
+    };
+  });
 
   return (
     <div>
@@ -176,11 +213,13 @@ export default async function CursoDetallePage({
         <div className="mt-6 flex items-center gap-3">
           <div className="h-2 max-w-md flex-1 overflow-hidden rounded-full bg-white/15">
             <div
-              className={`h-full rounded-full ${coursePct === 100 ? "bg-success" : "bg-primary"}`}
+              className={`h-full rounded-full ${coursePct === 100 ? "bg-gold" : "bg-primary"}`}
               style={{ width: `${coursePct}%` }}
             />
           </div>
-          <span className="text-sm font-semibold text-primary">
+          <span
+            className={`text-sm font-semibold ${coursePct === 100 ? "text-gold" : "text-primary"}`}
+          >
             {coursePct}%
           </span>
         </div>
@@ -189,36 +228,26 @@ export default async function CursoDetallePage({
       {/* Contenido: módulos + barra lateral */}
       <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
         <div>
-          <h2 className="mb-4 text-2xl text-foreground">Contenido del curso</h2>
+          <h2 className="mb-4 flex items-center gap-2 text-2xl text-foreground">
+            <span className="h-5 w-1 rounded-full bg-gold" />
+            Contenido del curso
+          </h2>
           <ModuloAccordion
             courseId={curso.id}
             openModuleId={openModuleId}
-            completedLessonIds={Array.from(completedIds)}
-            unlockedLessonIds={unlockedIds}
-            modules={curso.modules.map((m) => ({
-              id: m.id,
-              title: m.title,
-              lessons: m.lessons.map((l) => ({
-                id: l.id,
-                title: l.title,
-                type: l.type,
-                durationMin: l.durationMin,
-              })),
-              exam: m.exams[0]
-                ? {
-                    id: m.exams[0].id,
-                    title: m.exams[0].title,
-                    passed: passedExamIds.has(m.exams[0].id),
-                  }
-                : null,
-            }))}
+            doneIds={Array.from(doneIds)}
+            unlockedIds={Array.from(unlockedIds)}
+            modules={modulesForAccordion}
           />
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-8 lg:self-start">
           {/* Información del Curso */}
           <div className="rounded-2xl border border-white/60 bg-white/70 p-5 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm">
-            <h3 className="mb-3 text-lg text-foreground">Información del Curso</h3>
+            <h3 className="mb-3 flex items-center gap-2 text-lg text-foreground">
+              <span className="h-4 w-1 rounded-full bg-gold" />
+              Información del Curso
+            </h3>
             <dl className="space-y-2.5 text-sm">
               <InfoRow label="Empresa" value={COMPANY_LABEL[curso.company]} />
               <InfoRow label="Categoría" value={CATEGORY_LABEL[curso.category]} />
@@ -242,13 +271,13 @@ export default async function CursoDetallePage({
 
             {coursePct === 100 ? (
               <div className="mt-5 space-y-2">
-                <div className="flex items-center justify-center gap-2 rounded-lg bg-success/10 py-2.5 text-sm font-semibold text-success">
+                <div className="flex items-center justify-center gap-2 rounded-lg bg-gold/15 py-2.5 text-sm font-semibold text-gold">
                   <CheckCircle2 className="h-4 w-4" />
                   Curso completado
                 </div>
-                {firstLesson && (
+                {firstHref && (
                   <Link
-                    href={`/cursos/${curso.id}/leccion/${firstLesson.id}`}
+                    href={firstHref}
                     className={cn(buttonVariants({ variant: "outline" }), "w-full")}
                   >
                     Repasar curso
@@ -256,9 +285,9 @@ export default async function CursoDetallePage({
                 )}
               </div>
             ) : (
-              resumeLesson && (
+              resumeHref && (
                 <Link
-                  href={`/cursos/${curso.id}/leccion/${resumeLesson.id}`}
+                  href={resumeHref}
                   className={cn(buttonVariants({ size: "lg" }), "mt-5 w-full")}
                 >
                   {started ? "Continuar curso" : "Comenzar curso"}
@@ -270,7 +299,10 @@ export default async function CursoDetallePage({
           {/* Tu Rendimiento */}
           {rendimiento.length > 0 && (
             <div className="rounded-2xl border border-white/60 bg-white/70 p-5 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm">
-              <h3 className="mb-3 text-lg text-foreground">Tu Rendimiento</h3>
+              <h3 className="mb-3 flex items-center gap-2 text-lg text-foreground">
+                <span className="h-4 w-1 rounded-full bg-gold" />
+                Tu Rendimiento
+              </h3>
               <dl className="space-y-2.5 text-sm">
                 {rendimiento.map((r) => (
                   <InfoRow

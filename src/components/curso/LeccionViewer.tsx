@@ -56,7 +56,12 @@ function ImageBlock({ url, caption }: { url: string; caption?: string }) {
 function BlockRenderer({ block }: { block: Block }) {
   switch (block.type) {
     case "heading":
-      return <h2 className="text-2xl text-foreground">{block.text}</h2>;
+      return (
+        <h2 className="flex items-center gap-2.5 text-2xl text-foreground">
+          <span className="h-5 w-1 shrink-0 rounded-full bg-gold" />
+          {block.text}
+        </h2>
+      );
     case "paragraph":
       return (
         <p className="leading-relaxed text-foreground/90">{block.text}</p>

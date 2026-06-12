@@ -18,6 +18,15 @@ const bebas = Bebas_Neue({
 export const metadata: Metadata = {
   title: "Academia AA | DOM",
   description: "Plataforma de formación corporativa — Ambiente Azul + DOM Design",
+  icons: {
+    icon: [
+      { url: "/Icon/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/Icon/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/Icon/favicon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/Icon/favicon-32.png",
+    apple: "/Icon/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
