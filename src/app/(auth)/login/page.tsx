@@ -1,21 +1,12 @@
 import { LoginForm } from "@/components/auth/LoginForm";
+import { VideoFondo } from "@/components/auth/VideoFondo";
 
 export default function LoginPage() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-grafito via-[#2a2a2a] to-grafito p-5">
-      {/* Video de fondo (en bucle y silenciado).
-          Archivo en: public/videos/VideoAALogin.mp4
-          Si no existe, se ve el degradado de fondo y nada se rompe. */}
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        autoPlay
-        loop
-        muted
-        playsInline
-        aria-hidden="true"
-      >
-        <source src="/videos/VideoAALogin.mp4" type="video/mp4" />
-      </video>
+      {/* Video de fondo con carga diferida: el login pinta de inmediato
+          (degradado) y el video aparece con fade cuando está listo. */}
+      <VideoFondo src="/videos/VideoAALogin.mp4" />
 
       {/* Capa oscura (más densa arriba/abajo) para legibilidad sin tapar el video */}
       <div className="absolute inset-0 bg-gradient-to-b from-grafito/85 via-grafito/45 to-grafito/90" />

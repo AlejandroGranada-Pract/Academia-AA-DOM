@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { authenticate } from "@/app/(auth)/login/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +20,7 @@ function SubmitButton() {
 
 export function LoginForm() {
   const [errorMessage, formAction] = useFormState(authenticate, undefined);
+  const [verPassword, setVerPassword] = useState(false);
 
   const inputClass =
     "border-white/25 bg-white/10 text-white placeholder:text-white/40 focus-visible:border-primary focus-visible:ring-primary/40";
@@ -43,15 +46,30 @@ export function LoginForm() {
         <Label htmlFor="password" className="text-white/80">
           Contraseña
         </Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          placeholder="••••••••"
-          required
-          autoComplete="current-password"
-          className={inputClass}
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            name="password"
+            type={verPassword ? "text" : "password"}
+            placeholder="••••••••"
+            required
+            autoComplete="current-password"
+            className={`${inputClass} pr-10`}
+          />
+          <button
+            type="button"
+            onClick={() => setVerPassword((v) => !v)}
+            aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            title={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-white/50 transition-colors hover:text-white"
+          >
+            {verPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </div>
 
       {errorMessage && (

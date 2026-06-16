@@ -117,7 +117,15 @@ export async function POST(req: Request) {
   const stream = anthropic.messages.stream({
     model: ASISTENTE_MODEL,
     max_tokens: 16000,
-    system: SYSTEM_PROMPT,
+    // System como bloque con cache_control: el prompt (estable entre llamadas)
+    // y la definición de herramientas se cachean y se cobran ~0.1x al reusarse.
+    system: [
+      {
+        type: "text",
+        text: SYSTEM_PROMPT,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
     // Búsqueda web (server-side): permite encontrar videos de YouTube e
     // imágenes de Wikimedia REALES. max_uses limita costo y tiempo.
     tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 4 }],
