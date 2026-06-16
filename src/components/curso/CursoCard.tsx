@@ -8,8 +8,10 @@ import {
   ClipboardList,
   BookOpen,
   Clock,
+  AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
+import { dueStatus } from "@/lib/vencimiento";
 
 type Category =
   | "INDUCCION"
@@ -30,6 +32,7 @@ export type CursoCardData = {
   estimatedHours: number | null;
   lessonCount: number;
   progressPct: number;
+  dueDate?: string | null; // ISO; para la alerta de vencimiento
 };
 
 const CATEGORY: Record<Category, { label: string; icon: LucideIcon }> = {
@@ -61,6 +64,7 @@ export function CursoCard({ course }: { course: CursoCardData }) {
   const cat = CATEGORY[course.category];
   const comp = COMPANY[course.company];
   const Icon = cat.icon;
+  const due = dueStatus(course.dueDate, course.progressPct === 100);
 
   return (
     <Link
@@ -75,6 +79,18 @@ export function CursoCard({ course }: { course: CursoCardData }) {
         <span className="absolute left-3 top-3 rounded-md bg-black/20 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm">
           {cat.label}
         </span>
+        {due && (
+          <span
+            className={`absolute right-3 top-3 flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold backdrop-blur-sm ${
+              due.tone === "overdue"
+                ? "bg-destructive/90 text-white"
+                : "bg-warning/90 text-grafito"
+            }`}
+          >
+            <AlertTriangle className="h-3 w-3" />
+            {due.label}
+          </span>
+        )}
       </div>
 
       {/* Cuerpo */}

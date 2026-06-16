@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LogOut,
   Users,
+  Users2,
   LayoutGrid,
   BarChart3,
   Boxes,
@@ -85,6 +86,7 @@ function SidebarLink({
 export function Sidebar({ user }: { user: SidebarUser }) {
   const pathname = usePathname();
   const isAdmin = user.role === "SUPER_ADMIN";
+  const isLeader = user.role === "AREA_LEADER" || isAdmin;
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] flex-col border-r border-white/5 bg-gradient-to-b from-[#262626] via-sidebar to-[#161616] text-sidebar-foreground md:flex">
@@ -110,6 +112,14 @@ export function Sidebar({ user }: { user: SidebarUser }) {
           {MAIN_NAV.map((item) => (
             <SidebarLink key={item.href} {...item} pathname={pathname} />
           ))}
+          {isLeader && (
+            <SidebarLink
+              href="/mi-equipo"
+              label="Mi Equipo"
+              icon={Users2}
+              pathname={pathname}
+            />
+          )}
         </div>
 
         {isAdmin && (

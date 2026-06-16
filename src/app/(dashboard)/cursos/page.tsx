@@ -69,6 +69,7 @@ export default async function CursosPage() {
                   estimatedHours: c.estimatedHours,
                   lessonCount: lessonIds.length,
                   progressPct: pct(done, total),
+                  dueDate: c.dueDate ? c.dueDate.toISOString() : null,
                 }}
               />
             );

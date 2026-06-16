@@ -17,7 +17,9 @@ import {
   computeUnlockedIds,
 } from "@/lib/progress";
 import { issueCertificateIfComplete } from "@/lib/certificados";
+import { dueStatus } from "@/lib/vencimiento";
 import { canSeeCourse, getViewer } from "@/lib/courses";
+import { AlertTriangle } from "lucide-react";
 import type { ItemLite } from "@/components/curso/ModuloAccordion";
 import { ModuloAccordion } from "@/components/curso/ModuloAccordion";
 import { buttonVariants } from "@/components/ui/button";
@@ -288,6 +290,24 @@ export default async function CursoDetallePage({
                 valueClassName={curso.dueDate ? "text-destructive" : undefined}
               />
             </dl>
+
+            {/* Alerta de vencimiento (si no está completo) */}
+            {(() => {
+              const due = dueStatus(curso.dueDate, coursePct === 100);
+              if (!due) return null;
+              return (
+                <div
+                  className={`mt-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+                    due.tone === "overdue"
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-warning/15 text-warning"
+                  }`}
+                >
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  {due.label}
+                </div>
+              );
+            })()}
 
             {coursePct === 100 ? (
               <div className="mt-5 space-y-2">
