@@ -18,6 +18,9 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const isOnLogin = nextUrl.pathname === "/login";
 
+      // Verificación pública de certificados (vía QR): sin login.
+      if (nextUrl.pathname.startsWith("/verificar")) return true;
+
       // En /login: si ya está logueado, lo mandamos al dashboard (ruta "/").
       if (isOnLogin) {
         if (isLoggedIn) {

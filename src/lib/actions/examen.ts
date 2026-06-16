@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { issueCertificateIfComplete } from "@/lib/certificados";
 
 export type RespuestaUsuario = number | number[] | null;
 type Answers = Record<string, RespuestaUsuario>;
@@ -41,7 +42,10 @@ export async function submitExam(
 
   const exam = await prisma.exam.findUnique({
     where: { id: examId },
-    include: { questions: { orderBy: { order: "asc" } } },
+    include: {
+      questions: { orderBy: { order: "asc" } },
+      module: { select: { courseId: true } },
+    },
   });
   if (!exam) return { ok: false, error: "Examen no encontrado." };
 
@@ -103,9 +107,15 @@ export async function submitExam(
     },
   });
 
+  // Si aprobó y con eso completó el curso, emite el certificado.
+  if (passed && exam.module?.courseId) {
+    await issueCertificateIfComplete(userId, exam.module.courseId);
+  }
+
   revalidatePath("/");
   revalidatePath("/cursos");
   revalidatePath("/mi-progreso");
+  revalidatePath("/certificados");
 
   return { ok: true, score, passed, passingScore: exam.passingScore, results };
 }

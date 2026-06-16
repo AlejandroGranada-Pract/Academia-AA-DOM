@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { BookOpen, Layers, Clock, ChevronLeft, CheckCircle2 } from "lucide-react";
+import {
+  BookOpen,
+  Layers,
+  Clock,
+  ChevronLeft,
+  CheckCircle2,
+  Award,
+} from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import {
@@ -9,6 +16,7 @@ import {
   buildCourseItems,
   computeUnlockedIds,
 } from "@/lib/progress";
+import { issueCertificateIfComplete } from "@/lib/certificados";
 import { canSeeCourse, getViewer } from "@/lib/courses";
 import type { ItemLite } from "@/components/curso/ModuloAccordion";
 import { ModuloAccordion } from "@/components/curso/ModuloAccordion";
@@ -124,6 +132,18 @@ export default async function CursoDetallePage({
   const totalItems = courseItems.length;
   const coursePct = pct(doneItems, totalItems);
   const started = doneItems > 0;
+
+  // Certificado: si el curso está al 100%, asegura que exista y trae su id
+  // para ofrecer la descarga aquí mismo (autorreparable para completados viejos).
+  let certId: string | null = null;
+  if (userId && coursePct === 100) {
+    await issueCertificateIfComplete(userId, curso.id);
+    const cert = await prisma.certificate.findUnique({
+      where: { userId_courseId: { userId, courseId: curso.id } },
+      select: { id: true },
+    });
+    certId = cert?.id ?? null;
+  }
 
   // Dónde retomar: el primer ítem pendiente (lección o examen).
   const resumeItem =
@@ -275,6 +295,17 @@ export default async function CursoDetallePage({
                   <CheckCircle2 className="h-4 w-4" />
                   Curso completado
                 </div>
+                {certId && (
+                  <a
+                    href={`/api/certificados/${certId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(buttonVariants(), "w-full gap-1.5 bg-gold text-grafito hover:bg-gold/85")}
+                  >
+                    <Award className="h-4 w-4" />
+                    Descargar certificado
+                  </a>
+                )}
                 {firstHref && (
                   <Link
                     href={firstHref}
