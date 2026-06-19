@@ -33,67 +33,98 @@ async function crearImagenPiscina(file: string, name: string): Promise<string> {
 async function main() {
   console.log("🌱 Sembrando datos...");
 
-  // ---------------------------------------------------------------------------
-  // Usuarios (upsert: se conservan si ya existen)
-  // ---------------------------------------------------------------------------
-  const adminPassword = await bcrypt.hash("admin1234", 12);
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@admin.com" },
-    update: {
-      name: "Admin",
-      passwordHash: adminPassword,
-      role: "SUPER_ADMIN",
-      company: "AMBAS",
-      area: "Administración",
-      active: true,
-    },
-    create: {
-      email: "admin@admin.com",
-      name: "Admin",
-      passwordHash: adminPassword,
-      role: "SUPER_ADMIN",
-      company: "AMBAS",
-      area: "Administración",
-    },
-  });
-
-  const tecPassword = await bcrypt.hash("tec123", 12);
-  const tecnico = await prisma.user.upsert({
-    where: { email: "tecnico@gmail.com" },
-    update: {
-      name: "Técnico",
-      passwordHash: tecPassword,
-      role: "EMPLOYEE",
-      company: "AMBIENTE_AZUL",
-      area: "Técnico",
-      active: true,
-    },
-    create: {
-      email: "tecnico@gmail.com",
-      name: "Técnico",
-      passwordHash: tecPassword,
-      role: "EMPLOYEE",
-      company: "AMBIENTE_AZUL",
-      area: "Técnico",
-    },
-  });
-  console.log("  ✅ Usuarios listos (admin + técnico)");
+  // IMPORT_ONLY: modo "import aditivo" para producción. No borra nada, usa el
+  // admin que ya existe y no crea usuarios de prueba. (En desarrollo va en false.)
+  const IMPORT_ONLY = process.env.IMPORT_ONLY === "true";
 
   // ---------------------------------------------------------------------------
-  // Limpieza de contenido (progreso, intentos y cursos)
+  // Usuarios
   // ---------------------------------------------------------------------------
-  await prisma.examAttempt.deleteMany({}); // reinicia el progreso de exámenes
-  await prisma.userProgress.deleteMany({}); // reinicia el progreso de lecciones
-  await prisma.certificate.deleteMany({});
-  await prisma.courseAssignment.deleteMany({});
-  await prisma.grupo.deleteMany({}); // se recrean abajo
-  await prisma.course.deleteMany({}); // cascada: módulos, lecciones, exámenes
-  await prisma.imageAsset.deleteMany({}); // se recrean abajo desde seed-assets/
-  // Solo deben existir dos usuarios: el admin y el técnico.
-  await prisma.user.deleteMany({
-    where: { email: { notIn: ["admin@admin.com", "tecnico@gmail.com"] } },
-  });
-  console.log("  🧹 Contenido anterior limpiado (progreso reiniciado)");
+  const admin = IMPORT_ONLY
+    ? await prisma.user.findFirst({
+        where: { role: "SUPER_ADMIN" },
+        orderBy: { createdAt: "asc" },
+      })
+    : await prisma.user.upsert({
+        where: { email: "admin@admin.com" },
+        update: {
+          name: "Admin",
+          passwordHash: await bcrypt.hash("admin1234", 12),
+          role: "SUPER_ADMIN",
+          company: "AMBAS",
+          area: "Administración",
+          active: true,
+        },
+        create: {
+          email: "admin@admin.com",
+          name: "Admin",
+          passwordHash: await bcrypt.hash("admin1234", 12),
+          role: "SUPER_ADMIN",
+          company: "AMBAS",
+          area: "Administración",
+        },
+      });
+  if (!admin) {
+    throw new Error(
+      "No hay un SUPER_ADMIN en la base. Corre primero 'npm run db:seed:prod'.",
+    );
+  }
+
+  // El técnico de prueba solo se crea en desarrollo.
+  const tecnico = IMPORT_ONLY
+    ? null
+    : await prisma.user.upsert({
+        where: { email: "tecnico@gmail.com" },
+        update: {
+          name: "Técnico",
+          passwordHash: await bcrypt.hash("tec123", 12),
+          role: "EMPLOYEE",
+          company: "AMBIENTE_AZUL",
+          area: "Técnico",
+          active: true,
+        },
+        create: {
+          email: "tecnico@gmail.com",
+          name: "Técnico",
+          passwordHash: await bcrypt.hash("tec123", 12),
+          role: "EMPLOYEE",
+          company: "AMBIENTE_AZUL",
+          area: "Técnico",
+        },
+      });
+  console.log(
+    IMPORT_ONLY
+      ? `  ✅ Usando admin existente: ${admin.email}`
+      : "  ✅ Usuarios listos (admin + técnico)",
+  );
+
+  // ---------------------------------------------------------------------------
+  // Limpieza (SOLO desarrollo). En import de producción no se borra nada y, si
+  // los cursos ya existen, se corta aquí (idempotente: re-correrlo no duplica).
+  // ---------------------------------------------------------------------------
+  if (IMPORT_ONLY) {
+    const yaExiste = await prisma.course.findFirst({
+      where: { title: "Fundamentos de Piscinas — Ambiente Azul" },
+    });
+    if (yaExiste) {
+      console.log("  ℹ️  Los cursos ya existen; no se crean de nuevo.");
+      console.log("🌱 Import completado.");
+      return;
+    }
+  } else {
+    await prisma.examAttempt.deleteMany({}); // reinicia el progreso de exámenes
+    await prisma.userProgress.deleteMany({}); // reinicia el progreso de lecciones
+    await prisma.certificate.deleteMany({});
+    await prisma.courseAssignment.deleteMany({});
+    await prisma.grupo.deleteMany({}); // se recrean abajo
+    await prisma.course.deleteMany({}); // cascada: módulos, lecciones, exámenes
+    await prisma.imageAsset.deleteMany({}); // se recrean abajo desde seed-assets/
+    // Solo deben existir dos usuarios: el admin y el técnico.
+    await prisma.user.deleteMany({
+      where: { email: { notIn: ["admin@admin.com", "tecnico@gmail.com"] } },
+    });
+    console.log("  🧹 Contenido anterior limpiado (progreso reiniciado)");
+  }
 
   // ---------------------------------------------------------------------------
   // Curso: Inducción General AA | DOM
@@ -1858,12 +1889,12 @@ async function main() {
   await prisma.grupo.upsert({
     where: { name: "Técnico" },
     update: {
-      users: { set: [{ id: tecnico.id }] },
+      ...(tecnico ? { users: { set: [{ id: tecnico.id }] } } : {}),
       courses: { set: [{ id: cursoPiscinas.id }] },
     },
     create: {
       name: "Técnico",
-      users: { connect: [{ id: tecnico.id }] },
+      ...(tecnico ? { users: { connect: [{ id: tecnico.id }] } } : {}),
       courses: { connect: [{ id: cursoPiscinas.id }] },
     },
   });
