@@ -204,4 +204,12 @@
     letter-spacing: 0.5px;
     font-weight: 400;
   }
+  /* En modo oscuro, las listas desplegables nativas de <select> se pintaban
+     claras con texto claro (ilegibles). Forzamos colores legibles en las
+     opciones, además del color-scheme. */
+  .dark select option,
+  .dark select optgroup {
+    background-color: #1d2128; /* popover oscuro */
+    color: #ecedee;
+  }
 }
