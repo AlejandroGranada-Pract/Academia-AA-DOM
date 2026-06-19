@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Bebas_Neue } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeScript } from "@/components/theme/ThemeScript";
+import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -18,6 +20,14 @@ const bebas = Bebas_Neue({
 export const metadata: Metadata = {
   title: "Academia AA | DOM",
   description: "Plataforma de formación corporativa — Ambiente Azul + DOM Design",
+  applicationName: "Academia",
+  appleWebApp: {
+    capable: true,
+    title: "Academia",
+    statusBarStyle: "black-translucent",
+  },
+  // Equivalente estándar del apple-mobile-web-app-capable (que está deprecado).
+  other: { "mobile-web-app-capable": "yes" },
   icons: {
     icon: [
       { url: "/Icon/favicon-32.png", sizes: "32x32", type: "image/png" },
@@ -29,16 +39,26 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#1f1f1f",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={cn(inter.variable, bebas.variable)}>
+    <html
+      lang="es"
+      suppressHydrationWarning
+      className={cn(inter.variable, bebas.variable)}
+    >
       <body className="antialiased font-sans">
+        <ThemeScript />
         {children}
         <Toaster richColors position="top-right" />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

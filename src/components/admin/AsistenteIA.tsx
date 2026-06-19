@@ -38,7 +38,7 @@ function parseDraft(text: string): DraftCourse | null {
 
 type Step = "form" | "generating" | "preview";
 
-export function AsistenteFlotante() {
+export function AsistenteIA() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("form");
@@ -148,16 +148,16 @@ export function AsistenteFlotante() {
 
   return (
     <>
-      {/* Botón flotante (solo se monta para SUPER_ADMIN, ver AppShell) */}
-      <button
+      {/* Botón en la barra de Gestionar Cursos (ya no flota sobre el contenido) */}
+      <Button
         type="button"
         onClick={() => setOpen(true)}
-        title="Asistente IA — genera un curso"
-        aria-label="Abrir Asistente IA"
-        className="fixed bottom-20 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-gold to-gold-light text-white shadow-[0_8px_30px_rgba(190,155,96,0.5)] transition-transform hover:scale-105 md:bottom-6 md:right-6"
+        title="Genera un curso con IA"
+        className="gap-1.5 bg-gold text-grafito hover:bg-gold/85"
       >
-        <Sparkles className="h-6 w-6" />
-      </button>
+        <Sparkles className="h-4 w-4" />
+        Asistente IA
+      </Button>
 
       <Dialog open={open} onOpenChange={(o) => !creating && setOpen(o)}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">

@@ -77,11 +77,28 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  assignments  CourseAssignment[]
-  progress     UserProgress[]
-  examAttempts ExamAttempt[]
-  certificates Certificate[]
-  grupos       Grupo[]            @relation("UserGrupos")
+  assignments     CourseAssignment[]
+  progress        UserProgress[]
+  examAttempts    ExamAttempt[]
+  certificates    Certificate[]
+  badges          UserBadge[]
+  lessonComments  LessonComment[]
+  grupos          Grupo[]            @relation("UserGrupos") // grupos a los que pertenece
+  gruposLiderados Grupo[]            @relation("GrupoLideres") // grupos que lidera (AREA_LEADER)
+}
+
+// Insignias/logros de gamificación ganados por el usuario. El catálogo (qué
+// insignias existen y sus criterios) vive en código (src/lib/badges.ts); aquí
+// solo se registra cuál ganó cada quien y cuándo.
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key      String // identificador del logro en el catálogo
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, key])
+  @@index([userId])
 }
 
 // Grupo / rol funcional (Técnico, Compras, Comercial...) que decide qué cursos
@@ -92,6 +109,7 @@ model Grupo {
   createdAt DateTime @default(now())
 
   users   User[]   @relation("UserGrupos")
+  lideres User[]   @relation("GrupoLideres")
   courses Course[] @relation("CourseGrupos")
 }
 
@@ -104,7 +122,8 @@ model Course {
   company        Company // Para cuál empresa aplica
   status         CourseStatus   @default(DRAFT)
   requiredAreas  String[] // Áreas que deben completarlo (vacío = opcional)
-  dueDate        DateTime? // Fecha límite (null = sin límite)
+  dueDate        DateTime? // Fecha límite fija (null = sin límite)
+  dueDays        Int? // Plazo en días relativo a cada empleado (null = no aplica)
   estimatedHours Float? // Duración estimada
   passingScore   Int            @default(70) // % mínimo para aprobar
   createdBy      String
@@ -143,6 +162,7 @@ model Lesson {
   updatedAt   DateTime   @updatedAt
 
   progress UserProgress[]
+  comments LessonComment[]
 }
 
 model Exam {
@@ -226,6 +246,23 @@ model ImageAsset {
   size      Int // bytes
   data      Bytes
   createdAt DateTime @default(now())
+}
+
+// Foro por lección: preguntas y comentarios. Un comentario raíz (parentId null)
+// es una pregunta; los que tienen parentId son respuestas (un solo nivel).
+model LessonComment {
+  id        String          @id @default(cuid())
+  lessonId  String
+  lesson    Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentId  String? // null = pregunta; con valor = respuesta
+  parent    LessonComment?  @relation("ComentarioRespuestas", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   LessonComment[] @relation("ComentarioRespuestas")
+  body      String
+  createdAt DateTime        @default(now())
+
+  @@index([lessonId])
 }
 
 model Certificate {

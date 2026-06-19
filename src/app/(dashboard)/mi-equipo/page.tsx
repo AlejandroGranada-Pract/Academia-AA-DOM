@@ -1,8 +1,20 @@
 import { redirect } from "next/navigation";
-import { Users2, Target, AlertTriangle, TrendingDown } from "lucide-react";
+import {
+  Users2,
+  Target,
+  AlertTriangle,
+  TrendingDown,
+  ChevronRight,
+} from "lucide-react";
 import { auth } from "@/auth";
 import { Header } from "@/components/layout/Header";
 import { getLeaderMetrics } from "@/lib/metrics";
+
+const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+function fmtFecha(iso: string) {
+  const d = new Date(iso);
+  return `${d.getUTCDate()} ${MESES[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
 
 export default async function MiEquipoPage() {
   const session = await auth();
@@ -15,17 +27,21 @@ export default async function MiEquipoPage() {
     <div>
       <Header
         title="Mi Equipo"
-        subtitle={m.area ? `Área: ${m.area}` : "Tu equipo"}
+        subtitle={
+          m.grupos.length > 0
+            ? `Grupos que lideras: ${m.grupos.join(", ")}`
+            : "Tu equipo"
+        }
       />
 
-      {!m.area ? (
+      {m.grupos.length === 0 ? (
         <p className="rounded-2xl border border-dashed bg-card/50 p-8 text-center text-sm text-muted-foreground">
-          Tu usuario no tiene un área asignada. Pídele a un administrador que la
-          configure para ver a tu equipo.
+          Aún no lideras ningún grupo. Pídele a un administrador que te asigne
+          uno para ver a tu equipo.
         </p>
       ) : m.equipo.length === 0 ? (
         <p className="rounded-2xl border border-dashed bg-card/50 p-8 text-center text-sm text-muted-foreground">
-          No hay otros empleados en el área <strong>{m.area}</strong> todavía.
+          Los grupos que lideras todavía no tienen miembros.
         </p>
       ) : (
         <>
@@ -135,13 +151,33 @@ export default async function MiEquipoPage() {
                   {m.empleadosVencidos.map((e) => (
                     <li
                       key={e.userId}
-                      className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-sm"
+                      className="overflow-hidden rounded-lg border bg-card"
                     >
-                      <span className="font-medium text-foreground">{e.name}</span>
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-destructive">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        {e.vencidos} {e.vencidos === 1 ? "vencido" : "vencidos"}
-                      </span>
+                      <details className="group">
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-sm">
+                          <span className="flex items-center gap-1.5 font-medium text-foreground">
+                            <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-90" />
+                            {e.name}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-destructive">
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            {e.vencidos} {e.vencidos === 1 ? "vencido" : "vencidos"}
+                          </span>
+                        </summary>
+                        <ul className="divide-y border-t bg-muted/30">
+                          {e.cursos.map((c, i) => (
+                            <li
+                              key={i}
+                              className="flex flex-wrap items-center justify-between gap-1 px-3 py-2 pl-9 text-xs"
+                            >
+                              <span className="text-foreground">{c.title}</span>
+                              <span className="text-destructive">
+                                venció el {fmtFecha(c.fecha)}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
                     </li>
                   ))}
                 </ul>
@@ -169,7 +205,7 @@ function Kpi({
 }) {
   const color = danger ? "text-destructive" : accent ? "text-gold" : "text-primary";
   return (
-    <div className="rounded-2xl border border-white/60 bg-white/70 p-4 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm">
+    <div className="rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card p-4 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm">
       <Icon className={`h-5 w-5 ${color}`} />
       <p className="mt-2 text-2xl font-bold text-foreground">{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -188,7 +224,7 @@ function Panel({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-white/60 bg-white/70 p-5 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm ${className}`}
+      className={`rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card p-5 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm ${className}`}
     >
       <h3 className="mb-4 flex items-center gap-2 text-lg text-foreground">
         <span className="h-4 w-1 rounded-full bg-gold" />

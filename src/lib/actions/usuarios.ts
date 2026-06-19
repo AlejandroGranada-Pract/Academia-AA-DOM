@@ -9,27 +9,38 @@ import type { Prisma } from "@/generated/prisma/client";
 type Role = "SUPER_ADMIN" | "AREA_LEADER" | "EMPLOYEE" | "EXTERNAL";
 type Company = "AMBIENTE_AZUL" | "DOM_DESIGN" | "AMBAS";
 
-async function requireAdmin() {
+async function requireAdmin(): Promise<string> {
   const session = await auth();
   if (session?.user?.role !== "SUPER_ADMIN") {
     throw new Error("No autorizado");
   }
+  return session.user.id;
 }
 
 export async function createUser(
   formData: FormData,
 ): Promise<string | undefined> {
-  await requireAdmin();
+  const adminId = await requireAdmin();
 
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
-  const role = String(formData.get("role") ?? "EMPLOYEE");
+  const role = String(formData.get("role") ?? "EMPLOYEE") as Role;
   const company = String(formData.get("company") ?? "AMBIENTE_AZUL");
   const grupoIds = formData
     .getAll("grupoIds")
+    .map((v) => String(v))
+    .filter(Boolean);
+  // Solo aplica si el rol es líder de área.
+  const liderGrupoIds =
+    role === "AREA_LEADER"
+      ? formData.getAll("liderGrupoIds").map((v) => String(v)).filter(Boolean)
+      : [];
+  // Cursos asignados directamente (acceso extra sin pertenecer a un grupo).
+  const cursoIds = formData
+    .getAll("cursoIds")
     .map((v) => String(v))
     .filter(Boolean);
 
@@ -49,10 +60,16 @@ export async function createUser(
       name,
       email,
       passwordHash,
-      role: role as "SUPER_ADMIN" | "AREA_LEADER" | "EMPLOYEE" | "EXTERNAL",
+      role,
       company: company as "AMBIENTE_AZUL" | "DOM_DESIGN" | "AMBAS",
       grupos: grupoIds.length
         ? { connect: grupoIds.map((id) => ({ id })) }
+        : undefined,
+      gruposLiderados: liderGrupoIds.length
+        ? { connect: liderGrupoIds.map((id) => ({ id })) }
+        : undefined,
+      assignments: cursoIds.length
+        ? { create: cursoIds.map((courseId) => ({ courseId, assignedBy: adminId })) }
         : undefined,
     },
   });
@@ -71,7 +88,7 @@ export async function updateUser(
   userId: string,
   formData: FormData,
 ): Promise<string | undefined> {
-  await requireAdmin();
+  const adminId = await requireAdmin();
 
   const name = String(formData.get("name") ?? "").trim();
   const role = String(formData.get("role") ?? "EMPLOYEE") as Role;
@@ -79,6 +96,16 @@ export async function updateUser(
   const password = String(formData.get("password") ?? "");
   const grupoIds = formData
     .getAll("grupoIds")
+    .map((v) => String(v))
+    .filter(Boolean);
+  // Si deja de ser líder, se limpian los grupos liderados.
+  const liderGrupoIds =
+    role === "AREA_LEADER"
+      ? formData.getAll("liderGrupoIds").map((v) => String(v)).filter(Boolean)
+      : [];
+  // Cursos asignados directamente: se reemplaza el set completo.
+  const cursoIds = formData
+    .getAll("cursoIds")
     .map((v) => String(v))
     .filter(Boolean);
 
@@ -89,6 +116,11 @@ export async function updateUser(
     role,
     company,
     grupos: { set: grupoIds.map((id) => ({ id })) },
+    gruposLiderados: { set: liderGrupoIds.map((id) => ({ id })) },
+    assignments: {
+      deleteMany: {},
+      create: cursoIds.map((courseId) => ({ courseId, assignedBy: adminId })),
+    },
   };
 
   if (password) {

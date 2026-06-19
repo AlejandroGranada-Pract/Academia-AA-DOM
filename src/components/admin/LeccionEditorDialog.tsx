@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { updateLesson, type LessonBlock } from "@/lib/actions/editor";
 import { uploadImage } from "@/lib/actions/imagenes";
+import { useCierreGuard, ConfirmarSalir } from "@/components/admin/ConfirmarSalir";
 import { LeccionViewer } from "@/components/curso/LeccionViewer";
 import { Button } from "@/components/ui/button";
 import {
@@ -92,10 +93,12 @@ export function LeccionEditorDialog({
   const [blocks, setBlocks] = useState<LessonBlock[]>(leccion?.blocks ?? []);
   const [preview, setPreview] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
   const [pending, startTransition] = useTransition();
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadTargetRef = useRef<number | null>(null);
+  const guard = useCierreGuard(dirty, () => onOpenChange(false));
 
   function pickImage(i: number) {
     uploadTargetRef.current = i;
@@ -124,11 +127,13 @@ export function LeccionEditorDialog({
   }
 
   function patch(i: number, partial: Partial<LessonBlock>) {
+    setDirty(true);
     setBlocks((prev) =>
       prev.map((b, idx) => (idx === i ? { ...b, ...partial } : b)),
     );
   }
   function move(i: number, dir: -1 | 1) {
+    setDirty(true);
     setBlocks((prev) => {
       const j = i + dir;
       if (j < 0 || j >= prev.length) return prev;
@@ -138,9 +143,11 @@ export function LeccionEditorDialog({
     });
   }
   function remove(i: number) {
+    setDirty(true);
     setBlocks((prev) => prev.filter((_, idx) => idx !== i));
   }
   function add(type: LessonBlock["type"]) {
+    setDirty(true);
     setBlocks((prev) => [...prev, emptyBlock(type)]);
   }
 
@@ -154,13 +161,15 @@ export function LeccionEditorDialog({
         blocks,
       });
       if (err) return setError(err);
+      setDirty(false);
       toast.success("Lección guardada");
       onOpenChange(false);
     });
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+    <Dialog open={open} onOpenChange={guard.onOpenChange}>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Editar lección</DialogTitle>
@@ -176,7 +185,10 @@ export function LeccionEditorDialog({
             <Input
               id="ltitle"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setDirty(true);
+                setTitle(e.target.value);
+              }}
             />
           </div>
           <div className="space-y-1.5">
@@ -186,7 +198,10 @@ export function LeccionEditorDialog({
               type="number"
               min="0"
               value={duration}
-              onChange={(e) => setDuration(e.target.value)}
+              onChange={(e) => {
+                setDirty(true);
+                setDuration(e.target.value);
+              }}
             />
           </div>
         </div>
@@ -398,7 +413,7 @@ export function LeccionEditorDialog({
             type="button"
             variant="outline"
             className="flex-1"
-            onClick={() => onOpenChange(false)}
+            onClick={() => guard.onOpenChange(false)}
           >
             Cancelar
           </Button>
@@ -408,5 +423,12 @@ export function LeccionEditorDialog({
         </div>
       </DialogContent>
     </Dialog>
+
+      <ConfirmarSalir
+        open={guard.confirming}
+        onKeep={guard.keepEditing}
+        onLeave={guard.confirmLeave}
+      />
+    </>
   );
 }

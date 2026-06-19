@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getCompletedLessonIds, getPassedExamIds, pct } from "@/lib/progress";
 import { visibleCoursesWhere, getViewer } from "@/lib/courses";
+import { effectiveDueDate } from "@/lib/vencimiento";
 import { Header } from "@/components/layout/Header";
 import { CursoCard } from "@/components/curso/CursoCard";
 
@@ -12,6 +13,12 @@ export default async function CursosPage() {
   const viewer = userId ? await getViewer(userId) : null;
   const completed = userId ? await getCompletedLessonIds(userId) : new Set<string>();
   const passedExams = userId ? await getPassedExamIds(userId) : new Set<string>();
+  const me = userId
+    ? await prisma.user.findUnique({
+        where: { id: userId },
+        select: { createdAt: true },
+      })
+    : null;
 
   // Cursos visibles según el área/rol del usuario.
   const cursos = await prisma.course.findMany({
@@ -69,7 +76,8 @@ export default async function CursosPage() {
                   estimatedHours: c.estimatedHours,
                   lessonCount: lessonIds.length,
                   progressPct: pct(done, total),
-                  dueDate: c.dueDate ? c.dueDate.toISOString() : null,
+                  dueDate:
+                    effectiveDueDate(c, me?.createdAt)?.toISOString() ?? null,
                 }}
               />
             );

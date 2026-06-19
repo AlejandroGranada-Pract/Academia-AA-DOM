@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Clock } from "lucide-react";
+import { toast } from "sonner";
 import { submitExam, type ExamResult, type RespuestaUsuario } from "@/lib/actions/examen";
 import { PreguntaCard, type PreguntaLite } from "@/components/examen/PreguntaCard";
 import { ResultadoExamen } from "@/components/examen/ResultadoExamen";
@@ -51,6 +52,9 @@ export function ExamenTomar({
     const res = await submitExam(exam.id, answers);
     if (res.ok) {
       setResult(res);
+      for (const titulo of res.nuevasInsignias ?? []) {
+        toast.success("¡Insignia desbloqueada! 🏅", { description: titulo });
+      }
     } else {
       setError(res.error);
       submittedRef.current = false;

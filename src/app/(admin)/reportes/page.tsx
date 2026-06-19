@@ -174,7 +174,7 @@ function Kpi({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-white/60 bg-white/70 p-4 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm">
+    <div className="rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card p-4 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm">
       <Icon className={`h-5 w-5 ${accent ? "text-gold" : "text-primary"}`} />
       <p className="mt-2 text-2xl font-bold text-foreground">{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -193,7 +193,7 @@ function Panel({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-white/60 bg-white/70 p-5 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm ${className}`}
+      className={`rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card p-5 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm ${className}`}
     >
       <h3 className="mb-4 flex items-center gap-2 text-lg text-foreground">
         <span className="h-4 w-1 rounded-full bg-gold" />

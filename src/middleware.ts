@@ -10,6 +10,6 @@ export const config = {
   // Importante: excluir también media (mp4/webm) y fuentes, o el middleware los
   // redirige a /login y no cargan (ej. el video de fondo del login).
   matcher: [
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|mp4|webm|woff2?)$).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|.*\\.(?:png|jpg|jpeg|gif|svg|ico|mp4|webm|woff2?)$).*)",
   ],
 };

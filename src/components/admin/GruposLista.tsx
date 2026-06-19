@@ -42,7 +42,7 @@ export function GruposLista({ grupos }: { grupos: GrupoItem[] }) {
           {filtered.map((g) => (
             <div
               key={g.id}
-              className="flex flex-col rounded-2xl border border-white/60 bg-white/70 p-5 backdrop-blur-sm"
+              className="flex flex-col rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card p-5 backdrop-blur-sm"
             >
               <div className="mb-3 flex items-center gap-2">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">

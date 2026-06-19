@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { LogOut } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
-import { AsistenteFlotante } from "@/components/admin/AsistenteFlotante";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { signOutAction } from "@/lib/actions/auth";
 
 // Marco compartido de todas las páginas autenticadas (dashboard y admin).
@@ -12,7 +12,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = session?.user;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FBFAF8] via-background to-[#F2EEE6]">
+    <div className="min-h-screen bg-gradient-to-br from-white via-background to-[#f7f7f6] dark:from-[#0b0d10] dark:via-background dark:to-[#13161c]">
       <Sidebar
         user={{
           name: user?.name ?? "Usuario",
@@ -21,25 +21,28 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       />
 
       {/* Barra superior solo en celular (el Sidebar está oculto ≤768px) */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/5 bg-gradient-to-r from-[#262626] to-grafito px-4 py-3 md:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-sidebar-border bg-sidebar text-sidebar-foreground dark:bg-gradient-to-r dark:from-[#14171c] dark:to-[#0f1115] px-4 py-3 md:hidden">
         <div className="flex items-center gap-2">
           <span className="font-heading text-base tracking-wider text-sidebar-primary">
             AMBIENTE AZUL
           </span>
-          <span className="h-4 w-px bg-white/15" />
+          <span className="h-4 w-px bg-sidebar-foreground/15" />
           <span className="font-heading text-base tracking-[0.2em] text-gold">
             DOM
           </span>
         </div>
-        <form action={signOutAction}>
-          <button
-            type="submit"
-            aria-label="Cerrar sesión"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-destructive/15 hover:text-destructive"
-          >
-            <LogOut className="h-[18px] w-[18px]" />
-          </button>
-        </form>
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              aria-label="Cerrar sesión"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-sidebar-foreground/60 transition-colors hover:bg-destructive/15 hover:text-destructive"
+            >
+              <LogOut className="h-[18px] w-[18px]" />
+            </button>
+          </form>
+        </div>
       </header>
 
       {/* Contenido: deja espacio para el sidebar (desktop) y la barra inferior (móvil) */}
@@ -48,9 +51,6 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <MobileNav />
-
-      {/* Asistente IA flotante — solo para administradores */}
-      {user?.role === "SUPER_ADMIN" && <AsistenteFlotante />}
     </div>
   );
 }

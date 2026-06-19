@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { effectiveDueDate } from "@/lib/vencimiento";
 
 // Población medida: empleados y líderes activos (los admins crean contenido,
 // no se miden; los externos quedan fuera del denominador de cumplimiento).
@@ -248,6 +249,8 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
 // misma área (campo `area`). Excluye al propio líder.
 // ===========================================================================
 
+export type CursoVencido = { title: string; fecha: string };
+
 export type TeamMember = {
   userId: string;
   name: string;
@@ -255,6 +258,7 @@ export type TeamMember = {
   pendientes: number;
   promedio: number | null;
   vencidos: number;
+  cursosVencidos: CursoVencido[];
 };
 
 export type CursoFinalizacion = {
@@ -266,22 +270,38 @@ export type CursoFinalizacion = {
 };
 
 export type LeaderMetrics = {
-  area: string | null;
+  grupos: string[]; // nombres de los grupos que lidera
   equipo: TeamMember[];
   promedioEquipo: number | null;
   cursosBajaFinalizacion: CursoFinalizacion[];
-  empleadosVencidos: { userId: string; name: string; vencidos: number }[];
+  empleadosVencidos: {
+    userId: string;
+    name: string;
+    vencidos: number;
+    cursos: CursoVencido[];
+  }[];
 };
 
 export async function getLeaderMetrics(userId: string): Promise<LeaderMetrics> {
   const viewer = await prisma.user.findUnique({
     where: { id: userId },
-    select: { area: true },
+    select: {
+      role: true,
+      gruposLiderados: { select: { id: true, name: true } },
+    },
   });
-  const area = viewer?.area ?? null;
-  if (!area) {
+
+  // Un SUPER_ADMIN sin grupos liderados ve todos los grupos (para previsualizar);
+  // un AREA_LEADER ve solo los que lidera.
+  let gruposLiderados = viewer?.gruposLiderados ?? [];
+  if (viewer?.role === "SUPER_ADMIN" && gruposLiderados.length === 0) {
+    gruposLiderados = await prisma.grupo.findMany({ select: { id: true, name: true } });
+  }
+  const grupoIds = new Set(gruposLiderados.map((g) => g.id));
+
+  if (grupoIds.size === 0) {
     return {
-      area: null,
+      grupos: [],
       equipo: [],
       promedioEquipo: null,
       cursosBajaFinalizacion: [],
@@ -294,11 +314,16 @@ export async function getLeaderMetrics(userId: string): Promise<LeaderMetrics> {
       where: {
         active: true,
         role: { in: [...LEARNER_ROLES] },
-        area,
+        grupos: { some: { id: { in: Array.from(grupoIds) } } },
         NOT: { id: userId },
       },
       orderBy: { name: "asc" },
-      select: { id: true, name: true, grupos: { select: { id: true } } },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        grupos: { select: { id: true } },
+      },
     }),
     prisma.course.findMany({
       where: { status: "PUBLISHED" },
@@ -307,6 +332,8 @@ export async function getLeaderMetrics(userId: string): Promise<LeaderMetrics> {
         title: true,
         category: true,
         dueDate: true,
+        dueDays: true,
+        createdAt: true,
         grupos: { select: { id: true } },
       },
     }),
@@ -350,9 +377,10 @@ export async function getLeaderMetrics(userId: string): Promise<LeaderMetrics> {
     const elegibles = cursos.filter((c) => cursoEsElegible(c, u.grupos));
     const certs = certsByUser.get(u.id) ?? new Set<string>();
     const completados = elegibles.filter((c) => certs.has(c.id)).length;
-    const vencidos = elegibles.filter(
-      (c) => c.dueDate && c.dueDate < now && !certs.has(c.id),
-    ).length;
+    const cursosVencidos: CursoVencido[] = elegibles
+      .map((c) => ({ c, due: effectiveDueDate(c, u.createdAt) }))
+      .filter(({ c, due }) => due && due < now && !certs.has(c.id))
+      .map(({ c, due }) => ({ title: c.title, fecha: (due as Date).toISOString() }));
 
     const perExam = bestByUserExam.get(u.id);
     const bests = perExam ? Array.from(perExam.values()) : [];
@@ -366,7 +394,8 @@ export async function getLeaderMetrics(userId: string): Promise<LeaderMetrics> {
       completados,
       pendientes: elegibles.length - completados,
       promedio,
-      vencidos,
+      vencidos: cursosVencidos.length,
+      cursosVencidos,
     };
   });
 
@@ -403,10 +432,15 @@ export async function getLeaderMetrics(userId: string): Promise<LeaderMetrics> {
 
   const empleadosVencidos = equipo
     .filter((m) => m.vencidos > 0)
-    .map((m) => ({ userId: m.userId, name: m.name, vencidos: m.vencidos }));
+    .map((m) => ({
+      userId: m.userId,
+      name: m.name,
+      vencidos: m.vencidos,
+      cursos: m.cursosVencidos,
+    }));
 
   return {
-    area,
+    grupos: gruposLiderados.map((g) => g.name),
     equipo,
     promedioEquipo,
     cursosBajaFinalizacion: cursosFin,

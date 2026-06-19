@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { issueCertificateIfComplete } from "@/lib/certificados";
+import { otorgarLogros, titulosLogros } from "@/lib/badges";
 
 export type RespuestaUsuario = number | number[] | null;
 type Answers = Record<string, RespuestaUsuario>;
@@ -29,6 +30,7 @@ export type ExamResult =
       passed: boolean;
       passingScore: number;
       results: ResultadoPregunta[];
+      nuevasInsignias: string[];
     };
 
 // Califica el examen en el servidor y guarda el intento.
@@ -111,11 +113,20 @@ export async function submitExam(
   if (passed && exam.module?.courseId) {
     await issueCertificateIfComplete(userId, exam.module.courseId);
   }
+  // Otorga logros (puntaje perfecto, primer examen, racha, curso completo...).
+  const nuevasInsignias = titulosLogros(await otorgarLogros(userId));
 
   revalidatePath("/");
   revalidatePath("/cursos");
   revalidatePath("/mi-progreso");
   revalidatePath("/certificados");
 
-  return { ok: true, score, passed, passingScore: exam.passingScore, results };
+  return {
+    ok: true,
+    score,
+    passed,
+    passingScore: exam.passingScore,
+    results,
+    nuevasInsignias,
+  };
 }

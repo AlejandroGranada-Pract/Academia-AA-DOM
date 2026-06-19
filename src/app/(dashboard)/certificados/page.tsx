@@ -69,7 +69,7 @@ export default async function CertificadosPage() {
           {certificados.map((c) => (
             <div
               key={c.id}
-              className="overflow-hidden rounded-2xl border border-white/60 bg-white/70 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm"
+              className="overflow-hidden rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm"
             >
               {/* Cinta superior con el sello dorado */}
               <div className="flex items-center gap-3 bg-gradient-to-r from-grafito to-[#2a2a2a] px-5 py-4">

@@ -80,3 +80,24 @@ export async function toggleUserInGrupo(
   revalidatePath(`/grupos/${grupoId}`);
   revalidatePath("/cursos");
 }
+
+// Guarda de una sola vez la membresía completa del grupo (cursos + usuarios).
+// Reemplaza las listas con `set`. Usado por el editor con botón "Guardar".
+export async function setGrupoMembership(
+  grupoId: string,
+  courseIds: string[],
+  userIds: string[],
+): Promise<string | undefined> {
+  await requireAdmin();
+  await prisma.grupo.update({
+    where: { id: grupoId },
+    data: {
+      courses: { set: courseIds.map((id) => ({ id })) },
+      users: { set: userIds.map((id) => ({ id })) },
+    },
+  });
+  revalidatePath(`/grupos/${grupoId}`);
+  revalidatePath("/cursos");
+  revalidatePath("/mi-equipo");
+  return undefined;
+}

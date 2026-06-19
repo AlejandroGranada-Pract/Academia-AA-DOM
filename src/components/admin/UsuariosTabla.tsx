@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Search, Eye, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { updateUser, deleteUser } from "@/lib/actions/usuarios";
 import { ToggleActivo } from "@/components/admin/ToggleActivo";
+import { useCierreGuard, ConfirmarSalir } from "@/components/admin/ConfirmarSalir";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -40,19 +41,31 @@ export type UsuarioRow = {
   active: boolean;
   grupoIds: string[];
   grupoNames: string[];
+  liderGrupoIds: string[];
+  liderGrupoNames: string[];
+  cursoIds: string[];
 };
 
 export function UsuariosTabla({
   usuarios,
   grupos,
+  cursos,
 }: {
   usuarios: UsuarioRow[];
   grupos: { id: string; name: string }[];
+  cursos: { id: string; title: string }[];
 }) {
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<UsuarioRow | null>(null);
   const [viewing, setViewing] = useState<UsuarioRow | null>(null);
   const [deleting, setDeleting] = useState<UsuarioRow | null>(null);
+  const [editDirty, setEditDirty] = useState(false);
+  const editGuard = useCierreGuard(editDirty, () => setEditing(null));
+
+  // Resetea "cambios sin guardar" al abrir/cambiar el usuario en edición.
+  useEffect(() => {
+    setEditDirty(false);
+  }, [editing]);
 
   const query = q.trim().toLowerCase();
   const filtered = query
@@ -75,7 +88,7 @@ export function UsuariosTabla({
         />
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-white/60 bg-white/70 backdrop-blur-sm">
+      <div className="overflow-x-auto rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card backdrop-blur-sm">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
@@ -155,6 +168,16 @@ export function UsuariosTabla({
                     : "—"
                 }
               />
+              {viewing.role === "AREA_LEADER" && (
+                <Row
+                  label="Grupos que lidera"
+                  value={
+                    viewing.liderGrupoNames.length > 0
+                      ? viewing.liderGrupoNames.join(", ")
+                      : "—"
+                  }
+                />
+              )}
               <Row label="Estado" value={viewing.active ? "Activo" : "Inactivo"} />
             </dl>
           )}
@@ -162,7 +185,7 @@ export function UsuariosTabla({
       </Dialog>
 
       {/* Editar */}
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+      <Dialog open={!!editing} onOpenChange={editGuard.onOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar usuario</DialogTitle>
@@ -173,11 +196,22 @@ export function UsuariosTabla({
               key={editing.id}
               user={editing}
               grupos={grupos}
-              onDone={() => setEditing(null)}
+              cursos={cursos}
+              onDirty={() => setEditDirty(true)}
+              onCancel={() => editGuard.onOpenChange(false)}
+              onDone={() => {
+                setEditDirty(false);
+                setEditing(null);
+              }}
             />
           )}
         </DialogContent>
       </Dialog>
+      <ConfirmarSalir
+        open={editGuard.confirming}
+        onKeep={editGuard.keepEditing}
+        onLeave={editGuard.confirmLeave}
+      />
 
       {/* Eliminar */}
       <Dialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
@@ -236,13 +270,20 @@ function Row({ label, value }: { label: string; value: string }) {
 function EditarForm({
   user,
   grupos,
+  cursos,
   onDone,
+  onCancel,
+  onDirty,
 }: {
   user: UsuarioRow;
   grupos: { id: string; name: string }[];
+  cursos: { id: string; title: string }[];
   onDone: () => void;
+  onCancel: () => void;
+  onDirty: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
+  const [role, setRole] = useState(user.role);
   const [pending, startTransition] = useTransition();
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -260,7 +301,7 @@ function EditarForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
+    <form onSubmit={onSubmit} onChange={onDirty} className="space-y-3">
       <div className="space-y-1.5">
         <Label htmlFor="name">Nombre</Label>
         <Input id="name" name="name" defaultValue={user.name} required />
@@ -268,7 +309,13 @@ function EditarForm({
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="role">Rol</Label>
-          <select id="role" name="role" className={selectClass} defaultValue={user.role}>
+          <select
+            id="role"
+            name="role"
+            className={selectClass}
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
             <option value="EMPLOYEE">Empleado</option>
             <option value="AREA_LEADER">Líder de Área</option>
             <option value="SUPER_ADMIN">Super Admin</option>
@@ -308,6 +355,61 @@ function EditarForm({
           </div>
         )}
       </div>
+
+      {/* Grupos que lidera (solo Líder de Área) */}
+      {role === "AREA_LEADER" && grupos.length > 0 && (
+        <div className="space-y-1.5 rounded-lg border border-gold/30 bg-gold/5 p-3">
+          <Label>Grupos que lidera</Label>
+          <p className="text-xs text-muted-foreground">
+            Verá el avance de los miembros de estos grupos en “Mi Equipo”.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {grupos.map((g) => (
+              <label
+                key={g.id}
+                className="flex cursor-pointer items-center gap-2 rounded-lg border bg-card px-3 py-1.5 text-sm has-[:checked]:border-gold has-[:checked]:bg-gold/10"
+              >
+                <input
+                  type="checkbox"
+                  name="liderGrupoIds"
+                  value={g.id}
+                  defaultChecked={user.liderGrupoIds.includes(g.id)}
+                  className="accent-gold"
+                />
+                {g.name}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Cursos extra (acceso directo, sin grupo) */}
+      {cursos.length > 0 && (
+        <div className="space-y-1.5">
+          <Label>Cursos extra (acceso directo)</Label>
+          <p className="text-xs text-muted-foreground">
+            Acceso a cursos puntuales sin pertenecer a un grupo.
+          </p>
+          <div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto">
+            {cursos.map((c) => (
+              <label
+                key={c.id}
+                className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/8"
+              >
+                <input
+                  type="checkbox"
+                  name="cursoIds"
+                  value={c.id}
+                  defaultChecked={user.cursoIds.includes(c.id)}
+                  className="accent-primary"
+                />
+                {c.title}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="space-y-1.5">
         <Label htmlFor="password">Nueva contraseña (opcional)</Label>
         <Input
@@ -328,7 +430,7 @@ function EditarForm({
           type="button"
           variant="outline"
           className="flex-1"
-          onClick={onDone}
+          onClick={onCancel}
         >
           Cancelar
         </Button>

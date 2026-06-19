@@ -2,14 +2,30 @@ import Link from "next/link";
 import {
   BookOpen,
   CheckCircle2,
+  Flame,
+  Footprints,
   GraduationCap,
+  Lock,
+  Star,
   Trophy,
+  type LucideIcon,
 } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getCompletedLessonIds, getPassedExamIds, pct } from "@/lib/progress";
 import { visibleCoursesWhere, getViewer } from "@/lib/courses";
+import { BADGES, getLogrosGanados, otorgarLogros } from "@/lib/badges";
 import { Header } from "@/components/layout/Header";
+
+// Mapa de íconos de los logros (las claves vienen de BADGES[].icon).
+const BADGE_ICONS: Record<string, LucideIcon> = {
+  Footprints,
+  CheckCircle2,
+  Star,
+  GraduationCap,
+  Flame,
+  Trophy,
+};
 
 export default async function MiProgresoPage() {
   const session = await auth();
@@ -81,6 +97,14 @@ export default async function MiProgresoPage() {
       ? Math.round(examenes.reduce((s, e) => s + e.best, 0) / examenes.length)
       : null;
 
+  // Logros: otorga los pendientes (catch-up) y trae los ganados con su fecha.
+  if (userId) await otorgarLogros(userId);
+  const logrosGanados = userId
+    ? await getLogrosGanados(userId)
+    : new Map<string, Date>();
+  const totalLogros = BADGES.length;
+  const ganados = logrosGanados.size;
+
   return (
     <div>
       <Header
@@ -116,6 +140,58 @@ export default async function MiProgresoPage() {
         />
       </div>
 
+      {/* Logros */}
+      <section className="mb-8">
+        <h2 className="mb-4 flex items-center gap-2 text-2xl text-foreground">
+          <span className="h-5 w-1 rounded-full bg-gold" />
+          Logros
+          <span className="text-sm font-normal text-muted-foreground">
+            {ganados}/{totalLogros}
+          </span>
+        </h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {BADGES.map((b) => {
+            const earnedAt = logrosGanados.get(b.key);
+            const Icon = BADGE_ICONS[b.icon] ?? Trophy;
+            const earned = !!earnedAt;
+            return (
+              <div
+                key={b.key}
+                title={b.description}
+                className={`flex flex-col items-center rounded-2xl border p-4 text-center transition ${
+                  earned
+                    ? "border-gold/40 bg-gold/10"
+                    : "border-white/60 bg-white/70 opacity-60 dark:border-border dark:bg-card"
+                }`}
+              >
+                <div
+                  className={`mb-2 flex h-12 w-12 items-center justify-center rounded-full ${
+                    earned
+                      ? "bg-gold/20 text-gold"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {earned ? (
+                    <Icon className="h-6 w-6" />
+                  ) : (
+                    <Lock className="h-5 w-5" />
+                  )}
+                </div>
+                <p className="text-sm font-medium text-foreground">{b.title}</p>
+                <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
+                  {b.description}
+                </p>
+                {earned && earnedAt && (
+                  <p className="mt-1 text-[10px] font-medium text-gold">
+                    {fmtFecha(earnedAt)}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Avance por curso */}
       <section className="mb-8">
         <h2 className="mb-4 flex items-center gap-2 text-2xl text-foreground">
@@ -127,7 +203,7 @@ export default async function MiProgresoPage() {
             <Link
               key={c.id}
               href={`/cursos/${c.id}`}
-              className="block rounded-xl border border-white/60 bg-white/70 p-4 backdrop-blur-sm transition hover:shadow-md"
+              className="block rounded-xl border border-white/60 dark:border-border bg-white/70 dark:bg-card p-4 backdrop-blur-sm transition hover:shadow-md"
             >
               <div className="mb-2 flex items-center justify-between gap-3">
                 <span className="font-medium text-foreground">{c.title}</span>
@@ -161,7 +237,7 @@ export default async function MiProgresoPage() {
             {examenes.map((e, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between gap-3 rounded-xl border border-white/60 bg-white/70 p-4 backdrop-blur-sm"
+                className="flex items-center justify-between gap-3 rounded-xl border border-white/60 dark:border-border bg-white/70 dark:bg-card p-4 backdrop-blur-sm"
               >
                 <div className="min-w-0">
                   <p className="truncate font-medium text-foreground">{e.title}</p>
@@ -193,6 +269,14 @@ export default async function MiProgresoPage() {
   );
 }
 
+function fmtFecha(d: Date): string {
+  return d.toLocaleDateString("es-CO", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 function StatCard({
   icon,
   tint,
@@ -205,7 +289,7 @@ function StatCard({
   label: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/60 bg-white/70 p-5 backdrop-blur-sm">
+    <div className="rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card p-5 backdrop-blur-sm">
       <div
         className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${tint}`}
       >

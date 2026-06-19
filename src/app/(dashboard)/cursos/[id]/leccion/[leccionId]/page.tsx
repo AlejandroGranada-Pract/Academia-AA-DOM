@@ -12,6 +12,7 @@ import {
 import { LeccionViewer } from "@/components/curso/LeccionViewer";
 import { LeccionActions } from "@/components/curso/LeccionActions";
 import { LeccionGate } from "@/components/curso/LeccionGate";
+import { LeccionForo } from "@/components/curso/LeccionForo";
 
 export default async function LeccionPage({
   params,
@@ -61,6 +62,31 @@ export default async function LeccionPage({
 
   const completed = completedIds.has(lesson.id);
 
+  // Foro de la lección: preguntas raíz con sus respuestas.
+  const comentariosRaw = await prisma.lessonComment.findMany({
+    where: { lessonId: lesson.id, parentId: null },
+    orderBy: { createdAt: "asc" },
+    include: {
+      user: { select: { id: true, name: true, role: true } },
+      replies: {
+        orderBy: { createdAt: "asc" },
+        include: { user: { select: { id: true, name: true, role: true } } },
+      },
+    },
+  });
+  const comentarios = comentariosRaw.map((c) => ({
+    id: c.id,
+    body: c.body,
+    createdAt: c.createdAt.toISOString(),
+    author: { id: c.user.id, name: c.user.name, role: c.user.role },
+    replies: c.replies.map((r) => ({
+      id: r.id,
+      body: r.body,
+      createdAt: r.createdAt.toISOString(),
+      author: { id: r.user.id, name: r.user.name, role: r.user.role },
+    })),
+  }));
+
   return (
     <div className="mx-auto max-w-3xl">
       {/* Breadcrumb */}
@@ -94,6 +120,15 @@ export default async function LeccionPage({
           completed={completed}
         />
       </LeccionGate>
+
+      {/* Foro: preguntas y comentarios de la lección */}
+      <LeccionForo
+        lessonId={lesson.id}
+        courseId={course.id}
+        currentUserId={userId ?? null}
+        isAdmin={session?.user?.role === "SUPER_ADMIN"}
+        comments={comentarios}
+      />
     </div>
   );
 }

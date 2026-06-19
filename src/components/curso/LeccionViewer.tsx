@@ -95,7 +95,7 @@ export function LeccionViewer({
   content: LessonContent;
 }) {
   return (
-    <article className="space-y-5 rounded-2xl border border-white/60 bg-white/70 p-6 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm md:p-8">
+    <article className="space-y-5 rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card p-6 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm md:p-8">
       {/* TEXT y MIXED: lista de bloques */}
       {(type === "TEXT" || type === "MIXED") &&
         content.blocks?.map((block, i) => <BlockRenderer key={i} block={block} />)}

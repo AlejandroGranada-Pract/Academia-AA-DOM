@@ -10,6 +10,7 @@ import {
   deleteQuestion,
   type QuestionInput,
 } from "@/lib/actions/editor";
+import { useCierreGuard, ConfirmarSalir } from "@/components/admin/ConfirmarSalir";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -61,9 +62,11 @@ export function ExamenEditorDialog({
 }) {
   const isEdit = !!examen;
   const [error, setError] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
   const [pending, startTransition] = useTransition();
   const [editingQ, setEditingQ] = useState<ExamenEditable["questions"][0] | null>(null);
   const [creatingQ, setCreatingQ] = useState(false);
+  const guard = useCierreGuard(dirty, () => onOpenChange(false));
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -79,6 +82,7 @@ export function ExamenEditorDialog({
         timeLimitMin: timeRaw ? parseInt(timeRaw, 10) : null,
       });
       if (err) return setError(err);
+      setDirty(false);
       toast.success(isEdit ? "Examen actualizado" : "Examen creado al final del módulo");
       if (!isEdit) onOpenChange(false);
     });
@@ -86,7 +90,7 @@ export function ExamenEditorDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={guard.onOpenChange}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{isEdit ? "Editar examen" : "Nuevo examen"}</DialogTitle>
@@ -97,7 +101,11 @@ export function ExamenEditorDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={onSubmit} className="space-y-3">
+          <form
+            onSubmit={onSubmit}
+            onChange={() => setDirty(true)}
+            className="space-y-3"
+          >
             <div className="space-y-1.5">
               <Label htmlFor="etitle">Título</Label>
               <Input id="etitle" name="title" defaultValue={examen?.title} required />
@@ -146,7 +154,7 @@ export function ExamenEditorDialog({
                 type="button"
                 variant="outline"
                 className="flex-1"
-                onClick={() => onOpenChange(false)}
+                onClick={() => guard.onOpenChange(false)}
               >
                 Cancelar
               </Button>
@@ -214,6 +222,7 @@ export function ExamenEditorDialog({
 
       {isEdit && examen && (
         <PreguntaDialog
+          key={creatingQ ? "new" : (editingQ?.id ?? "none")}
           courseId={courseId}
           examId={examen.id}
           pregunta={creatingQ ? null : editingQ}
@@ -226,6 +235,12 @@ export function ExamenEditorDialog({
           }}
         />
       )}
+
+      <ConfirmarSalir
+        open={guard.confirming}
+        onKeep={guard.keepEditing}
+        onLeave={guard.confirmLeave}
+      />
     </>
   );
 }
@@ -265,11 +280,14 @@ function PreguntaDialog({
   const [points, setPoints] = useState(String(pregunta?.points ?? 1));
   const [explanation, setExplanation] = useState(pregunta?.explanation ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
   const [pending, startTransition] = useTransition();
+  const guard = useCierreGuard(dirty, () => onOpenChange(false));
 
   const effectiveOptions = type === "TRUE_FALSE" ? ["Verdadero", "Falso"] : options;
 
   function toggleCorrect(i: number) {
+    setDirty(true);
     if (type === "MULTI_SELECT") {
       setCorrect((prev) =>
         prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i],
@@ -294,13 +312,15 @@ function PreguntaDialog({
         ? await updateQuestion(courseId, pregunta!.id, payload)
         : await addQuestion(courseId, examId, payload);
       if (err) return setError(err);
+      setDirty(false);
       toast.success(isEdit ? "Pregunta actualizada" : "Pregunta agregada");
       onOpenChange(false);
     });
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+    <Dialog open={open} onOpenChange={guard.onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Editar pregunta" : "Nueva pregunta"}</DialogTitle>
@@ -309,7 +329,7 @@ function PreguntaDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
+        <div className="space-y-3" onChange={() => setDirty(true)}>
           <div className="space-y-1.5">
             <Label>Enunciado</Label>
             <textarea
@@ -382,6 +402,7 @@ function PreguntaDialog({
                       <button
                         type="button"
                         onClick={() => {
+                          setDirty(true);
                           setOptions((prev) => prev.filter((_, idx) => idx !== i));
                           setCorrect((prev) =>
                             prev
@@ -403,7 +424,10 @@ function PreguntaDialog({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setOptions((prev) => [...prev, ""])}
+                onClick={() => {
+                  setDirty(true);
+                  setOptions((prev) => [...prev, ""]);
+                }}
                 className="gap-1"
               >
                 <Plus className="h-3.5 w-3.5" /> Opción
@@ -428,7 +452,7 @@ function PreguntaDialog({
               type="button"
               variant="outline"
               className="flex-1"
-              onClick={() => onOpenChange(false)}
+              onClick={() => guard.onOpenChange(false)}
             >
               Cancelar
             </Button>
@@ -439,5 +463,12 @@ function PreguntaDialog({
         </div>
       </DialogContent>
     </Dialog>
+
+    <ConfirmarSalir
+      open={guard.confirming}
+      onKeep={guard.keepEditing}
+      onLeave={guard.confirmLeave}
+    />
+    </>
   );
 }

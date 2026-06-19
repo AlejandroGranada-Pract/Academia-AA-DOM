@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, ArrowDown } from "lucide-react";
+import { toast } from "sonner";
 import { setLessonProgress } from "@/lib/actions/progress";
 import { useLeccionGate } from "@/components/curso/LeccionGate";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -48,7 +49,10 @@ export function LeccionActions({
     setPending(true);
     setIsCompleted(true);
     try {
-      await setLessonProgress(lessonId, courseId, true);
+      const nuevasInsignias = await setLessonProgress(lessonId, courseId, true);
+      for (const titulo of nuevasInsignias ?? []) {
+        toast.success("¡Insignia desbloqueada! 🏅", { description: titulo });
+      }
       // #continuar: el acordeón del curso hace scroll al módulo pendiente (sin saltar arriba)
       router.push(`${courseHref}#continuar`, { scroll: false });
     } catch {

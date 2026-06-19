@@ -118,7 +118,7 @@ export function CursoEditor({
       {modules.map((m, mi) => (
         <div
           key={m.id}
-          className="rounded-2xl border border-white/60 bg-white/70 p-4 backdrop-blur-sm"
+          className="rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card p-4 backdrop-blur-sm"
         >
           {/* Encabezado del módulo */}
           <div className="mb-3 flex items-center gap-2">

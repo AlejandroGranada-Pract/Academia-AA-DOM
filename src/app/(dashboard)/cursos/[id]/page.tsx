@@ -17,7 +17,7 @@ import {
   computeUnlockedIds,
 } from "@/lib/progress";
 import { issueCertificateIfComplete } from "@/lib/certificados";
-import { dueStatus } from "@/lib/vencimiento";
+import { dueStatus, effectiveDueDate } from "@/lib/vencimiento";
 import { canSeeCourse, getViewer } from "@/lib/courses";
 import { AlertTriangle } from "lucide-react";
 import type { ItemLite } from "@/components/curso/ModuloAccordion";
@@ -76,6 +76,16 @@ export default async function CursoDetallePage({
   // Acceso por grupo/rol: si no le corresponde el curso, lo devolvemos al catálogo.
   const viewer = userId ? await getViewer(userId) : null;
   if (!canSeeCourse(viewer ?? {}, curso)) redirect("/cursos");
+
+  const me = userId
+    ? await prisma.user.findUnique({
+        where: { id: userId },
+        select: { createdAt: true },
+      })
+    : null;
+
+  // Fecha límite efectiva para este empleado (plazo en días o fecha fija).
+  const efectivaDue = effectiveDueDate(curso, me?.createdAt);
 
   const completedIds = userId
     ? await getCompletedLessonIds(userId)
@@ -265,7 +275,7 @@ export default async function CursoDetallePage({
 
         <aside className="space-y-4 lg:sticky lg:top-8 lg:self-start">
           {/* Información del Curso */}
-          <div className="rounded-2xl border border-white/60 bg-white/70 p-5 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm">
+          <div className="rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card p-5 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm">
             <h3 className="mb-3 flex items-center gap-2 text-lg text-foreground">
               <span className="h-4 w-1 rounded-full bg-gold" />
               Información del Curso
@@ -286,14 +296,14 @@ export default async function CursoDetallePage({
               <InfoRow label="Puntaje mín." value={`${curso.passingScore}%`} />
               <InfoRow
                 label="Fecha límite"
-                value={curso.dueDate ? fmtFecha(curso.dueDate) : "Sin límite"}
-                valueClassName={curso.dueDate ? "text-destructive" : undefined}
+                value={efectivaDue ? fmtFecha(efectivaDue) : "Sin límite"}
+                valueClassName={efectivaDue ? "text-destructive" : undefined}
               />
             </dl>
 
             {/* Alerta de vencimiento (si no está completo) */}
             {(() => {
-              const due = dueStatus(curso.dueDate, coursePct === 100);
+              const due = dueStatus(efectivaDue, coursePct === 100);
               if (!due) return null;
               return (
                 <div
@@ -349,7 +359,7 @@ export default async function CursoDetallePage({
 
           {/* Tu Rendimiento */}
           {rendimiento.length > 0 && (
-            <div className="rounded-2xl border border-white/60 bg-white/70 p-5 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm">
+            <div className="rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card p-5 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm">
               <h3 className="mb-3 flex items-center gap-2 text-lg text-foreground">
                 <span className="h-4 w-1 rounded-full bg-gold" />
                 Tu Rendimiento

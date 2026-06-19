@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createCourse, updateCourse } from "@/lib/actions/cursos";
+import { useCierreGuard, ConfirmarSalir } from "@/components/admin/ConfirmarSalir";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,7 +27,8 @@ export type CursoFormData = {
   company: string;
   estimatedHours: number | null;
   passingScore: number;
-  dueDate: string | null; // yyyy-mm-dd
+  dueDate: string | null; // yyyy-mm-dd (fecha fija)
+  dueDays: number | null; // plazo en días relativo
   grupoIds: string[];
 };
 
@@ -45,8 +47,24 @@ export function CursoFormDialog({
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const modoInicial = (c?: CursoFormData | null): "none" | "days" | "date" =>
+    c?.dueDays != null ? "days" : c?.dueDate ? "date" : "none";
+  const [dueMode, setDueMode] = useState<"none" | "days" | "date">(
+    modoInicial(curso),
+  );
   const [pending, startTransition] = useTransition();
   const isEdit = !!curso?.id;
+  const guard = useCierreGuard(dirty, () => onOpenChange(false));
+
+  // Resetea estado cada vez que se abre el diálogo.
+  useEffect(() => {
+    if (open) {
+      setDirty(false);
+      setDueMode(modoInicial(curso));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -56,11 +74,13 @@ export function CursoFormDialog({
       if (isEdit && curso?.id) {
         const err = await updateCourse(curso.id, fd);
         if (err) return setError(err);
+        setDirty(false);
         toast.success("Curso actualizado");
         onOpenChange(false);
       } else {
         const res = await createCourse(fd);
         if (res.error) return setError(res.error);
+        setDirty(false);
         toast.success("Curso creado (inactivo)");
         onOpenChange(false);
         if (res.id && goToEditorOnCreate) {
@@ -71,7 +91,8 @@ export function CursoFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+    <Dialog open={open} onOpenChange={guard.onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Editar curso" : "Nuevo curso"}</DialogTitle>
@@ -82,7 +103,11 @@ export function CursoFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={onSubmit} className="space-y-3">
+        <form
+          onSubmit={onSubmit}
+          onChange={() => setDirty(true)}
+          className="space-y-3"
+        >
           <div className="space-y-1.5">
             <Label htmlFor="title">Título</Label>
             <Input id="title" name="title" defaultValue={curso?.title} required />
@@ -131,7 +156,7 @@ export function CursoFormDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="estimatedHours">Horas est.</Label>
               <Input
@@ -154,15 +179,49 @@ export function CursoFormDialog({
                 defaultValue={curso?.passingScore ?? 70}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="dueDate">Fecha límite</Label>
+          </div>
+
+          {/* Fecha límite: sin límite / plazo en días (por empleado) / fecha fija */}
+          <div className="space-y-1.5">
+            <Label htmlFor="dueMode">Fecha límite</Label>
+            <select
+              id="dueMode"
+              name="dueMode"
+              className={selectClass}
+              value={dueMode}
+              onChange={(e) =>
+                setDueMode(e.target.value as "none" | "days" | "date")
+              }
+            >
+              <option value="none">Sin límite</option>
+              <option value="days">Plazo en días (por empleado)</option>
+              <option value="date">Fecha fija</option>
+            </select>
+
+            {dueMode === "days" && (
+              <div className="space-y-1">
+                <Input
+                  name="dueDays"
+                  type="number"
+                  min="1"
+                  placeholder="Ej. 30"
+                  defaultValue={curso?.dueDays ?? ""}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Cada empleado tendrá esos días desde que ingresa o recibe el
+                  curso. Ideal para inducciones (un empleado nuevo nunca lo verá
+                  vencido por una fecha vieja).
+                </p>
+              </div>
+            )}
+
+            {dueMode === "date" && (
               <Input
-                id="dueDate"
                 name="dueDate"
                 type="date"
                 defaultValue={curso?.dueDate ?? ""}
               />
-            </div>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -204,7 +263,7 @@ export function CursoFormDialog({
               type="button"
               variant="outline"
               className="flex-1"
-              onClick={() => onOpenChange(false)}
+              onClick={() => guard.onOpenChange(false)}
             >
               Cancelar
             </Button>
@@ -219,5 +278,12 @@ export function CursoFormDialog({
         </form>
       </DialogContent>
     </Dialog>
+
+      <ConfirmarSalir
+        open={guard.confirming}
+        onKeep={guard.keepEditing}
+        onLeave={guard.confirmLeave}
+      />
+    </>
   );
 }

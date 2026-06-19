@@ -35,6 +35,7 @@ export default async function GestionarCursosPage() {
     estimatedHours: c.estimatedHours,
     passingScore: c.passingScore,
     dueDate: toDateInput(c.dueDate),
+    dueDays: c.dueDays,
     grupoIds: c.grupos.map((g) => g.id),
     moduleCount: c.modules.length,
     lessonCount: c.modules.reduce((n, m) => n + m._count.lessons, 0),

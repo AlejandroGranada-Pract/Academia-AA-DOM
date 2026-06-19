@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { Header } from "@/components/layout/Header";
-import { MembershipPicker } from "@/components/admin/MembershipPicker";
+import { GrupoMembership } from "@/components/admin/GrupoMembership";
 
 const COMPANY_LABEL: Record<string, string> = {
   AMBIENTE_AZUL: "Ambiente Azul",
@@ -57,46 +57,24 @@ export default async function GrupoDetallePage({
 
       <Header
         title={grupo.name}
-        subtitle="Marca los cursos y usuarios que pertenecen a este grupo"
+        subtitle="Marca los cursos y usuarios que pertenecen a este grupo, luego guarda los cambios"
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Cursos */}
-        <section className="rounded-2xl border border-white/60 bg-white/70 p-5 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.1)] backdrop-blur-sm">
-          <h2 className="mb-3 text-lg font-semibold text-foreground">
-            Cursos del grupo
-          </h2>
-          <MembershipPicker
-            grupoId={grupo.id}
-            kind="course"
-            placeholder="Buscar curso..."
-            items={courses.map((c) => ({
-              id: c.id,
-              title: c.title,
-              subtitle: COMPANY_LABEL[c.company] ?? c.company,
-              member: courseIds.has(c.id),
-            }))}
-          />
-        </section>
-
-        {/* Usuarios */}
-        <section className="rounded-2xl border border-white/60 bg-white/70 p-5 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.1)] backdrop-blur-sm">
-          <h2 className="mb-3 text-lg font-semibold text-foreground">
-            Usuarios del grupo
-          </h2>
-          <MembershipPicker
-            grupoId={grupo.id}
-            kind="user"
-            placeholder="Buscar usuario..."
-            items={users.map((u) => ({
-              id: u.id,
-              title: u.name,
-              subtitle: u.email,
-              member: userIds.has(u.id),
-            }))}
-          />
-        </section>
-      </div>
+      <GrupoMembership
+        grupoId={grupo.id}
+        courses={courses.map((c) => ({
+          id: c.id,
+          title: c.title,
+          subtitle: COMPANY_LABEL[c.company] ?? c.company,
+          member: courseIds.has(c.id),
+        }))}
+        users={users.map((u) => ({
+          id: u.id,
+          title: u.name,
+          subtitle: u.email,
+          member: userIds.has(u.id),
+        }))}
+      />
     </div>
   );
 }

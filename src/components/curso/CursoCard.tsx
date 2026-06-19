@@ -69,7 +69,7 @@ export function CursoCard({ course }: { course: CursoCardData }) {
   return (
     <Link
       href={`/cursos/${course.id}`}
-      className="group block overflow-hidden rounded-2xl border border-white/60 bg-white/70 shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-[0_16px_50px_-12px_rgba(31,31,31,0.25)]"
+      className="group block overflow-hidden rounded-2xl border border-white/60 dark:border-border bg-white/70 dark:bg-card shadow-[0_10px_40px_-12px_rgba(31,31,31,0.12)] backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-[0_16px_50px_-12px_rgba(31,31,31,0.25)]"
     >
       {/* Encabezado con degradado de marca */}
       <div

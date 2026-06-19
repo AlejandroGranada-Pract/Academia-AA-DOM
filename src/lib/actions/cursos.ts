@@ -37,7 +37,9 @@ function parseForm(formData: FormData) {
   const company = String(formData.get("company") ?? "AMBIENTE_AZUL") as Company;
   const hoursRaw = String(formData.get("estimatedHours") ?? "").trim();
   const passingRaw = String(formData.get("passingScore") ?? "70").trim();
+  const dueMode = String(formData.get("dueMode") ?? "none"); // none | days | date
   const dueRaw = String(formData.get("dueDate") ?? "").trim();
+  const dueDaysRaw = String(formData.get("dueDays") ?? "").trim();
   const grupoIds = formData
     .getAll("grupoIds")
     .map((v) => String(v))
@@ -50,7 +52,12 @@ function parseForm(formData: FormData) {
     company,
     estimatedHours: hoursRaw ? Number(hoursRaw) : null,
     passingScore: passingRaw ? Math.min(100, Math.max(0, parseInt(passingRaw, 10))) : 70,
-    dueDate: dueRaw ? new Date(dueRaw) : null,
+    // Solo uno aplica según el modo elegido.
+    dueDate: dueMode === "date" && dueRaw ? new Date(dueRaw) : null,
+    dueDays:
+      dueMode === "days" && dueDaysRaw
+        ? Math.max(1, parseInt(dueDaysRaw, 10))
+        : null,
     grupoIds,
   };
 }
@@ -73,6 +80,7 @@ export async function createCourse(
       estimatedHours: f.estimatedHours,
       passingScore: f.passingScore,
       dueDate: f.dueDate,
+      dueDays: f.dueDays,
       createdBy: userId,
       grupos: f.grupoIds.length
         ? { connect: f.grupoIds.map((id) => ({ id })) }
@@ -100,6 +108,7 @@ export async function updateCourse(
     estimatedHours: f.estimatedHours,
     passingScore: f.passingScore,
     dueDate: f.dueDate,
+    dueDays: f.dueDays,
     grupos: { set: f.grupoIds.map((id) => ({ id })) },
   };
   await prisma.course.update({ where: { id: courseId }, data });

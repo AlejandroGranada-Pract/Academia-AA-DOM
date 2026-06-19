@@ -11,7 +11,7 @@
   --radius: 0.625rem;
 
   /* Superficies y texto */
-  --background: #f8f7f4; /* fondo cálido */
+  --background: #fbfbfa; /* casi blanco (preview) */
   --foreground: #353535; /* texto principal */
   --card: #ffffff;
   --card-foreground: #353535;
@@ -26,7 +26,7 @@
   --secondary: #efe6d2;
   --secondary-foreground: #1f1f1f;
 
-  --muted: #f1efea;
+  --muted: #f4f4f3;
   --muted-foreground: #6b7280;
 
   /* Accent (hover sutil) en champagne para no saturar de dorado */
@@ -58,50 +58,74 @@
   --chart-4: #f59e0b;
   --chart-5: #5a9bc7;
 
-  /* Sidebar grafito (como el prototipo) */
-  --sidebar: #1f1f1f;
-  --sidebar-foreground: #f8f7f4;
-  --sidebar-primary: #76b8e0;
+  /* Sidebar blanco en modo luz */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #353535;
+  --sidebar-primary: #5a9bc7; /* azul AA un poco más oscuro: legible sobre blanco */
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #2a2a2a;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #2e2e2e;
+  --sidebar-accent: #f3f3f2; /* hover sutil */
+  --sidebar-accent-foreground: #1f1f1f;
+  --sidebar-border: #ededec;
   --sidebar-ring: #76b8e0;
 }
 
 .dark {
-  --background: #1f1f1f;
-  --foreground: #f8f7f4;
-  --card: #262626;
-  --card-foreground: #f8f7f4;
-  --popover: #262626;
-  --popover-foreground: #f8f7f4;
-  --primary: #76b8e0;
-  --primary-foreground: #1f1f1f;
-  --secondary: #2e2e2e;
-  --secondary-foreground: #f8f7f4;
-  --muted: #2e2e2e;
-  --muted-foreground: #a1a1aa;
-  --accent: #2e2e2e;
-  --accent-foreground: #f8f7f4;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --border: #2e2e2e;
-  --input: #2e2e2e;
-  --ring: #76b8e0;
-  --gold: #be9b60;
-  --gold-foreground: #1f1f1f;
-  --grafito: #1f1f1f;
-  --success: #16a34a;
-  --warning: #f59e0b;
-  --sidebar: #1a1a1a;
-  --sidebar-foreground: #f8f7f4;
-  --sidebar-primary: #76b8e0;
-  --sidebar-primary-foreground: #1f1f1f;
-  --sidebar-accent: #262626;
-  --sidebar-accent-foreground: #f8f7f4;
-  --sidebar-border: #2e2e2e;
-  --sidebar-ring: #76b8e0;
+  /* "Negro profundo + elevación": fondo casi negro, tarjetas más claras que se
+     despegan, bordes sutiles. Azul AA y dorado DOM más brillantes para resaltar. */
+  --background: #0f1115; /* casi negro */
+  --foreground: #ecedee;
+  --card: #1a1d23; /* superficie elevada */
+  --card-foreground: #ecedee;
+  --popover: #1d2128;
+  --popover-foreground: #ecedee;
+
+  /* Primary = Azul AA, más brillante sobre fondo oscuro */
+  --primary: #8cc5ec;
+  --primary-foreground: #0f1115;
+
+  --secondary: #232730;
+  --secondary-foreground: #ecedee;
+
+  --muted: #1d2128;
+  --muted-foreground: #9ba1ac;
+
+  --accent: #232730;
+  --accent-foreground: #ecedee;
+
+  --destructive: #f26b6b;
+  --destructive-foreground: #0f1115;
+
+  --border: #2a2e37;
+  --input: #2a2e37;
+  --ring: #8cc5ec;
+
+  /* Marca */
+  --gold: #d4b274; /* dorado DOM más brillante */
+  --gold-foreground: #0f1115;
+  --gold-light: #e0c48e;
+  --grafito: #0f1115;
+  --primary-dark: #5a9bc7;
+  --success: #34d399;
+  --success-foreground: #0f1115;
+  --warning: #fbbf24;
+  --warning-foreground: #0f1115;
+
+  /* Gráficas (tonos más vivos para contrastar con el fondo oscuro) */
+  --chart-1: #8cc5ec;
+  --chart-2: #d4b274;
+  --chart-3: #34d399;
+  --chart-4: #fbbf24;
+  --chart-5: #a9d4f0;
+
+  /* Sidebar: parte del mismo near-black, separado por un borde fino */
+  --sidebar: #0f1115;
+  --sidebar-foreground: #ecedee;
+  --sidebar-primary: #8cc5ec;
+  --sidebar-primary-foreground: #0f1115;
+  --sidebar-accent: #1a1d23;
+  --sidebar-accent-foreground: #ecedee;
+  --sidebar-border: #2a2e37;
+  --sidebar-ring: #8cc5ec;
 }
 
 /* Exponer las variables como utilidades de Tailwind v4 */
