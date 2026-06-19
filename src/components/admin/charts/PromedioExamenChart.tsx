@@ -10,6 +10,7 @@ import {
   Cell,
   ResponsiveContainer,
 } from "recharts";
+import { useChartTheme } from "./useChartTheme";
 
 export type ExamenRow = {
   examen: string;
@@ -21,6 +22,7 @@ const VERDE = "#3a9d6b";
 const ROJO = "#c0563f";
 
 export function PromedioExamenChart({ data }: { data: ExamenRow[] }) {
+  const t = useChartTheme();
   if (data.length === 0) {
     return (
       <p className="py-10 text-center text-sm text-muted-foreground">
@@ -38,12 +40,13 @@ export function PromedioExamenChart({ data }: { data: ExamenRow[] }) {
         margin={{ top: 4, right: 28, bottom: 4, left: 8 }}
         barCategoryGap={14}
       >
-        <CartesianGrid horizontal={false} stroke="#0000000f" />
+        <CartesianGrid horizontal={false} stroke={t.grid} />
         <XAxis
           type="number"
           domain={[0, 100]}
           fontSize={11}
-          stroke="#999"
+          stroke={t.axis}
+          tick={{ fill: t.tick }}
           unit="%"
         />
         <YAxis
@@ -51,10 +54,12 @@ export function PromedioExamenChart({ data }: { data: ExamenRow[] }) {
           dataKey="examen"
           width={150}
           fontSize={11}
-          stroke="#666"
+          stroke={t.axis}
+          tick={{ fill: t.tick }}
           tickLine={false}
         />
         <Tooltip
+          cursor={{ fill: t.grid }}
           formatter={(value, _name, item) => {
             const row = (item as { payload?: ExamenRow }).payload;
             return [
@@ -64,9 +69,13 @@ export function PromedioExamenChart({ data }: { data: ExamenRow[] }) {
           }}
           contentStyle={{
             borderRadius: 12,
-            border: "1px solid #eee",
+            border: `1px solid ${t.tooltipBorder}`,
+            background: t.tooltipBg,
+            color: t.text,
             fontSize: 12,
           }}
+          labelStyle={{ color: t.text }}
+          itemStyle={{ color: t.text }}
         />
         <Bar dataKey="promedio" radius={[0, 4, 4, 0]}>
           {data.map((d, i) => (

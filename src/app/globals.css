@@ -9,6 +9,8 @@
    =========================================================== */
 :root {
   --radius: 0.625rem;
+  /* Controles nativos (select/options, date picker, scrollbars) en modo claro */
+  color-scheme: light;
 
   /* Superficies y texto */
   --background: #fbfbfa; /* casi blanco (preview) */
@@ -70,6 +72,10 @@
 }
 
 .dark {
+  /* Controles nativos (select/options, date picker, scrollbars) en modo oscuro.
+     Sin esto, las listas desplegables y el calendario salían en blanco y el
+     texto claro quedaba invisible. */
+  color-scheme: dark;
   /* "Negro profundo + elevación": fondo casi negro, tarjetas más claras que se
      despegan, bordes sutiles. Azul AA y dorado DOM más brillantes para resaltar. */
   --background: #0f1115; /* casi negro */
