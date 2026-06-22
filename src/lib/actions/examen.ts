@@ -128,6 +128,30 @@ export async function iniciarExamen(examId: string): Promise<IniciarResult> {
   };
 }
 
+// Marca un intento en curso como ABANDONED (el usuario salió sin enviar).
+// Idempotente: solo afecta si el intento es del usuario y sigue en curso.
+export async function abandonarExamen(attemptId: string): Promise<void> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return;
+  await prisma.examAttempt.updateMany({
+    where: { id: attemptId, userId, status: "IN_PROGRESS" },
+    data: { status: "ABANDONED", completedAt: new Date() },
+  });
+}
+
+// Registra que el usuario salió de la pestaña durante un examen en curso
+// (integridad). Suma 1 al contador. Idempotente por intento/estado.
+export async function registrarSalidaPestana(attemptId: string): Promise<void> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return;
+  await prisma.examAttempt.updateMany({
+    where: { id: attemptId, userId, status: "IN_PROGRESS" },
+    data: { tabSwitches: { increment: 1 } },
+  });
+}
+
 // Califica el examen en el servidor y cierra el intento en curso.
 export async function submitExam(
   attemptId: string,

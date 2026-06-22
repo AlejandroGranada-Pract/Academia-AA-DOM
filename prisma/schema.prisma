@@ -238,6 +238,7 @@ model ExamAttempt {
   score       Float         @default(0) // Porcentaje obtenido (0 mientras está en curso)
   answers     Json // {questionId: respuesta_dada, ...}
   passed      Boolean       @default(false)
+  tabSwitches Int           @default(0) // veces que salió de la pestaña (integridad)
   startedAt   DateTime
   completedAt DateTime? // null mientras el examen está en curso
 

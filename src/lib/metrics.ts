@@ -31,6 +31,16 @@ export type ExamenMetric = {
 
 export type RankingItem = { userId: string; name: string; certificados: number };
 
+// Monitoreo de integridad: intentos con salidas de pestaña o abandonos.
+export type AlertaIntegridad = {
+  userName: string;
+  examTitle: string;
+  cursoTitle: string;
+  tabSwitches: number;
+  status: string; // IN_PROGRESS | COMPLETED | ABANDONED
+  fecha: string; // ISO
+};
+
 export type AdminMetrics = {
   usuariosActivos: number;
   cursosActivos: number;
@@ -40,6 +50,7 @@ export type AdminMetrics = {
   cursos: CursoMetric[];
   examenes: ExamenMetric[];
   ranking: RankingItem[];
+  alertasIntegridad: AlertaIntegridad[];
 };
 
 export async function getAdminMetrics(): Promise<AdminMetrics> {
@@ -249,6 +260,36 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
     .sort((a, b) => b.certificados - a.certificados)
     .slice(0, 5);
 
+  // Integridad: intentos con salidas de pestaña o abandonados (más recientes).
+  const flagged = await prisma.examAttempt.findMany({
+    where: {
+      user: { role: { in: [...LEARNER_ROLES] } },
+      OR: [{ tabSwitches: { gt: 0 } }, { status: "ABANDONED" }],
+    },
+    orderBy: { startedAt: "desc" },
+    take: 50,
+    select: {
+      tabSwitches: true,
+      status: true,
+      startedAt: true,
+      user: { select: { name: true } },
+      exam: {
+        select: {
+          title: true,
+          module: { select: { course: { select: { title: true } } } },
+        },
+      },
+    },
+  });
+  const alertasIntegridad: AlertaIntegridad[] = flagged.map((a) => ({
+    userName: a.user.name,
+    examTitle: a.exam.title,
+    cursoTitle: a.exam.module?.course.title ?? "—",
+    tabSwitches: a.tabSwitches,
+    status: a.status,
+    fecha: a.startedAt.toISOString(),
+  }));
+
   return {
     usuariosActivos: learners.length,
     cursosActivos: cursos.length,
@@ -260,6 +301,7 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
     cursos: cursosM,
     examenes,
     ranking,
+    alertasIntegridad,
   };
 }
 

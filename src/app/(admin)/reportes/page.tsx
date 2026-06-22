@@ -106,6 +106,75 @@ export default async function ReportesPage() {
         </Panel>
       )}
 
+      {/* Monitoreo de integridad: salidas de pestaña y abandonos por persona */}
+      {m.alertasIntegridad.length > 0 && (
+        <Panel
+          titulo="Integridad de exámenes (salidas de pestaña / abandonos)"
+          className="mt-6"
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="py-2 pr-4 font-medium">Persona</th>
+                  <th className="py-2 pr-4 font-medium">Examen</th>
+                  <th className="py-2 pr-4 font-medium">Salió de pestaña</th>
+                  <th className="py-2 pr-4 font-medium">Estado</th>
+                  <th className="py-2 font-medium">Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {m.alertasIntegridad.map((a, i) => (
+                  <tr key={i} className="border-b last:border-0">
+                    <td className="py-2.5 pr-4 font-medium text-foreground">
+                      {a.userName}
+                    </td>
+                    <td className="py-2.5 pr-4 text-muted-foreground">
+                      {a.examTitle}
+                    </td>
+                    <td className="py-2.5 pr-4">
+                      {a.tabSwitches > 0 ? (
+                        <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-semibold text-destructive">
+                          {a.tabSwitches}{" "}
+                          {a.tabSwitches === 1 ? "vez" : "veces"}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="py-2.5 pr-4">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          a.status === "ABANDONED"
+                            ? "bg-warning/20 text-warning"
+                            : a.status === "COMPLETED"
+                              ? "bg-success/15 text-success"
+                              : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {a.status === "ABANDONED"
+                          ? "Abandonado"
+                          : a.status === "COMPLETED"
+                            ? "Completado"
+                            : "En curso"}
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-muted-foreground">
+                      {new Date(a.fecha).toLocaleDateString("es-CO", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      )}
+
       {/* Tabla resumen por curso */}
       <Panel titulo="Detalle por curso" className="mt-6">
         <div className="overflow-x-auto">
