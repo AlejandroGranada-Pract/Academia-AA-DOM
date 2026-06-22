@@ -1,4 +1,6 @@
 import "dotenv/config";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
@@ -9,6 +11,17 @@ const adapter = new PrismaPg({
   ...(isLocalDb ? {} : { ssl: { rejectUnauthorized: false } }),
 });
 const prisma = new PrismaClient({ adapter });
+
+// Imágenes (Wikimedia Commons, licencia libre — ver seed-assets/piscinas-cot/
+// CREDITS.txt). Cada JPG se guarda como ImageAsset y se sirve por /api/imagenes/<id>.
+const ASSETS_COT = join(process.cwd(), "prisma", "seed-assets", "piscinas-cot");
+async function crearImagen(file: string, name: string): Promise<string> {
+  const data = readFileSync(join(ASSETS_COT, file));
+  const img = await prisma.imageAsset.create({
+    data: { name, mime: "image/jpeg", size: data.length, data },
+  });
+  return `/api/imagenes/${img.id}`;
+}
 
 // Inserta los Módulos 6 y 7 ("Del Cálculo a la Cotización") en el curso
 // "Fundamentos de Piscinas — Ambiente Azul". Idempotente: si el módulo 6 ya
@@ -946,6 +959,54 @@ async function main() {
   const maxOrder = curso.modules.reduce((mx, m) => Math.max(mx, m.order), 0);
   console.log(
     `📚 Curso "${curso.title}" — ${curso.modules.length} módulos. Agregando 6 y 7…`,
+  );
+
+  // Imágenes (Commons, licencia libre) insertadas en las lecciones donde aportan.
+  const imgInfinity = await crearImagen(
+    "cot-infinity.jpg",
+    "Piscina infinity (rebosamiento)",
+  );
+  const imgSalina = await crearImagen(
+    "cot-salina.jpg",
+    "Control de cloración salina",
+  );
+  const imgBombaCalor = await crearImagen(
+    "cot-bombacalor.jpg",
+    "Bomba de calor para piscina",
+  );
+  const imgWellness = await crearImagen("cot-wellness.jpg", "Spa con hidrojets");
+  const imgHotel = await crearImagen("cot-hotel.jpg", "Piscina de hotel");
+
+  const imgBlock = (url: string, caption: string): Block => ({
+    type: "image",
+    url,
+    caption,
+  });
+  // Inserta cada imagen tras la primera sección (índice 1) de su lección.
+  mod6Lessons[0].blocks.splice(
+    1,
+    0,
+    imgBlock(imgInfinity, "El rebosamiento define cuánta agua mueve la bomba — una piscina infinity exige más caudal."),
+  );
+  mod6Lessons[3].blocks.splice(
+    1,
+    0,
+    imgBlock(imgSalina, "Control de cloración salina: la electrólisis genera el cloro a partir de la sal disuelta."),
+  );
+  mod6Lessons[4].blocks.splice(
+    1,
+    0,
+    imgBlock(imgBombaCalor, "Bomba de calor: extrae calor del aire (COP 4-6), la opción más económica para uso frecuente."),
+  );
+  mod7Lessons[1].blocks.splice(
+    1,
+    0,
+    imgBlock(imgWellness, "Los hidrojets mezclan aire y agua para el efecto de hidromasaje."),
+  );
+  mod7Lessons[4].blocks.splice(
+    1,
+    0,
+    imgBlock(imgHotel, "Proyecto tipo: piscina de hotel boutique — el caso que cotizaremos en esta lección."),
   );
 
   await crearModulo(curso.id, maxOrder + 1, MOD6_TITLE, mod6Lessons, examen6);
