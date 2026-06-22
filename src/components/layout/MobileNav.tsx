@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MAIN_NAV, isNavItemActive } from "@/components/layout/nav-items";
+import { mobileNavFor, isNavItemActive } from "@/components/layout/nav-items";
 
 // Menú inferior fijo, solo visible en celular (≤768px). En desktop manda el Sidebar.
-export function MobileNav() {
+export function MobileNav({ role }: { role?: string }) {
   const pathname = usePathname();
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-card md:hidden">
-      {MAIN_NAV.map(({ href, label, icon: Icon }) => {
+      {mobileNavFor(role).map(({ href, label, icon: Icon }) => {
         const active = isNavItemActive(href, pathname);
         return (
           <Link

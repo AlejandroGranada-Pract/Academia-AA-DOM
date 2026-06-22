@@ -50,7 +50,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         <main className="p-5 pb-24 md:p-8 md:pb-8">{children}</main>
       </div>
 
-      <MobileNav />
+      <MobileNav role={user?.role} />
     </div>
   );
 }

@@ -12,7 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { signOutAction } from "@/lib/actions/auth";
-import { MAIN_NAV, isNavItemActive } from "@/components/layout/nav-items";
+import { mainNavFor, isNavItemActive } from "@/components/layout/nav-items";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 type Role = "SUPER_ADMIN" | "AREA_LEADER" | "EMPLOYEE" | "EXTERNAL";
@@ -110,7 +110,7 @@ export function Sidebar({ user }: { user: SidebarUser }) {
       {/* Navegación */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <div className="space-y-1">
-          {MAIN_NAV.map((item) => (
+          {mainNavFor(user.role).map((item) => (
             <SidebarLink key={item.href} {...item} pathname={pathname} />
           ))}
           {isLeader && (
