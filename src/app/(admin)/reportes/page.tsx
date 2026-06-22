@@ -73,6 +73,39 @@ export default async function ReportesPage() {
         </Panel>
       </div>
 
+      {/* Monitoreo: exámenes abiertos y no enviados (cuentan como intento) */}
+      {m.examenes.some((e) => e.abandonados > 0) && (
+        <Panel
+          titulo="Exámenes abandonados (abiertos sin enviar)"
+          className="mt-6"
+        >
+          <ul className="space-y-2">
+            {m.examenes
+              .filter((e) => e.abandonados > 0)
+              .sort((a, b) => b.abandonados - a.abandonados)
+              .map((e) => (
+                <li
+                  key={e.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border bg-card px-3 py-2 text-sm"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium text-foreground">
+                      {e.title}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {e.cursoTitle}
+                    </span>
+                  </span>
+                  <span className="shrink-0 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-semibold text-warning">
+                    {e.abandonados}{" "}
+                    {e.abandonados === 1 ? "abandono" : "abandonos"}
+                  </span>
+                </li>
+              ))}
+          </ul>
+        </Panel>
+      )}
+
       {/* Tabla resumen por curso */}
       <Panel titulo="Detalle por curso" className="mt-6">
         <div className="overflow-x-auto">

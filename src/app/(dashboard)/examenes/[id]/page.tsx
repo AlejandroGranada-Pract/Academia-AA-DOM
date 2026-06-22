@@ -10,6 +10,7 @@ import {
   computeUnlockedIds,
 } from "@/lib/progress";
 import { ExamenTomar } from "@/components/examen/ExamenTomar";
+import { attemptDeadlineMs } from "@/lib/examenes";
 import type { PreguntaLite } from "@/components/examen/PreguntaCard";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -64,19 +65,24 @@ export default async function ExamenPage({
     if (!unlockedIds.has(exam.id)) redirect(courseHref);
   }
 
-  // Intentos
+  // Intentos: cuentan todos (en curso, completados y abandonados). Hay intento
+  // disponible si quedan cupos o si existe uno en curso vigente para reanudar.
   const attempts = userId
     ? await prisma.examAttempt.findMany({
         where: { userId, examId: exam.id },
-        orderBy: { completedAt: "desc" },
+        select: { status: true, score: true, startedAt: true },
       })
     : [];
-  const attemptsUsed = attempts.length;
-  const noAttemptsLeft = attemptsUsed >= exam.maxAttempts;
-  const best = attempts.reduce(
-    (max, a) => (a.score > max ? a.score : max),
-    0,
+  const consumidos = attempts.length;
+  const hayVigente = attempts.some(
+    (a) =>
+      a.status === "IN_PROGRESS" &&
+      attemptDeadlineMs(a.startedAt, exam.timeLimitMin) > Date.now(),
   );
+  const noAttemptsLeft = consumidos >= exam.maxAttempts && !hayVigente;
+  const best = attempts
+    .filter((a) => a.status === "COMPLETED")
+    .reduce((max, a) => (a.score > max ? a.score : max), 0);
 
   const preguntas: PreguntaLite[] = exam.questions.map((q) => ({
     id: q.id,
@@ -128,7 +134,7 @@ export default async function ExamenPage({
             maxAttempts: exam.maxAttempts,
           }}
           preguntas={preguntas}
-          attemptsUsed={attemptsUsed}
+          best={best}
           courseHref={courseHref}
         />
       )}

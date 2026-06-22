@@ -72,7 +72,8 @@ export default async function MiEquipoPage() {
                     <th className="py-2 pr-4 font-medium">Completados</th>
                     <th className="py-2 pr-4 font-medium">Pendientes</th>
                     <th className="py-2 pr-4 font-medium">Prom. puntaje</th>
-                    <th className="py-2 font-medium">Vencidos</th>
+                    <th className="py-2 pr-4 font-medium">Vencidos</th>
+                    <th className="py-2 font-medium">Exám. abandonados</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -90,11 +91,20 @@ export default async function MiEquipoPage() {
                       <td className="py-2.5 pr-4 text-muted-foreground">
                         {p.promedio != null ? `${p.promedio}%` : "—"}
                       </td>
-                      <td className="py-2.5">
+                      <td className="py-2.5 pr-4">
                         {p.vencidos > 0 ? (
                           <span className="inline-flex items-center gap-1 rounded-md bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
                             <AlertTriangle className="h-3 w-3" />
                             {p.vencidos}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="py-2.5">
+                        {p.abandonados > 0 ? (
+                          <span className="inline-flex items-center rounded-md bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning">
+                            {p.abandonados}
                           </span>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>

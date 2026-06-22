@@ -1,0 +1,8 @@
+-- CreateEnum
+CREATE TYPE "AttemptStatus" AS ENUM ('IN_PROGRESS', 'COMPLETED', 'ABANDONED');
+
+-- AlterTable
+ALTER TABLE "ExamAttempt" ADD COLUMN     "status" "AttemptStatus" NOT NULL DEFAULT 'COMPLETED',
+ALTER COLUMN "score" SET DEFAULT 0,
+ALTER COLUMN "passed" SET DEFAULT false,
+ALTER COLUMN "completedAt" DROP NOT NULL;

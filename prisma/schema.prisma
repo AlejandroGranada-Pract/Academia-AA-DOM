@@ -62,6 +62,12 @@ enum ProgressStatus {
   COMPLETED
 }
 
+enum AttemptStatus {
+  IN_PROGRESS // examen abierto, aún sin enviar
+  COMPLETED   // enviado y calificado
+  ABANDONED   // se salió sin enviar (consume intento)
+}
+
 // ===================== MODELOS =====================
 
 model User {
@@ -227,12 +233,13 @@ model ExamAttempt {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   examId      String
-  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
-  score       Float // Porcentaje obtenido
+  exam        Exam          @relation(fields: [examId], references: [id], onDelete: Cascade)
+  status      AttemptStatus @default(COMPLETED)
+  score       Float         @default(0) // Porcentaje obtenido (0 mientras está en curso)
   answers     Json // {questionId: respuesta_dada, ...}
-  passed      Boolean
+  passed      Boolean       @default(false)
   startedAt   DateTime
-  completedAt DateTime
+  completedAt DateTime? // null mientras el examen está en curso
 
   @@index([userId, examId])
 }

@@ -25,7 +25,8 @@ export type ExamenMetric = {
   promedio: number | null; // promedio del mejor intento por usuario
   passingScore: number;
   intentosPromedioAprobar: number | null;
-  tomado: number; // cuántos lo presentaron
+  tomado: number; // cuántos lo presentaron (intentos completados)
+  abandonados: number; // intentos abandonados (abrió y se salió sin enviar)
 };
 
 export type RankingItem = { userId: string; name: string; certificados: number };
@@ -68,7 +69,13 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
       prisma.certificate.findMany({ select: { userId: true, courseId: true } }),
       prisma.userProgress.findMany({ select: { userId: true, lessonId: true } }),
       prisma.examAttempt.findMany({
-        select: { userId: true, examId: true, score: true, passed: true },
+        select: {
+          userId: true,
+          examId: true,
+          score: true,
+          passed: true,
+          status: true,
+        },
       }),
     ]);
 
@@ -107,13 +114,24 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
       startedByCourse.set(courseId, new Set()).get(courseId)!).add(p.userId);
   }
 
-  // Intentos por examen → por usuario (mejor puntaje, # intentos, aprobó)
+  // Intentos por examen → por usuario. Solo los COMPLETED cuentan para puntajes;
+  // los ABANDONED se cuentan aparte (monitoreo) y NO afectan promedios.
   const attemptsByExam = new Map<
     string,
     Map<string, { count: number; best: number; passed: boolean }>
   >();
+  const abandonadosByExam = new Map<string, number>();
   for (const a of intentos) {
     if (!learnerIds.has(a.userId)) continue;
+    if (a.status !== "COMPLETED") {
+      if (a.status === "ABANDONED") {
+        abandonadosByExam.set(
+          a.examId,
+          (abandonadosByExam.get(a.examId) ?? 0) + 1,
+        );
+      }
+      continue;
+    }
     const perUser =
       attemptsByExam.get(a.examId) ??
       attemptsByExam.set(a.examId, new Map()).get(a.examId)!;
@@ -163,6 +181,7 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
           passingScore: ex.passingScore,
           intentosPromedioAprobar,
           tomado: perUser ? perUser.size : 0,
+          abandonados: abandonadosByExam.get(ex.id) ?? 0,
         });
       }
     }
@@ -259,6 +278,7 @@ export type TeamMember = {
   promedio: number | null;
   vencidos: number;
   cursosVencidos: CursoVencido[];
+  abandonados: number; // exámenes abiertos y no enviados
 };
 
 export type CursoFinalizacion = {
@@ -338,7 +358,9 @@ export async function getLeaderMetrics(userId: string): Promise<LeaderMetrics> {
       },
     }),
     prisma.certificate.findMany({ select: { userId: true, courseId: true } }),
-    prisma.examAttempt.findMany({ select: { userId: true, examId: true, score: true } }),
+    prisma.examAttempt.findMany({
+      select: { userId: true, examId: true, score: true, status: true },
+    }),
   ]);
 
   const memberIds = new Set(miembros.map((u) => u.id));
@@ -351,10 +373,21 @@ export async function getLeaderMetrics(userId: string): Promise<LeaderMetrics> {
       certsByUser.set(c.userId, new Set()).get(c.userId)!).add(c.courseId);
   }
 
-  // Mejor puntaje por (usuario, examen) → para el promedio por persona
+  // Mejor puntaje por (usuario, examen) → para el promedio por persona.
+  // Solo COMPLETED cuenta; los ABANDONED se cuentan aparte (monitoreo).
   const bestByUserExam = new Map<string, Map<string, number>>();
+  const abandonadosByUser = new Map<string, number>();
   for (const a of intentos) {
     if (!memberIds.has(a.userId)) continue;
+    if (a.status !== "COMPLETED") {
+      if (a.status === "ABANDONED") {
+        abandonadosByUser.set(
+          a.userId,
+          (abandonadosByUser.get(a.userId) ?? 0) + 1,
+        );
+      }
+      continue;
+    }
     const perExam =
       bestByUserExam.get(a.userId) ??
       bestByUserExam.set(a.userId, new Map()).get(a.userId)!;
@@ -396,6 +429,7 @@ export async function getLeaderMetrics(userId: string): Promise<LeaderMetrics> {
       promedio,
       vencidos: cursosVencidos.length,
       cursosVencidos,
+      abandonados: abandonadosByUser.get(u.id) ?? 0,
     };
   });
 

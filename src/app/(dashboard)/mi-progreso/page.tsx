@@ -63,7 +63,7 @@ export default async function MiProgresoPage() {
   // Exámenes: mejor puntaje por examen.
   const attempts = userId
     ? await prisma.examAttempt.findMany({
-        where: { userId },
+        where: { userId, status: "COMPLETED" },
         orderBy: { completedAt: "desc" },
         include: { exam: { select: { id: true, title: true, passingScore: true } } },
       })

@@ -165,6 +165,7 @@ export async function GET() {
       { header: "Mín. aprobar", key: "min", width: 13, percent: true },
       { header: "Intentos prom.", key: "intentos", width: 15, numeric: true },
       { header: "Lo presentaron", key: "tomado", width: 15, numeric: true },
+      { header: "Abandonados", key: "abandonados", width: 14, numeric: true },
     ],
     m.examenes.map((e) => ({
       examen: e.title,
@@ -173,6 +174,7 @@ export async function GET() {
       min: e.passingScore,
       intentos: e.intentosPromedioAprobar ?? "—",
       tomado: e.tomado,
+      abandonados: e.abandonados,
     })),
     fecha,
   );

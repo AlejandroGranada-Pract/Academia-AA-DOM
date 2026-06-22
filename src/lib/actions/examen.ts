@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { issueCertificateIfComplete } from "@/lib/certificados";
 import { otorgarLogros, titulosLogros } from "@/lib/badges";
+import { attemptDeadlineMs } from "@/lib/examenes";
 
 export type RespuestaUsuario = number | number[] | null;
 type Answers = Record<string, RespuestaUsuario>;
@@ -33,30 +34,128 @@ export type ExamResult =
       nuevasInsignias: string[];
     };
 
-// Califica el examen en el servidor y guarda el intento.
-export async function submitExam(
+export type IniciarResult =
+  | {
+      ok: true;
+      attemptId: string;
+      startedAt: number; // ms (epoch) para anclar el temporizador
+      intento: number; // número de intento (1..maxAttempts)
+      maxAttempts: number;
+      timeLimitMin: number | null;
+    }
+  | { ok: false; error: string };
+
+// Marca como ABANDONED los intentos en curso ya vencidos (salirse cuenta).
+async function reapAbandonados(
+  userId: string,
   examId: string,
-  answers: Answers,
-): Promise<ExamResult> {
+  timeLimitMin: number | null,
+) {
+  const enCurso = await prisma.examAttempt.findMany({
+    where: { userId, examId, status: "IN_PROGRESS" },
+    select: { id: true, startedAt: true },
+  });
+  const now = Date.now();
+  for (const a of enCurso) {
+    if (attemptDeadlineMs(a.startedAt, timeLimitMin) < now) {
+      await prisma.examAttempt.update({
+        where: { id: a.id },
+        data: { status: "ABANDONED", completedAt: new Date() },
+      });
+    }
+  }
+}
+
+// Inicia (o reanuda) un intento. El intento se registra AL ABRIR el examen,
+// así salirse sin enviar igual consume y queda registrado.
+export async function iniciarExamen(examId: string): Promise<IniciarResult> {
   const session = await auth();
   const userId = session?.user?.id;
   if (!userId) return { ok: false, error: "No autenticado." };
 
   const exam = await prisma.exam.findUnique({
     where: { id: examId },
+    select: { maxAttempts: true, timeLimitMin: true },
+  });
+  if (!exam) return { ok: false, error: "Examen no encontrado." };
+
+  // 1) Cierra los en curso vencidos.
+  await reapAbandonados(userId, examId, exam.timeLimitMin);
+
+  // 2) ¿Hay uno en curso vigente? Se reanuda (no consume otro).
+  const vigente = await prisma.examAttempt.findFirst({
+    where: { userId, examId, status: "IN_PROGRESS" },
+    orderBy: { startedAt: "desc" },
+  });
+  const consumidos = await prisma.examAttempt.count({
+    where: { userId, examId },
+  });
+  if (vigente) {
+    return {
+      ok: true,
+      attemptId: vigente.id,
+      startedAt: vigente.startedAt.getTime(),
+      intento: consumidos,
+      maxAttempts: exam.maxAttempts,
+      timeLimitMin: exam.timeLimitMin,
+    };
+  }
+
+  // 3) Sin intentos disponibles.
+  if (consumidos >= exam.maxAttempts) {
+    return { ok: false, error: "Ya no tienes intentos disponibles." };
+  }
+
+  // 4) Nuevo intento en curso.
+  const nuevo = await prisma.examAttempt.create({
+    data: {
+      userId,
+      examId,
+      status: "IN_PROGRESS",
+      score: 0,
+      passed: false,
+      answers: {},
+      startedAt: new Date(),
+    },
+  });
+  return {
+    ok: true,
+    attemptId: nuevo.id,
+    startedAt: nuevo.startedAt.getTime(),
+    intento: consumidos + 1,
+    maxAttempts: exam.maxAttempts,
+    timeLimitMin: exam.timeLimitMin,
+  };
+}
+
+// Califica el examen en el servidor y cierra el intento en curso.
+export async function submitExam(
+  attemptId: string,
+  answers: Answers,
+): Promise<ExamResult> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return { ok: false, error: "No autenticado." };
+
+  const attempt = await prisma.examAttempt.findUnique({
+    where: { id: attemptId },
+    select: { userId: true, examId: true, status: true },
+  });
+  if (!attempt || attempt.userId !== userId) {
+    return { ok: false, error: "Intento no válido." };
+  }
+  if (attempt.status !== "IN_PROGRESS") {
+    return { ok: false, error: "Este intento ya fue enviado." };
+  }
+
+  const exam = await prisma.exam.findUnique({
+    where: { id: attempt.examId },
     include: {
       questions: { orderBy: { order: "asc" } },
       module: { select: { courseId: true } },
     },
   });
   if (!exam) return { ok: false, error: "Examen no encontrado." };
-
-  const attemptCount = await prisma.examAttempt.count({
-    where: { userId, examId },
-  });
-  if (attemptCount >= exam.maxAttempts) {
-    return { ok: false, error: "Ya no tienes intentos disponibles." };
-  }
 
   let earnedTotal = 0;
   let total = 0;
@@ -67,15 +166,12 @@ export async function submitExam(
 
     let earned = 0;
     if (Array.isArray(correct)) {
-      // Selección múltiple: crédito parcial proporcional.
-      // (correctas marcadas − incorrectas marcadas) / total correctas, mínimo 0.
       const sel = Array.isArray(ua) ? ua : [];
       const correctSel = sel.filter((i) => correct.includes(i)).length;
       const incorrectSel = sel.filter((i) => !correct.includes(i)).length;
       const frac = Math.max(0, (correctSel - incorrectSel) / correct.length);
       earned = Math.round(q.points * frac * 100) / 100;
     } else {
-      // Opción única / V-F: todo o nada.
       earned = typeof ua === "number" && ua === correct ? q.points : 0;
     }
     earnedTotal += earned;
@@ -97,14 +193,13 @@ export async function submitExam(
   const score = total > 0 ? Math.round((earnedTotal / total) * 100) : 0;
   const passed = score >= exam.passingScore;
 
-  await prisma.examAttempt.create({
+  await prisma.examAttempt.update({
+    where: { id: attemptId },
     data: {
-      userId,
-      examId,
+      status: "COMPLETED",
       score,
       passed,
       answers: answers as object,
-      startedAt: new Date(),
       completedAt: new Date(),
     },
   });
@@ -113,7 +208,6 @@ export async function submitExam(
   if (passed && exam.module?.courseId) {
     await issueCertificateIfComplete(userId, exam.module.courseId);
   }
-  // Otorga logros (puntaje perfecto, primer examen, racha, curso completo...).
   const nuevasInsignias = titulosLogros(await otorgarLogros(userId));
 
   revalidatePath("/");
