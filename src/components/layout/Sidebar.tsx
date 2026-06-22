@@ -84,10 +84,15 @@ function SidebarLink({
   );
 }
 
-export function Sidebar({ user }: { user: SidebarUser }) {
+export function Sidebar({
+  user,
+  leadsTeam,
+}: {
+  user: SidebarUser;
+  leadsTeam: boolean;
+}) {
   const pathname = usePathname();
   const isAdmin = user.role === "SUPER_ADMIN";
-  const isLeader = user.role === "AREA_LEADER" || isAdmin;
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground dark:bg-gradient-to-b dark:from-[#14171c] dark:via-sidebar dark:to-[#0b0d10] md:flex">
@@ -113,7 +118,7 @@ export function Sidebar({ user }: { user: SidebarUser }) {
           {mainNavFor(user.role).map((item) => (
             <SidebarLink key={item.href} {...item} pathname={pathname} />
           ))}
-          {isLeader && (
+          {leadsTeam && (
             <SidebarLink
               href="/mi-equipo"
               label="Mi Equipo"

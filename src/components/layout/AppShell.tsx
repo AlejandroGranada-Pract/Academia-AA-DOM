@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { LogOut } from "lucide-react";
+import { prisma } from "@/lib/db";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -11,6 +12,13 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   const session = await auth();
   const user = session?.user;
 
+  // "Mi Equipo" solo aparece si la persona lidera al menos un grupo.
+  const leadsTeam = user?.id
+    ? (await prisma.grupo.count({
+        where: { lideres: { some: { id: user.id } } },
+      })) > 0
+    : false;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-background to-[#f7f7f6] dark:from-[#0b0d10] dark:via-background dark:to-[#13161c]">
       <Sidebar
@@ -18,6 +26,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           name: user?.name ?? "Usuario",
           role: user?.role ?? "EMPLOYEE",
         }}
+        leadsTeam={leadsTeam}
       />
 
       {/* Barra superior solo en celular (el Sidebar está oculto ≤768px) */}
@@ -50,7 +59,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         <main className="p-5 pb-24 md:p-8 md:pb-8">{children}</main>
       </div>
 
-      <MobileNav role={user?.role} />
+      <MobileNav role={user?.role} leadsTeam={leadsTeam} />
     </div>
   );
 }
