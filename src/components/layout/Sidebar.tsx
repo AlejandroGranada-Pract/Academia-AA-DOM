@@ -93,6 +93,8 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const isAdmin = user.role === "SUPER_ADMIN";
+  const mainItems = mainNavFor(user.role);
+  const hasTopBlock = mainItems.length > 0 || leadsTeam;
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground dark:bg-gradient-to-b dark:from-[#14171c] dark:via-sidebar dark:to-[#0b0d10] md:flex">
@@ -114,23 +116,29 @@ export function Sidebar({
 
       {/* Navegación */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
-        <div className="space-y-1">
-          {mainNavFor(user.role).map((item) => (
-            <SidebarLink key={item.href} {...item} pathname={pathname} />
-          ))}
-          {leadsTeam && (
-            <SidebarLink
-              href="/mi-equipo"
-              label="Mi Equipo"
-              icon={Users2}
-              pathname={pathname}
-            />
-          )}
-        </div>
+        {hasTopBlock && (
+          <div className="space-y-1">
+            {mainItems.map((item) => (
+              <SidebarLink key={item.href} {...item} pathname={pathname} />
+            ))}
+            {leadsTeam && (
+              <SidebarLink
+                href="/mi-equipo"
+                label="Mi Equipo"
+                icon={Users2}
+                pathname={pathname}
+              />
+            )}
+          </div>
+        )}
 
         {isAdmin && (
           <>
-            <p className="px-3 pb-2 pt-5 text-[10px] uppercase tracking-[0.15em] text-sidebar-foreground/40">
+            <p
+              className={`px-3 pb-2 text-[10px] uppercase tracking-[0.15em] text-sidebar-foreground/40 ${
+                hasTopBlock ? "pt-5" : ""
+              }`}
+            >
               Administración
             </p>
             <div className="space-y-1">
