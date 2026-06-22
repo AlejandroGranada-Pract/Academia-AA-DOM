@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
   PlayCircle,
   FileDown,
+  Table as TableIcon,
   Pencil,
   Eye,
   Upload,
@@ -49,7 +50,21 @@ const BLOCK_TYPES: {
   { type: "image", label: "Imagen", icon: ImageIcon },
   { type: "video", label: "Video", icon: PlayCircle },
   { type: "pdf", label: "PDF", icon: FileDown },
+  { type: "table", label: "Tabla", icon: TableIcon },
 ];
+
+// La tabla se edita como texto: una fila por línea, celdas separadas por "|".
+// La primera línea son los encabezados.
+function tableToText(headers?: string[], rows?: string[][]): string {
+  const lines = [headers ?? [], ...(rows ?? [])];
+  return lines.map((cells) => cells.join(" | ")).join("\n");
+}
+function textToTable(text: string): { headers: string[]; rows: string[][] } {
+  const lines = text.split("\n").filter((l) => l.trim().length > 0);
+  const parse = (l: string) => l.split("|").map((c) => c.trim());
+  const [head, ...rest] = lines;
+  return { headers: head ? parse(head) : [], rows: rest.map(parse) };
+}
 
 function emptyBlock(type: LessonBlock["type"]): LessonBlock {
   switch (type) {
@@ -63,6 +78,8 @@ function emptyBlock(type: LessonBlock["type"]): LessonBlock {
       return { type, url: "" };
     case "pdf":
       return { type, url: "", title: "" };
+    case "table":
+      return { type, headers: [], rows: [] };
     default:
       return { type, text: "" };
   }
@@ -365,6 +382,25 @@ export function LeccionEditorDialog({
                         value={b.title ?? ""}
                         onChange={(e) => patch(i, { title: e.target.value })}
                       />
+                    </div>
+                  )}
+                  {b.type === "table" && (
+                    <div className="space-y-1.5">
+                      <textarea
+                        rows={5}
+                        placeholder={
+                          "Una fila por línea, celdas separadas por |\nLa primera línea son los encabezados.\nEj.\nTipo | Recirculación\nResidencial | 6 horas"
+                        }
+                        className={`${areaClass} font-mono text-xs`}
+                        value={tableToText(b.headers, b.rows)}
+                        onChange={(e) => {
+                          const { headers, rows } = textToTable(e.target.value);
+                          patch(i, { headers, rows });
+                        }}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Primera línea: encabezados. Celdas separadas por “|”.
+                      </p>
                     </div>
                   )}
                 </div>

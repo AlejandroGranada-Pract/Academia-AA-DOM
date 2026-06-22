@@ -80,7 +80,15 @@ export async function moveModule(
 // ============================== LECCIONES ==============================
 
 export type LessonBlock = {
-  type: "heading" | "paragraph" | "list" | "callout" | "image" | "video" | "pdf";
+  type:
+    | "heading"
+    | "paragraph"
+    | "list"
+    | "callout"
+    | "image"
+    | "video"
+    | "pdf"
+    | "table";
   text?: string;
   items?: string[];
   url?: string;
@@ -88,6 +96,8 @@ export type LessonBlock = {
   title?: string;
   style?: "info" | "warning" | "tip";
   source?: string;
+  headers?: string[]; // tabla: encabezados de columna
+  rows?: string[][]; // tabla: filas (cada fila = arreglo de celdas)
 };
 
 // Siguiente orden disponible en el módulo (lecciones y exámenes comparten orden).
@@ -145,6 +155,7 @@ export async function updateLesson(
     )
     .filter((b) => {
       if (b.type === "list") return (b.items ?? []).length > 0;
+      if (b.type === "table") return (b.rows ?? []).length > 0;
       if (b.type === "heading" || b.type === "paragraph" || b.type === "callout")
         return (b.text ?? "").trim().length > 0;
       return (b.url ?? "").trim().length > 0;

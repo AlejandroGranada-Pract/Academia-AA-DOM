@@ -4,13 +4,23 @@ import { PdfEmbed } from "@/components/curso/PdfEmbed";
 
 // Tipos laxos: el contenido es JSON polimórfico (ver spec sección 6).
 type Block = {
-  type: "heading" | "paragraph" | "list" | "callout" | "image" | "video" | "pdf";
+  type:
+    | "heading"
+    | "paragraph"
+    | "list"
+    | "callout"
+    | "image"
+    | "video"
+    | "pdf"
+    | "table";
   text?: string;
   items?: string[];
   url?: string;
   caption?: string;
   title?: string;
   style?: "info" | "warning" | "tip";
+  headers?: string[];
+  rows?: string[][];
 };
 
 type LessonContent = {
@@ -53,6 +63,49 @@ function ImageBlock({ url, caption }: { url: string; caption?: string }) {
   );
 }
 
+function TableBlock({
+  headers,
+  rows,
+}: {
+  headers?: string[];
+  rows?: string[][];
+}) {
+  return (
+    <div className="overflow-x-auto rounded-xl border">
+      <table className="w-full border-collapse text-sm">
+        {headers && headers.length > 0 && (
+          <thead>
+            <tr className="bg-muted/60">
+              {headers.map((h, i) => (
+                <th
+                  key={i}
+                  className="border-b px-3 py-2 text-left font-semibold text-foreground"
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        )}
+        <tbody>
+          {(rows ?? []).map((row, r) => (
+            <tr key={r} className="even:bg-muted/20">
+              {row.map((cell, c) => (
+                <td
+                  key={c}
+                  className="border-b px-3 py-2 align-top text-foreground/90 last:border-r-0"
+                >
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function BlockRenderer({ block }: { block: Block }) {
   switch (block.type) {
     case "heading":
@@ -82,6 +135,8 @@ function BlockRenderer({ block }: { block: Block }) {
       return block.url ? <VideoEmbed url={block.url} /> : null;
     case "pdf":
       return block.url ? <PdfEmbed url={block.url} title={block.title} /> : null;
+    case "table":
+      return <TableBlock headers={block.headers} rows={block.rows} />;
     default:
       return null;
   }
