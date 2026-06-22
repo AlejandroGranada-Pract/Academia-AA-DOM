@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Eye } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { Header } from "@/components/layout/Header";
 import { CursoEditor, type ModuloEditable } from "@/components/admin/CursoEditor";
 import { CursoStatusSwitch } from "@/components/admin/CursoStatusSwitch";
+import { VerComoEmpleado } from "@/components/admin/VerComoEmpleado";
 import type { LessonBlock } from "@/lib/actions/editor";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export default async function EditarCursoPage({
   params,
@@ -79,13 +78,7 @@ export default async function EditarCursoPage({
       <Header title={curso.title} subtitle="Editor de contenido">
         <div className="flex items-center gap-4">
           <CursoStatusSwitch courseId={curso.id} status={curso.status} />
-          <Link
-            href={`/cursos/${curso.id}`}
-            className={cn(buttonVariants({ variant: "outline" }), "gap-1.5")}
-          >
-            <Eye className="h-4 w-4" />
-            Ver como empleado
-          </Link>
+          <VerComoEmpleado courseId={curso.id} />
         </div>
       </Header>
 
