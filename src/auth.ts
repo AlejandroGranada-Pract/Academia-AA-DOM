@@ -15,7 +15,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Contraseña", type: "password" },
       },
       authorize: async (credentials) => {
-        const email = credentials?.email as string | undefined;
+        // Normaliza el correo: sin espacios y en minúsculas (así se guardan),
+        // para que el login no falle por mayúsculas/minúsculas.
+        const email = (credentials?.email as string | undefined)
+          ?.trim()
+          .toLowerCase();
         const password = credentials?.password as string | undefined;
         if (!email || !password) return null;
 
