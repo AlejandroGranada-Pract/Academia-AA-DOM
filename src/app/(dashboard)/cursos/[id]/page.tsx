@@ -47,8 +47,10 @@ function fmtFecha(d: Date) {
 
 export default async function CursoDetallePage({
   params,
+  searchParams,
 }: {
   params: { id: string };
+  searchParams?: { preview?: string };
 }) {
   const curso = await prisma.course.findUnique({
     where: { id: params.id },
@@ -76,6 +78,12 @@ export default async function CursoDetallePage({
   // Acceso por grupo/rol: si no le corresponde el curso, lo devolvemos al catálogo.
   const viewer = userId ? await getViewer(userId) : null;
   if (!canSeeCourse(viewer ?? {}, curso)) redirect("/cursos");
+
+  // Vista previa del admin ("Ver como empleado"): todo desbloqueado, sin
+  // escribir progreso. Solo SUPER_ADMIN puede activarla con ?preview=1.
+  const isPreview =
+    searchParams?.preview === "1" && session?.user?.role === "SUPER_ADMIN";
+  const pq = isPreview ? "?preview=1" : "";
 
   const me = userId
     ? await prisma.user.findUnique({
@@ -137,7 +145,9 @@ export default async function CursoDetallePage({
     ...Array.from(completedIds),
     ...Array.from(passedExamIds),
   ]);
-  const unlockedIds = computeUnlockedIds(courseItems, doneIds);
+  const unlockedIds = isPreview
+    ? new Set(courseItems.map((it) => it.id))
+    : computeUnlockedIds(courseItems, doneIds);
 
   // Avance del curso = ítems hechos / total.
   const doneItems = courseItems.filter((it) => doneIds.has(it.id)).length;
@@ -148,7 +158,7 @@ export default async function CursoDetallePage({
   // Certificado: si el curso está al 100%, asegura que exista y trae su id
   // para ofrecer la descarga aquí mismo (autorreparable para completados viejos).
   let certId: string | null = null;
-  if (userId && coursePct === 100) {
+  if (userId && coursePct === 100 && !isPreview) {
     await issueCertificateIfComplete(userId, curso.id);
     const cert = await prisma.certificate.findUnique({
       where: { userId_courseId: { userId, courseId: curso.id } },
@@ -162,13 +172,13 @@ export default async function CursoDetallePage({
     courseItems.find((it) => !doneIds.has(it.id)) ?? courseItems[0];
   const resumeHref = resumeItem
     ? resumeItem.kind === "exam"
-      ? `/examenes/${resumeItem.id}`
-      : `/cursos/${curso.id}/leccion/${resumeItem.id}`
+      ? `/examenes/${resumeItem.id}${pq}`
+      : `/cursos/${curso.id}/leccion/${resumeItem.id}${pq}`
     : null;
   const firstHref = courseItems[0]
     ? courseItems[0].kind === "exam"
-      ? `/examenes/${courseItems[0].id}`
-      : `/cursos/${curso.id}/leccion/${courseItems[0].id}`
+      ? `/examenes/${courseItems[0].id}${pq}`
+      : `/cursos/${curso.id}/leccion/${courseItems[0].id}${pq}`
     : null;
 
   // Módulo que el acordeón deja abierto: el del primer ítem pendiente.
@@ -206,9 +216,16 @@ export default async function CursoDetallePage({
 
   return (
     <div>
+      {isPreview && (
+        <div className="mb-4 rounded-lg border border-gold/40 bg-gold/10 px-4 py-2 text-sm font-medium text-gold">
+          Vista previa como empleado · todo desbloqueado · tu progreso no se
+          guarda
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <Link
-        href="/cursos"
+        href={`/cursos${pq}`}
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ChevronLeft className="h-4 w-4" />
@@ -270,6 +287,7 @@ export default async function CursoDetallePage({
             doneIds={Array.from(doneIds)}
             unlockedIds={Array.from(unlockedIds)}
             modules={modulesForAccordion}
+            preview={isPreview}
           />
         </div>
 

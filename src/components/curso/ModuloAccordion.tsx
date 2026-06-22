@@ -54,12 +54,14 @@ export function ModuloAccordion({
   doneIds = [],
   unlockedIds = [],
   openModuleId,
+  preview = false,
 }: {
   courseId: string;
   modules: ModuleLite[];
   doneIds?: string[]; // lecciones completadas + exámenes aprobados
   unlockedIds?: string[];
   openModuleId?: string;
+  preview?: boolean; // vista previa del admin: conserva ?preview=1 en los enlaces
 }) {
   const done = new Set(doneIds);
   const unlocked = new Set(unlockedIds);
@@ -175,9 +177,10 @@ export function ModuloAccordion({
                     </>
                   );
 
+                  const pq = preview ? "?preview=1" : "";
                   const href = isExam
-                    ? `/examenes/${it.id}`
-                    : `/cursos/${courseId}/leccion/${it.id}`;
+                    ? `/examenes/${it.id}${pq}`
+                    : `/cursos/${courseId}/leccion/${it.id}${pq}`;
 
                   return isUnlocked ? (
                     <Link

@@ -213,3 +213,16 @@
     color: #ecedee;
   }
 }
+
+/* Modo vista previa: cuando la app corre dentro de un iframe (el modal
+   "Ver como empleado"), PreviewMode marca <html class="is-preview"> y se
+   oculta el chrome (sidebar, barras móviles) para mostrar solo el curso. */
+.is-preview [data-app-chrome] {
+  display: none !important;
+}
+.is-preview [data-app-main] {
+  padding-left: 0 !important;
+}
+.is-preview [data-app-main] main {
+  padding: 1.5rem !important;
+}

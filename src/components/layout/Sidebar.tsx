@@ -97,7 +97,7 @@ export function Sidebar({
   const hasTopBlock = mainItems.length > 0 || leadsTeam;
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground dark:bg-gradient-to-b dark:from-[#14171c] dark:via-sidebar dark:to-[#0b0d10] md:flex">
+    <aside data-app-chrome className="fixed inset-y-0 left-0 z-40 hidden w-[260px] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground dark:bg-gradient-to-b dark:from-[#14171c] dark:via-sidebar dark:to-[#0b0d10] md:flex">
       {/* Marca AA | DOM */}
       <div className="px-5 pb-2 pt-6">
         <div className="flex items-center gap-2.5">

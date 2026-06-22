@@ -10,27 +10,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// Oculta el chrome de la app (sidebar, barra móvil) dentro del iframe para que
-// la vista previa muestre solo el contenido del curso. El iframe es del mismo
-// origen, así que podemos inyectar estilos a su documento.
-function ocultarChrome(e: React.SyntheticEvent<HTMLIFrameElement>) {
-  try {
-    const doc = e.currentTarget.contentDocument;
-    if (!doc || doc.getElementById("preview-style")) return;
-    const style = doc.createElement("style");
-    style.id = "preview-style";
-    style.textContent =
-      'aside,header[class*="md:hidden"],nav[class*="bottom-0"]{display:none!important}' +
-      'div[class*="pl-[260px]"]{padding-left:0!important}' +
-      "main{padding:1.5rem!important}";
-    doc.head.appendChild(style);
-  } catch {
-    /* distinto origen: no se puede, se deja la vista completa */
-  }
-}
-
 // Vista previa del curso "como empleado" en un modal (no redirige). Carga la
-// vista real del curso en un iframe.
+// vista real del curso en un iframe; la app detecta que está embebida y oculta
+// su propio chrome (sidebar/barras) — ver PreviewMode + .is-preview en CSS.
 export function VerComoEmpleado({ courseId }: { courseId: string }) {
   const [open, setOpen] = useState(false);
 
@@ -53,9 +35,8 @@ export function VerComoEmpleado({ courseId }: { courseId: string }) {
           </DialogHeader>
           {open && (
             <iframe
-              src={`/cursos/${courseId}`}
+              src={`/cursos/${courseId}?preview=1`}
               title="Vista previa del curso"
-              onLoad={ocultarChrome}
               className="h-full w-full flex-1 border-0 bg-background"
             />
           )}

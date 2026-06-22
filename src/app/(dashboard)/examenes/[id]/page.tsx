@@ -10,6 +10,7 @@ import {
   computeUnlockedIds,
 } from "@/lib/progress";
 import { ExamenTomar } from "@/components/examen/ExamenTomar";
+import { ExamenPreview } from "@/components/examen/ExamenPreview";
 import { attemptDeadlineMs } from "@/lib/examenes";
 import type { PreguntaLite } from "@/components/examen/PreguntaCard";
 import { buttonVariants } from "@/components/ui/button";
@@ -17,16 +18,34 @@ import { cn } from "@/lib/utils";
 
 export default async function ExamenPage({
   params,
+  searchParams,
 }: {
   params: { id: string };
+  searchParams?: { preview?: string };
 }) {
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  // Vista previa del admin: todo desbloqueado, solo lectura (no crea intentos).
+  const isPreview =
+    searchParams?.preview === "1" && session?.user?.role === "SUPER_ADMIN";
+
   const exam = await prisma.exam.findUnique({
     where: { id: params.id },
     include: {
-      // OJO: no se seleccionan correctAnswer ni explanation (no se exponen al cliente).
+      // Server Component: correctAnswer/explanation se traen aquí pero NUNCA se
+      // pasan al cliente del examen real (a ExamenTomar solo va PreguntaLite con
+      // id/question/type/options). Solo la vista previa del admin los usa.
       questions: {
         orderBy: { order: "asc" },
-        select: { id: true, question: true, type: true, options: true },
+        select: {
+          id: true,
+          question: true,
+          type: true,
+          options: true,
+          correctAnswer: true,
+          explanation: true,
+        },
       },
       module: { include: { course: { select: { id: true, title: true } } } },
     },
@@ -34,14 +53,12 @@ export default async function ExamenPage({
   if (!exam) notFound();
 
   const courseId = exam.module?.course.id;
-  const courseHref = courseId ? `/cursos/${courseId}` : "/cursos";
-
-  const session = await auth();
-  const userId = session?.user?.id;
+  const pq = isPreview ? "?preview=1" : "";
+  const courseHref = courseId ? `/cursos/${courseId}${pq}` : `/cursos${pq}`;
 
   // Bloqueo secuencial: el examen se desbloquea cuando todos los ítems
-  // anteriores de la secuencia del curso están hechos.
-  if (courseId) {
+  // anteriores de la secuencia del curso están hechos. (En preview se omite.)
+  if (courseId && !isPreview) {
     const courseModules = await prisma.module.findMany({
       where: { courseId },
       orderBy: { order: "asc" },
@@ -93,6 +110,13 @@ export default async function ExamenPage({
 
   return (
     <div className="mx-auto max-w-2xl">
+      {isPreview && (
+        <div className="mb-4 rounded-lg border border-gold/40 bg-gold/10 px-4 py-2 text-sm font-medium text-gold">
+          Vista previa como empleado · solo lectura · la respuesta correcta está
+          marcada
+        </div>
+      )}
+
       <Link
         href={courseHref}
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -108,7 +132,19 @@ export default async function ExamenPage({
         </p>
       )}
 
-      {noAttemptsLeft ? (
+      {isPreview ? (
+        <ExamenPreview
+          questions={exam.questions.map((q) => ({
+            id: q.id,
+            question: q.question,
+            type: q.type,
+            options: q.options as string[],
+            correctAnswer: q.correctAnswer as number | number[],
+            explanation: q.explanation ?? null,
+          }))}
+          passingScore={exam.passingScore}
+        />
+      ) : noAttemptsLeft ? (
         <div className="mt-4 rounded-2xl border bg-card p-8 text-center">
           <p className="font-heading text-5xl text-foreground">{best}%</p>
           <p className="mt-2 font-medium text-foreground">

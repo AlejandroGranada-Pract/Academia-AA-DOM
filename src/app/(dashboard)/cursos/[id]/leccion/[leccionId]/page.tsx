@@ -16,8 +16,10 @@ import { LeccionForo } from "@/components/curso/LeccionForo";
 
 export default async function LeccionPage({
   params,
+  searchParams,
 }: {
   params: { id: string; leccionId: string };
+  searchParams?: { preview?: string };
 }) {
   const course = await prisma.course.findUnique({
     where: { id: params.id },
@@ -48,6 +50,11 @@ export default async function LeccionPage({
     ? await getPassedExamIds(userId)
     : new Set<string>();
 
+  // Vista previa del admin: todo desbloqueado, sin escribir progreso.
+  const isPreview =
+    searchParams?.preview === "1" && session?.user?.role === "SUPER_ADMIN";
+  const pq = isPreview ? "?preview=1" : "";
+
   // Bloqueo secuencial sobre la secuencia mezclada (lecciones + exámenes):
   // si la lección no está desbloqueada, vuelve al curso.
   const items = buildCourseItems(course.modules);
@@ -56,7 +63,7 @@ export default async function LeccionPage({
     ...Array.from(passedExamIds),
   ]);
   const unlockedIds = computeUnlockedIds(items, doneIds);
-  if (!unlockedIds.has(lesson.id)) {
+  if (!isPreview && !unlockedIds.has(lesson.id)) {
     redirect(`/cursos/${course.id}`);
   }
 
@@ -89,9 +96,15 @@ export default async function LeccionPage({
 
   return (
     <div className="mx-auto max-w-3xl">
+      {isPreview && (
+        <div className="mb-4 rounded-lg border border-gold/40 bg-gold/10 px-4 py-2 text-sm font-medium text-gold">
+          Vista previa como empleado · tu progreso no se guarda
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <Link
-        href={`/cursos/${course.id}`}
+        href={`/cursos/${course.id}${pq}`}
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -118,6 +131,7 @@ export default async function LeccionPage({
           lessonId={lesson.id}
           courseId={course.id}
           completed={completed}
+          preview={isPreview}
         />
       </LeccionGate>
 

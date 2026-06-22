@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { PreviewMode } from "@/components/layout/PreviewMode";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { signOutAction } from "@/lib/actions/auth";
 
@@ -21,6 +22,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-background to-[#f7f7f6] dark:from-[#0b0d10] dark:via-background dark:to-[#13161c]">
+      <PreviewMode />
       <Sidebar
         user={{
           name: user?.name ?? "Usuario",
@@ -30,7 +32,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       />
 
       {/* Barra superior solo en celular (el Sidebar está oculto ≤768px) */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-sidebar-border bg-sidebar text-sidebar-foreground dark:bg-gradient-to-r dark:from-[#14171c] dark:to-[#0f1115] px-4 py-3 md:hidden">
+      <header data-app-chrome className="sticky top-0 z-30 flex items-center justify-between border-b border-sidebar-border bg-sidebar text-sidebar-foreground dark:bg-gradient-to-r dark:from-[#14171c] dark:to-[#0f1115] px-4 py-3 md:hidden">
         <div className="flex items-center gap-2">
           <span className="font-heading text-base tracking-wider text-sidebar-primary">
             AMBIENTE AZUL
@@ -55,7 +57,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Contenido: deja espacio para el sidebar (desktop) y la barra inferior (móvil) */}
-      <div className="md:pl-[260px]">
+      <div data-app-main className="md:pl-[260px]">
         <main className="p-5 pb-24 md:p-8 md:pb-8">{children}</main>
       </div>
 

@@ -18,7 +18,7 @@ export function MobileNav({
   );
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-card md:hidden">
+    <nav data-app-chrome className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-card md:hidden">
       {items.map(({ href, label, icon: Icon }) => {
         const active = isNavItemActive(href, pathname);
         return (

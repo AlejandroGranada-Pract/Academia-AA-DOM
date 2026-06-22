@@ -14,10 +14,12 @@ export function LeccionActions({
   lessonId,
   courseId,
   completed,
+  preview = false,
 }: {
   lessonId: string;
   courseId: string;
   completed: boolean;
+  preview?: boolean; // vista previa del admin: no guarda progreso
 }) {
   const router = useRouter();
   const gate = useLeccionGate();
@@ -42,7 +44,7 @@ export function LeccionActions({
     return () => obs.disconnect();
   }, [reachedEnd]);
 
-  const courseHref = `/cursos/${courseId}`;
+  const courseHref = `/cursos/${courseId}${preview ? "?preview=1" : ""}`;
 
   // Marca completada y vuelve a la vista del curso para elegir la siguiente.
   async function complete() {
@@ -78,7 +80,11 @@ export function LeccionActions({
           Volver al curso
         </Link>
 
-        {isCompleted ? (
+        {preview ? (
+          <span className="text-xs text-muted-foreground">
+            Vista previa — el progreso no se guarda
+          </span>
+        ) : isCompleted ? (
           <span
             className={cn(
               buttonVariants({ variant: "outline" }),
@@ -104,7 +110,7 @@ export function LeccionActions({
         )}
       </div>
 
-      {!isCompleted && !canComplete && (
+      {!preview && !isCompleted && !canComplete && (
         <p className="mt-2 text-right text-xs text-muted-foreground">
           {!videosWatched
             ? "Mira el video completo para poder continuar."
