@@ -239,6 +239,7 @@ model ExamAttempt {
   answers     Json // {questionId: respuesta_dada, ...}
   passed      Boolean       @default(false)
   tabSwitches Int           @default(0) // veces que salió de la pestaña (integridad)
+  awaySeconds Int           @default(0) // segundos totales fuera de la pestaña
   startedAt   DateTime
   completedAt DateTime? // null mientras el examen está en curso
 

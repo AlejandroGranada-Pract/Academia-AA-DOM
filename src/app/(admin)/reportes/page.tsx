@@ -119,6 +119,7 @@ export default async function ReportesPage() {
                   <th className="py-2 pr-4 font-medium">Persona</th>
                   <th className="py-2 pr-4 font-medium">Examen</th>
                   <th className="py-2 pr-4 font-medium">Salió de pestaña</th>
+                  <th className="py-2 pr-4 font-medium">Tiempo fuera</th>
                   <th className="py-2 pr-4 font-medium">Estado</th>
                   <th className="py-2 font-medium">Fecha</th>
                 </tr>
@@ -141,6 +142,11 @@ export default async function ReportesPage() {
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
+                    </td>
+                    <td className="py-2.5 pr-4 text-muted-foreground">
+                      {a.awaySeconds > 0
+                        ? `${Math.floor(a.awaySeconds / 60)}m ${a.awaySeconds % 60}s`
+                        : "—"}
                     </td>
                     <td className="py-2.5 pr-4">
                       <span

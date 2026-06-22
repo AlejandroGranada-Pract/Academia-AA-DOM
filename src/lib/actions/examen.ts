@@ -152,6 +152,22 @@ export async function registrarSalidaPestana(attemptId: string): Promise<void> {
   });
 }
 
+// Suma los segundos que el usuario estuvo fuera de la pestaña (al volver).
+export async function registrarTiempoFuera(
+  attemptId: string,
+  seconds: number,
+): Promise<void> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return;
+  const secs = Math.max(0, Math.round(seconds));
+  if (secs === 0) return;
+  await prisma.examAttempt.updateMany({
+    where: { id: attemptId, userId, status: "IN_PROGRESS" },
+    data: { awaySeconds: { increment: secs } },
+  });
+}
+
 // Califica el examen en el servidor y cierra el intento en curso.
 export async function submitExam(
   attemptId: string,

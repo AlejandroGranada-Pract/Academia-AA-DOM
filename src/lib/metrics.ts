@@ -37,6 +37,7 @@ export type AlertaIntegridad = {
   examTitle: string;
   cursoTitle: string;
   tabSwitches: number;
+  awaySeconds: number;
   status: string; // IN_PROGRESS | COMPLETED | ABANDONED
   fecha: string; // ISO
 };
@@ -270,6 +271,7 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
     take: 50,
     select: {
       tabSwitches: true,
+      awaySeconds: true,
       status: true,
       startedAt: true,
       user: { select: { name: true } },
@@ -286,6 +288,7 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
     examTitle: a.exam.title,
     cursoTitle: a.exam.module?.course.title ?? "—",
     tabSwitches: a.tabSwitches,
+    awaySeconds: a.awaySeconds,
     status: a.status,
     fecha: a.startedAt.toISOString(),
   }));

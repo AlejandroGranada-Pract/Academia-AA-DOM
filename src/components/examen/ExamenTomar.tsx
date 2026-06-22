@@ -9,6 +9,7 @@ import {
   abandonarExamen,
   iniciarExamen,
   registrarSalidaPestana,
+  registrarTiempoFuera,
   submitExam,
   type ExamResult,
   type RespuestaUsuario,
@@ -30,6 +31,12 @@ function mmss(total: number) {
   const m = Math.floor(total / 60);
   const s = total % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function fmtDur(total: number) {
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
 }
 
 type Sesion = {
@@ -135,24 +142,34 @@ export function ExamenTomar({
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [tabSwitches, setTabSwitches] = useState(0);
+  const [awaySeconds, setAwaySeconds] = useState(0);
   // Activo solo mientras se está respondiendo (no en resultado ni al enviar).
   const activeRef = useRef(false);
   activeRef.current = phase === "taking" && !result && !submittedRef.current;
   const attemptIdRef = useRef<string | null>(null);
   attemptIdRef.current = sesion?.attemptId ?? null;
+  const hiddenAtRef = useRef<number | null>(null);
 
   // Integridad: detecta cuando el alumno sale de la pestaña (cambia de pestaña,
-  // minimiza o cambia de app). Lo registra y se lo advierte al volver.
+  // minimiza o cambia de app), cuenta las salidas y el tiempo fuera, y se lo
+  // advierte al volver.
   useEffect(() => {
     function onVisibility() {
       if (!activeRef.current) return;
+      const id = attemptIdRef.current;
       if (document.visibilityState === "hidden") {
-        const id = attemptIdRef.current;
+        hiddenAtRef.current = Date.now();
         if (id) void registrarSalidaPestana(id);
         setTabSwitches((n) => n + 1);
-      } else {
+      } else if (hiddenAtRef.current != null) {
+        const secs = Math.round((Date.now() - hiddenAtRef.current) / 1000);
+        hiddenAtRef.current = null;
+        if (secs > 0) {
+          setAwaySeconds((s) => s + secs);
+          if (id) void registrarTiempoFuera(id, secs);
+        }
         toast.warning("Saliste de la pestaña", {
-          description: "Esto queda registrado en el examen.",
+          description: "El tiempo fuera queda registrado en el examen.",
         });
       }
     }
@@ -259,7 +276,8 @@ export function ExamenTomar({
         {tabSwitches > 0 && (
           <span className="mt-1 block font-semibold text-destructive">
             Has salido de la pestaña {tabSwitches}{" "}
-            {tabSwitches === 1 ? "vez" : "veces"}.
+            {tabSwitches === 1 ? "vez" : "veces"}
+            {awaySeconds > 0 && ` · ${fmtDur(awaySeconds)} fuera`}.
           </span>
         )}
       </div>
