@@ -12,6 +12,8 @@ export async function authenticate(
     await signIn("credentials", {
       email: formData.get("email"),
       password: formData.get("password"),
+      // checkbox "Recuérdame": "on" si está marcado → lo normalizamos a "true".
+      remember: formData.get("remember") ? "true" : "",
       redirectTo: "/",
     });
   } catch (error) {

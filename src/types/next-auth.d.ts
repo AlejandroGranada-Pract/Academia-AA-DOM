@@ -12,11 +12,16 @@ declare module "next-auth" {
       role: AppRole;
       company: AppCompany;
     } & DefaultSession["user"];
+    // Expiración efectiva (epoch segundos): corta sin "Recuérdame", larga si se
+    // marcó. El middleware la usa para cerrar antes la sesión.
+    absExp?: number;
   }
 
   interface User {
     role: AppRole;
     company: AppCompany;
+    // "Recuérdame": define si la sesión dura mucho o poco.
+    remember?: boolean;
   }
 }
 
@@ -25,5 +30,6 @@ declare module "next-auth/jwt" {
     id: string;
     role: AppRole;
     company: AppCompany;
+    absExp?: number;
   }
 }

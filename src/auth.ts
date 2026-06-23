@@ -13,6 +13,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: "Correo", type: "email" },
         password: { label: "Contraseña", type: "password" },
+        remember: { label: "Recuérdame", type: "checkbox" },
       },
       authorize: async (credentials) => {
         // Normaliza el correo: sin espacios y en minúsculas (así se guardan),
@@ -29,12 +30,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
 
+        // "Recuérdame": el form envía "true" si está marcado.
+        const remember = credentials?.remember === "true";
+
         return {
           id: user.id,
           email: user.email,
           name: user.name,
           role: user.role,
           company: user.company,
+          remember,
         };
       },
     }),

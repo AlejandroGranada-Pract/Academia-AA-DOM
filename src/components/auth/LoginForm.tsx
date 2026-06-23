@@ -72,6 +72,16 @@ export function LoginForm() {
         </div>
       </div>
 
+      <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-white/80">
+        <input
+          type="checkbox"
+          name="remember"
+          defaultChecked
+          className="h-4 w-4 cursor-pointer rounded border-white/30 bg-white/10 accent-primary"
+        />
+        Recuérdame en este dispositivo
+      </label>
+
       {errorMessage && (
         <p className="text-sm text-red-300" role="alert">
           {errorMessage}
