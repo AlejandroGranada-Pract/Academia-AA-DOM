@@ -112,7 +112,7 @@ export default async function ExamenPage({
     <div className="mx-auto max-w-2xl">
       {isPreview && (
         <div className="mb-4 rounded-lg border border-gold/40 bg-gold/10 px-4 py-2 text-sm font-medium text-gold">
-          Vista previa como empleado · solo lectura · la respuesta correcta está
+          Vista previa como estudiante · solo lectura · la respuesta correcta está
           marcada
         </div>
       )}

@@ -98,7 +98,7 @@ export default async function LeccionPage({
     <div className="mx-auto max-w-3xl">
       {isPreview && (
         <div className="mb-4 rounded-lg border border-gold/40 bg-gold/10 px-4 py-2 text-sm font-medium text-gold">
-          Vista previa como empleado · tu progreso no se guarda
+          Vista previa como estudiante · tu progreso no se guarda
         </div>
       )}
 

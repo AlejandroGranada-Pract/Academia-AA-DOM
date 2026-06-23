@@ -25,13 +25,13 @@ export function VerComoEmpleado({ courseId }: { courseId: string }) {
         onClick={() => setOpen(true)}
       >
         <Eye className="h-4 w-4" />
-        Ver como empleado
+        Ver como estudiante
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="flex h-[88vh] w-[95vw] max-w-5xl flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl">
           <DialogHeader className="border-b px-4 py-3">
-            <DialogTitle>Vista previa — como empleado</DialogTitle>
+            <DialogTitle>Vista previa — como estudiante</DialogTitle>
           </DialogHeader>
           {open && (
             <iframe

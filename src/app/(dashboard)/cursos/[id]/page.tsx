@@ -218,7 +218,7 @@ export default async function CursoDetallePage({
     <div>
       {isPreview && (
         <div className="mb-4 rounded-lg border border-gold/40 bg-gold/10 px-4 py-2 text-sm font-medium text-gold">
-          Vista previa como empleado · todo desbloqueado · tu progreso no se
+          Vista previa como estudiante · todo desbloqueado · tu progreso no se
           guarda
         </div>
       )}
