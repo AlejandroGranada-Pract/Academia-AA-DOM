@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Accordion,
@@ -66,20 +66,28 @@ export function ModuloAccordion({
   const done = new Set(doneIds);
   const unlocked = new Set(unlockedIds);
   const defaultOpen = openModuleId ?? modules[0]?.id;
+  const [open, setOpen] = useState<string[]>(defaultOpen ? [defaultOpen] : []);
 
-  // Al volver de completar una lección (#continuar), hace scroll al módulo
-  // pendiente en vez de saltar al inicio de la página.
+  // Al llegar con un hash, abre y hace scroll al módulo correcto (sin saltar
+  // al inicio): #continuar → módulo pendiente; #mod-<id> → ese módulo (p. ej.
+  // al volver de una lección, regresa justo donde estabas).
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.location.hash !== "#continuar") return;
-    const el = defaultOpen ? document.getElementById(`mod-${defaultOpen}`) : null;
+    const hash = window.location.hash;
+    let target: string | undefined;
+    if (hash === "#continuar") target = defaultOpen;
+    else if (hash.startsWith("#mod-")) target = hash.slice("#mod-".length);
+    if (!target) return;
+    setOpen((prev) => (prev.includes(target) ? prev : [...prev, target]));
+    const el = document.getElementById(`mod-${target}`);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     history.replaceState(null, "", window.location.pathname + window.location.search);
   }, [defaultOpen]);
 
   return (
     <Accordion
-      defaultValue={defaultOpen ? [defaultOpen] : []}
+      value={open}
+      onValueChange={(v) => setOpen(v as string[])}
       className="flex flex-col gap-3"
     >
       {modules.map((m, i) => {

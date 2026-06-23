@@ -36,7 +36,7 @@ export default async function LeccionPage({
   if (!course) notFound();
 
   const flat = course.modules.flatMap((m) =>
-    m.lessons.map((l) => ({ ...l, moduleTitle: m.title })),
+    m.lessons.map((l) => ({ ...l, moduleTitle: m.title, moduleId: m.id })),
   );
   const lesson = flat.find((l) => l.id === params.leccionId);
   if (!lesson) notFound();
@@ -66,6 +66,17 @@ export default async function LeccionPage({
   if (!isPreview && !unlockedIds.has(lesson.id)) {
     redirect(`/cursos/${course.id}`);
   }
+
+  // Siguiente ítem de la secuencia (lección o examen) para el botón "Continuar".
+  const idxActual = items.findIndex(
+    (it) => it.kind === "lesson" && it.id === lesson.id,
+  );
+  const next = idxActual >= 0 ? items[idxActual + 1] : undefined;
+  const nextHref = next
+    ? next.kind === "exam"
+      ? `/examenes/${next.id}${pq}`
+      : `/cursos/${course.id}/leccion/${next.id}${pq}`
+    : null;
 
   const completed = completedIds.has(lesson.id);
 
@@ -132,6 +143,8 @@ export default async function LeccionPage({
           courseId={course.id}
           completed={completed}
           preview={isPreview}
+          moduleId={lesson.moduleId}
+          nextHref={nextHref}
         />
       </LeccionGate>
 

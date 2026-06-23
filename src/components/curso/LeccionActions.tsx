@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, ArrowDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { setLessonProgress } from "@/lib/actions/progress";
 import { useLeccionGate } from "@/components/curso/LeccionGate";
@@ -15,11 +15,15 @@ export function LeccionActions({
   courseId,
   completed,
   preview = false,
+  moduleId,
+  nextHref,
 }: {
   lessonId: string;
   courseId: string;
   completed: boolean;
   preview?: boolean; // vista previa del admin: no guarda progreso
+  moduleId: string; // para volver al módulo donde estaba (sin reiniciar scroll)
+  nextHref: string | null; // siguiente ítem del curso (botón "Continuar")
 }) {
   const router = useRouter();
   const gate = useLeccionGate();
@@ -73,7 +77,7 @@ export function LeccionActions({
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
         <Link
-          href={courseHref}
+          href={`${courseHref}#mod-${moduleId}`}
           className={cn(buttonVariants({ variant: "outline" }), "gap-1.5")}
         >
           <ArrowLeft className="h-4 w-4" />
@@ -81,9 +85,17 @@ export function LeccionActions({
         </Link>
 
         {preview ? (
-          <span className="text-xs text-muted-foreground">
-            Vista previa — el progreso no se guarda
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="hidden text-xs text-muted-foreground sm:inline">
+              Vista previa — el progreso no se guarda
+            </span>
+            {nextHref && (
+              <Link href={nextHref} className={cn(buttonVariants(), "gap-1.5")}>
+                Continuar
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
+          </div>
         ) : isCompleted ? (
           <span
             className={cn(

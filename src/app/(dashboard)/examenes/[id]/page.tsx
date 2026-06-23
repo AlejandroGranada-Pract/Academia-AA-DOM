@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import {
@@ -82,6 +82,29 @@ export default async function ExamenPage({
     if (!unlockedIds.has(exam.id)) redirect(courseHref);
   }
 
+  // Vista previa: módulo del examen (para volver sin reiniciar scroll) y
+  // siguiente ítem del curso (botón "Continuar").
+  const examModuleId = exam.moduleId ?? "";
+  let examNextHref: string | null = null;
+  if (isPreview && courseId) {
+    const mods = await prisma.module.findMany({
+      where: { courseId },
+      orderBy: { order: "asc" },
+      include: {
+        lessons: { select: { id: true, order: true } },
+        exams: { select: { id: true, order: true } },
+      },
+    });
+    const seq = buildCourseItems(mods);
+    const i = seq.findIndex((it) => it.kind === "exam" && it.id === exam.id);
+    const nx = i >= 0 ? seq[i + 1] : undefined;
+    examNextHref = nx
+      ? nx.kind === "exam"
+        ? `/examenes/${nx.id}${pq}`
+        : `/cursos/${courseId}/leccion/${nx.id}${pq}`
+      : null;
+  }
+
   // Intentos: cuentan todos (en curso, completados y abandonados). Hay intento
   // disponible si quedan cupos o si existe uno en curso vigente para reanudar.
   const attempts = userId
@@ -133,17 +156,37 @@ export default async function ExamenPage({
       )}
 
       {isPreview ? (
-        <ExamenPreview
-          questions={exam.questions.map((q) => ({
-            id: q.id,
-            question: q.question,
-            type: q.type,
-            options: q.options as string[],
-            correctAnswer: q.correctAnswer as number | number[],
-            explanation: q.explanation ?? null,
-          }))}
-          passingScore={exam.passingScore}
-        />
+        <>
+          <ExamenPreview
+            questions={exam.questions.map((q) => ({
+              id: q.id,
+              question: q.question,
+              type: q.type,
+              options: q.options as string[],
+              correctAnswer: q.correctAnswer as number | number[],
+              explanation: q.explanation ?? null,
+            }))}
+            passingScore={exam.passingScore}
+          />
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <Link
+              href={`${courseHref}#mod-${examModuleId}`}
+              className={cn(buttonVariants({ variant: "outline" }), "gap-1.5")}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver al curso
+            </Link>
+            {examNextHref && (
+              <Link
+                href={examNextHref}
+                className={cn(buttonVariants(), "gap-1.5")}
+              >
+                Continuar
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
+          </div>
+        </>
       ) : noAttemptsLeft ? (
         <div className="mt-4 rounded-2xl border bg-card p-8 text-center">
           <p className="font-heading text-5xl text-foreground">{best}%</p>
