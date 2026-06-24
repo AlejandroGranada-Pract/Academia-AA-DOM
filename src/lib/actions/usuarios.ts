@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { mailEnabled } from "@/lib/mailer";
+import { enviarBienvenida, enviarCursoAsignado } from "@/lib/emails";
 import type { Prisma } from "@/generated/prisma/client";
 
 type Role = "SUPER_ADMIN" | "AREA_LEADER" | "EMPLOYEE" | "EXTERNAL";
@@ -74,6 +76,11 @@ export async function createUser(
     },
   });
 
+  // Correo de bienvenida con sus datos de acceso (no bloquea si el correo falla).
+  if (mailEnabled()) {
+    await enviarBienvenida({ to: email, nombre: name.split(" ")[0] || name, email, password });
+  }
+
   revalidatePath("/usuarios");
   return undefined; // sin error = éxito
 }
@@ -111,6 +118,17 @@ export async function updateUser(
 
   if (!name) return "El nombre es obligatorio.";
 
+  // Cursos individuales que se agregan en esta edición (para avisar por correo).
+  const previas = mailEnabled()
+    ? (
+        await prisma.courseAssignment.findMany({
+          where: { userId },
+          select: { courseId: true },
+        })
+      ).map((a) => a.courseId)
+    : [];
+  const cursosNuevos = cursoIds.filter((id) => !previas.includes(id));
+
   const data: Prisma.UserUpdateInput = {
     name,
     role,
@@ -131,6 +149,24 @@ export async function updateUser(
   }
 
   await prisma.user.update({ where: { id: userId }, data });
+
+  // Avisa al usuario de los cursos recién asignados de forma individual.
+  if (mailEnabled() && cursosNuevos.length) {
+    const u = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    const cursos = await prisma.course.findMany({
+      where: { id: { in: cursosNuevos } },
+      select: { title: true },
+    });
+    if (u?.email) {
+      for (const c of cursos) {
+        await enviarCursoAsignado({ to: u.email, cursoTitle: c.title });
+      }
+    }
+  }
+
   revalidatePath("/usuarios");
   return undefined;
 }

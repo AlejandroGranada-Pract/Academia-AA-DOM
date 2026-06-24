@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { assertGrupo } from "@/lib/staff";
+import { mailEnabled } from "@/lib/mailer";
+import { enviarCursoAsignado } from "@/lib/emails";
 
 // Crear/renombrar/eliminar grupos: solo SUPER_ADMIN.
 async function requireAdmin() {
@@ -91,6 +93,17 @@ export async function setGrupoMembership(
   userIds: string[],
 ): Promise<string | undefined> {
   await assertGrupo(grupoId);
+
+  // Cursos que se agregan al grupo en este guardado (para avisar a los miembros).
+  const previos = mailEnabled()
+    ? (
+        await prisma.grupo.findUnique({
+          where: { id: grupoId },
+          select: { courses: { select: { id: true } } },
+        })
+      )?.courses.map((c) => c.id) ?? []
+    : [];
+
   await prisma.grupo.update({
     where: { id: grupoId },
     data: {
@@ -98,6 +111,30 @@ export async function setGrupoMembership(
       users: { set: userIds.map((id) => ({ id })) },
     },
   });
+
+  // Avisa a los miembros del grupo de los cursos recién asignados.
+  if (mailEnabled()) {
+    const nuevos = courseIds.filter((id) => !previos.includes(id));
+    if (nuevos.length && userIds.length) {
+      const [cursos, usuarios] = await Promise.all([
+        prisma.course.findMany({
+          where: { id: { in: nuevos } },
+          select: { title: true },
+        }),
+        prisma.user.findMany({
+          where: { id: { in: userIds }, active: true },
+          select: { email: true },
+        }),
+      ]);
+      for (const u of usuarios) {
+        if (!u.email) continue;
+        for (const c of cursos) {
+          await enviarCursoAsignado({ to: u.email, cursoTitle: c.title });
+        }
+      }
+    }
+  }
+
   revalidatePath(`/grupos/${grupoId}`);
   revalidatePath("/cursos");
   revalidatePath("/mi-equipo");

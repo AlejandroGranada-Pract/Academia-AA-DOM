@@ -1,5 +1,7 @@
 import { randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
+import { mailEnabled } from "@/lib/mailer";
+import { enviarCertificado } from "@/lib/emails";
 
 // Un curso está "completo" cuando TODAS sus lecciones están completadas y
 // TODOS sus exámenes aprobados. Mismo criterio que el avance del 100%.
@@ -64,9 +66,31 @@ export async function issueCertificateIfComplete(
     if (existing) return;
     if (!(await isCourseComplete(userId, courseId))) return;
 
-    await prisma.certificate.create({
+    const cert = await prisma.certificate.create({
       data: { userId, courseId, code: generarCodigo() },
     });
+
+    // Correo de felicitación con el certificado (no bloquea ni rompe el flujo).
+    if (mailEnabled()) {
+      const [user, course] = await Promise.all([
+        prisma.user.findUnique({
+          where: { id: userId },
+          select: { name: true, email: true },
+        }),
+        prisma.course.findUnique({
+          where: { id: courseId },
+          select: { title: true },
+        }),
+      ]);
+      if (user?.email && course) {
+        await enviarCertificado({
+          to: user.email,
+          nombre: user.name?.split(" ")[0] ?? "",
+          cursoTitle: course.title,
+          certId: cert.id,
+        });
+      }
+    }
   } catch {
     // Carrera o error puntual: no interrumpimos el flujo del usuario.
   }
