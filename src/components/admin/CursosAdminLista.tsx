@@ -72,9 +72,11 @@ export type CursoAdminRow = CursoFormData & {
 export function CursosAdminLista({
   cursos,
   grupos,
+  isSuperAdmin = false,
 }: {
   cursos: CursoAdminRow[];
   grupos: { id: string; name: string }[];
+  isSuperAdmin?: boolean; // el Asistente IA es solo para SUPER_ADMIN
 }) {
   const [q, setQ] = useState("");
   const [creating, setCreating] = useState(false);
@@ -117,7 +119,7 @@ export function CursosAdminLista({
           />
         </div>
         <div className="flex items-center gap-2">
-          <AsistenteIA />
+          {isSuperAdmin && <AsistenteIA />}
           <Button onClick={() => setCreating(true)} className="gap-1.5">
             <Plus className="h-4 w-4" />
             Nuevo curso

@@ -11,7 +11,11 @@ export async function uploadImage(
   formData: FormData,
 ): Promise<{ url?: string; error?: string }> {
   const s = await auth();
-  if (s?.user?.role !== "SUPER_ADMIN") return { error: "No autorizado." };
+  const role = s?.user?.role;
+  // SUPER_ADMIN y AREA_LEADER pueden subir imágenes (editor de lecciones).
+  if (role !== "SUPER_ADMIN" && role !== "AREA_LEADER") {
+    return { error: "No autorizado." };
+  }
 
   const file = formData.get("file");
   if (!(file instanceof File)) return { error: "No se recibió el archivo." };

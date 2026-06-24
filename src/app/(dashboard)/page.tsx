@@ -27,8 +27,9 @@ export default async function DashboardPage() {
   const userId = session?.user?.id;
   const firstName = session?.user?.name?.split(" ")[0] ?? "usuario";
 
-  // El admin no usa el dashboard de alumno: su home es Reportes.
-  if (session?.user?.role === "SUPER_ADMIN") redirect("/reportes");
+  // Admin y líder de área no usan el panel de alumno: su home es Reportes.
+  const rol = session?.user?.role;
+  if (rol === "SUPER_ADMIN" || rol === "AREA_LEADER") redirect("/reportes");
 
   if (!userId) {
     return (

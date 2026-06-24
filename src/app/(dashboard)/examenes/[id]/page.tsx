@@ -26,9 +26,11 @@ export default async function ExamenPage({
   const session = await auth();
   const userId = session?.user?.id;
 
-  // Vista previa del admin: todo desbloqueado, solo lectura (no crea intentos).
+  // Vista previa de staff (admin/líder): desbloqueado, solo lectura (sin intentos).
   const isPreview =
-    searchParams?.preview === "1" && session?.user?.role === "SUPER_ADMIN";
+    searchParams?.preview === "1" &&
+    (session?.user?.role === "SUPER_ADMIN" ||
+      session?.user?.role === "AREA_LEADER");
 
   const exam = await prisma.exam.findUnique({
     where: { id: params.id },

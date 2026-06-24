@@ -22,11 +22,19 @@ type SidebarUser = {
   role: Role;
 };
 
-// Sección de administración (solo SUPER_ADMIN). Estas pantallas se construyen
-// en la Fase 2; por ahora los enlaces quedan listos.
-const ADMIN_NAV: { href: string; label: string; icon: LucideIcon }[] = [
+type NavLink = { href: string; label: string; icon: LucideIcon };
+
+// Sección de administración completa (SUPER_ADMIN).
+const ADMIN_NAV: NavLink[] = [
   { href: "/usuarios", label: "Usuarios", icon: Users },
   { href: "/grupos", label: "Grupos", icon: Boxes },
+  { href: "/admin/cursos", label: "Gestionar Cursos", icon: LayoutGrid },
+  { href: "/reportes", label: "Reportes", icon: BarChart3 },
+];
+
+// Gestión del líder de área (sin Usuarios ni Grupos). Mi Equipo se agrega
+// aparte si lidera algún grupo.
+const LEADER_NAV: NavLink[] = [
   { href: "/admin/cursos", label: "Gestionar Cursos", icon: LayoutGrid },
   { href: "/reportes", label: "Reportes", icon: BarChart3 },
 ];
@@ -92,9 +100,17 @@ export function Sidebar({
   leadsTeam: boolean;
 }) {
   const pathname = usePathname();
-  const isAdmin = user.role === "SUPER_ADMIN";
-  const mainItems = mainNavFor(user.role);
-  const hasTopBlock = mainItems.length > 0 || leadsTeam;
+  const mainItems = mainNavFor(user.role); // vacío para admin y líder
+  const hasTopBlock = mainItems.length > 0;
+
+  // Sección de gestión según rol. Mi Equipo se agrega si lidera algún grupo.
+  const gestion: NavLink[] = [];
+  if (user.role === "SUPER_ADMIN") gestion.push(...ADMIN_NAV);
+  else if (user.role === "AREA_LEADER") gestion.push(...LEADER_NAV);
+  if (leadsTeam)
+    gestion.push({ href: "/mi-equipo", label: "Mi Equipo", icon: Users2 });
+  const sectionLabel =
+    user.role === "SUPER_ADMIN" ? "Administración" : "Gestión";
 
   return (
     <aside data-app-chrome className="fixed inset-y-0 left-0 z-40 hidden w-[260px] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground dark:bg-gradient-to-b dark:from-[#14171c] dark:via-sidebar dark:to-[#0b0d10] md:flex">
@@ -121,28 +137,20 @@ export function Sidebar({
             {mainItems.map((item) => (
               <SidebarLink key={item.href} {...item} pathname={pathname} />
             ))}
-            {leadsTeam && (
-              <SidebarLink
-                href="/mi-equipo"
-                label="Mi Equipo"
-                icon={Users2}
-                pathname={pathname}
-              />
-            )}
           </div>
         )}
 
-        {isAdmin && (
+        {gestion.length > 0 && (
           <>
             <p
               className={`px-3 pb-2 text-[10px] uppercase tracking-[0.15em] text-sidebar-foreground/40 ${
                 hasTopBlock ? "pt-5" : ""
               }`}
             >
-              Administración
+              {sectionLabel}
             </p>
             <div className="space-y-1">
-              {ADMIN_NAV.map((item) => (
+              {gestion.map((item) => (
                 <SidebarLink key={item.href} {...item} pathname={pathname} />
               ))}
             </div>

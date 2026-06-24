@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { Header } from "@/components/layout/Header";
 import {
@@ -11,6 +12,8 @@ function toDateInput(d: Date | null): string | null {
 }
 
 export default async function GestionarCursosPage() {
+  const session = await auth();
+  const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
   const [cursos, grupos] = await Promise.all([
     prisma.course.findMany({
       orderBy: { createdAt: "asc" },
@@ -47,7 +50,11 @@ export default async function GestionarCursosPage() {
         title="Gestionar Cursos"
         subtitle={`${rows.length} cursos (activos e inactivos)`}
       />
-      <CursosAdminLista cursos={rows} grupos={grupos} />
+      <CursosAdminLista
+        cursos={rows}
+        grupos={grupos}
+        isSuperAdmin={isSuperAdmin}
+      />
     </div>
   );
 }

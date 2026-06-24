@@ -66,24 +66,30 @@ export default async function CursoDetallePage({
     },
   });
 
-  if (!curso || curso.status !== "PUBLISHED") notFound();
+  if (!curso) notFound();
+
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  // Vista previa de staff ("Ver como estudiante"): todo desbloqueado, sin
+  // escribir progreso. SUPER_ADMIN y AREA_LEADER la activan con ?preview=1.
+  // El staff puede previsualizar cualquier curso (incluso borradores o fuera
+  // de sus grupos), por eso omite los gates de estado y de acceso.
+  const isPreview =
+    searchParams?.preview === "1" &&
+    (session?.user?.role === "SUPER_ADMIN" ||
+      session?.user?.role === "AREA_LEADER");
+  const pq = isPreview ? "?preview=1" : "";
+
+  if (curso.status !== "PUBLISHED" && !isPreview) notFound();
 
   const lessons = curso.modules.flatMap((m) => m.lessons);
   const lessonCount = lessons.length;
 
-  // Progreso del usuario en este curso
-  const session = await auth();
-  const userId = session?.user?.id;
-
-  // Acceso por grupo/rol: si no le corresponde el curso, lo devolvemos al catálogo.
+  // Acceso por grupo/rol: si no le corresponde el curso, lo devolvemos al
+  // catálogo (en vista previa de staff se omite).
   const viewer = userId ? await getViewer(userId) : null;
-  if (!canSeeCourse(viewer ?? {}, curso)) redirect("/cursos");
-
-  // Vista previa del admin ("Ver como empleado"): todo desbloqueado, sin
-  // escribir progreso. Solo SUPER_ADMIN puede activarla con ?preview=1.
-  const isPreview =
-    searchParams?.preview === "1" && session?.user?.role === "SUPER_ADMIN";
-  const pq = isPreview ? "?preview=1" : "";
+  if (!isPreview && !canSeeCourse(viewer ?? {}, curso)) redirect("/cursos");
 
   const me = userId
     ? await prisma.user.findUnique({

@@ -35,12 +35,25 @@ const ADMIN_MOBILE_NAV: NavItem[] = [
   { href: "/mi-equipo", label: "Equipo", icon: Users },
 ];
 
-// Navegación principal según rol (el admin no ve los ítems de alumno).
+// Barra inferior del líder de área: reportes, cursos y su equipo (sin Usuarios).
+const LEADER_MOBILE_NAV: NavItem[] = [
+  { href: "/reportes", label: "Reportes", icon: BarChart3 },
+  { href: "/admin/cursos", label: "Cursos", icon: LayoutGrid },
+  { href: "/mi-equipo", label: "Equipo", icon: Users },
+];
+
+// Staff = admin o líder de área: ninguno toma cursos (sin vista de alumno).
+const isStaff = (role: string | undefined) =>
+  role === "SUPER_ADMIN" || role === "AREA_LEADER";
+
+// Navegación principal según rol (admin y líder no ven los ítems de alumno).
 export function mainNavFor(role: string | undefined): NavItem[] {
-  return role === "SUPER_ADMIN" ? ADMIN_MAIN_NAV : MAIN_NAV;
+  return isStaff(role) ? ADMIN_MAIN_NAV : MAIN_NAV;
 }
 export function mobileNavFor(role: string | undefined): NavItem[] {
-  return role === "SUPER_ADMIN" ? ADMIN_MOBILE_NAV : MAIN_NAV;
+  if (role === "SUPER_ADMIN") return ADMIN_MOBILE_NAV;
+  if (role === "AREA_LEADER") return LEADER_MOBILE_NAV;
+  return MAIN_NAV;
 }
 
 // Resalta el ítem activo: "/" solo en la raíz, el resto por prefijo de ruta.

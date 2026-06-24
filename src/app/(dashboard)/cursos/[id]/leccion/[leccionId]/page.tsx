@@ -50,9 +50,11 @@ export default async function LeccionPage({
     ? await getPassedExamIds(userId)
     : new Set<string>();
 
-  // Vista previa del admin: todo desbloqueado, sin escribir progreso.
+  // Vista previa de staff (admin/líder): todo desbloqueado, sin escribir progreso.
   const isPreview =
-    searchParams?.preview === "1" && session?.user?.role === "SUPER_ADMIN";
+    searchParams?.preview === "1" &&
+    (session?.user?.role === "SUPER_ADMIN" ||
+      session?.user?.role === "AREA_LEADER");
   const pq = isPreview ? "?preview=1" : "";
 
   // Bloqueo secuencial sobre la secuencia mezclada (lecciones + exámenes):

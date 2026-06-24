@@ -115,7 +115,8 @@ function buildSheet(
 
 export async function GET() {
   const session = await auth();
-  if (session?.user?.role !== "SUPER_ADMIN") {
+  const role = session?.user?.role;
+  if (role !== "SUPER_ADMIN" && role !== "AREA_LEADER") {
     return new Response("No autorizado", { status: 403 });
   }
 

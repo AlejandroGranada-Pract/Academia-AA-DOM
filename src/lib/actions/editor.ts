@@ -6,7 +6,11 @@ import { prisma } from "@/lib/db";
 
 async function requireAdmin() {
   const s = await auth();
-  if (s?.user?.role !== "SUPER_ADMIN") throw new Error("No autorizado");
+  const role = s?.user?.role;
+  // SUPER_ADMIN y AREA_LEADER pueden gestionar el contenido de los cursos.
+  if (role !== "SUPER_ADMIN" && role !== "AREA_LEADER") {
+    throw new Error("No autorizado");
+  }
 }
 
 function refresh(courseId: string) {
