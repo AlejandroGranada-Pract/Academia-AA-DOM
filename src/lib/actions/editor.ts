@@ -1,17 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-
-async function requireAdmin() {
-  const s = await auth();
-  const role = s?.user?.role;
-  // SUPER_ADMIN y AREA_LEADER pueden gestionar el contenido de los cursos.
-  if (role !== "SUPER_ADMIN" && role !== "AREA_LEADER") {
-    throw new Error("No autorizado");
-  }
-}
+import {
+  assertCourse,
+  assertModule,
+  assertLesson,
+  assertExam,
+  assertQuestion,
+} from "@/lib/staff";
 
 function refresh(courseId: string) {
   revalidatePath(`/admin/cursos/${courseId}/edit`);
@@ -22,7 +19,7 @@ function refresh(courseId: string) {
 // ============================== MÓDULOS ==============================
 
 export async function addModule(courseId: string, title: string) {
-  await requireAdmin();
+  await assertCourse(courseId);
   const nombre = title.trim();
   if (!nombre) return;
   const last = await prisma.module.findFirst({
@@ -41,7 +38,7 @@ export async function renameModule(
   moduleId: string,
   title: string,
 ) {
-  await requireAdmin();
+  await assertModule(moduleId);
   const nombre = title.trim();
   if (!nombre) return;
   await prisma.module.update({ where: { id: moduleId }, data: { title: nombre } });
@@ -49,7 +46,7 @@ export async function renameModule(
 }
 
 export async function deleteModule(courseId: string, moduleId: string) {
-  await requireAdmin();
+  await assertModule(moduleId);
   await prisma.module.delete({ where: { id: moduleId } }); // cascada: lecciones y exámenes
   refresh(courseId);
 }
@@ -59,7 +56,7 @@ export async function moveModule(
   moduleId: string,
   dir: "up" | "down",
 ) {
-  await requireAdmin();
+  await assertModule(moduleId);
   const modules = await prisma.module.findMany({
     where: { courseId },
     orderBy: { order: "asc" },
@@ -126,7 +123,7 @@ export async function addLesson(
   moduleId: string,
   title: string,
 ): Promise<string | null> {
-  await requireAdmin();
+  await assertModule(moduleId);
   const nombre = title.trim();
   if (!nombre) return null;
   const lesson = await prisma.lesson.create({
@@ -147,7 +144,7 @@ export async function updateLesson(
   lessonId: string,
   data: { title: string; durationMin: number | null; blocks: LessonBlock[] },
 ): Promise<string | undefined> {
-  await requireAdmin();
+  await assertLesson(lessonId);
   const title = data.title.trim();
   if (!title) return "El título es obligatorio.";
   // Limpieza: quita ítems vacíos de las listas y bloques de texto vacíos.
@@ -177,7 +174,7 @@ export async function updateLesson(
 }
 
 export async function deleteLesson(courseId: string, lessonId: string) {
-  await requireAdmin();
+  await assertLesson(lessonId);
   await prisma.lesson.delete({ where: { id: lessonId } });
   refresh(courseId);
 }
@@ -192,7 +189,7 @@ export async function moveItem(
   itemId: string,
   dir: "up" | "down",
 ) {
-  await requireAdmin();
+  await assertModule(moduleId);
   const [lessons, exams] = await Promise.all([
     prisma.lesson.findMany({
       where: { moduleId },
@@ -288,7 +285,9 @@ export async function saveExam(
     timeLimitMin: number | null;
   },
 ): Promise<string | undefined> {
-  await requireAdmin();
+  // Editar un examen existente valida ese examen; crear uno valida el módulo.
+  if (examId) await assertExam(examId);
+  else await assertModule(moduleId);
   const title = data.title.trim();
   if (!title) return "El título es obligatorio.";
   const payload = {
@@ -310,7 +309,7 @@ export async function saveExam(
 }
 
 export async function deleteExam(courseId: string, examId: string) {
-  await requireAdmin();
+  await assertExam(examId);
   await prisma.exam.delete({ where: { id: examId } });
   refresh(courseId);
 }
@@ -344,7 +343,7 @@ export async function addQuestion(
   examId: string,
   q: QuestionInput,
 ): Promise<string | undefined> {
-  await requireAdmin();
+  await assertExam(examId);
   const err = validateQuestion(q);
   if (err) return err;
   const last = await prisma.examQuestion.findFirst({
@@ -373,7 +372,7 @@ export async function updateQuestion(
   questionId: string,
   q: QuestionInput,
 ): Promise<string | undefined> {
-  await requireAdmin();
+  await assertQuestion(questionId);
   const err = validateQuestion(q);
   if (err) return err;
   await prisma.examQuestion.update({
@@ -392,7 +391,7 @@ export async function updateQuestion(
 }
 
 export async function deleteQuestion(courseId: string, questionId: string) {
-  await requireAdmin();
+  await assertQuestion(questionId);
   await prisma.examQuestion.delete({ where: { id: questionId } });
   refresh(courseId);
 }

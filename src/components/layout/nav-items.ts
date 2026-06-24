@@ -5,6 +5,7 @@ import {
   Award,
   LayoutGrid,
   Users,
+  Boxes,
   BarChart3,
   type LucideIcon,
 } from "lucide-react";
@@ -35,10 +36,11 @@ const ADMIN_MOBILE_NAV: NavItem[] = [
   { href: "/mi-equipo", label: "Equipo", icon: Users },
 ];
 
-// Barra inferior del líder de área: reportes, cursos y su equipo (sin Usuarios).
+// Barra inferior del líder de área: reportes, cursos, grupos y su equipo.
 const LEADER_MOBILE_NAV: NavItem[] = [
   { href: "/reportes", label: "Reportes", icon: BarChart3 },
   { href: "/admin/cursos", label: "Cursos", icon: LayoutGrid },
+  { href: "/grupos", label: "Grupos", icon: Boxes },
   { href: "/mi-equipo", label: "Equipo", icon: Users },
 ];
 

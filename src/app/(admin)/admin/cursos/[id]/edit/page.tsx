@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { getStaff, canManageCourse } from "@/lib/staff";
 import { Header } from "@/components/layout/Header";
 import { CursoEditor, type ModuloEditable } from "@/components/admin/CursoEditor";
 import { CursoStatusSwitch } from "@/components/admin/CursoStatusSwitch";
@@ -26,6 +27,12 @@ export default async function EditarCursoPage({
     },
   });
   if (!curso) notFound();
+
+  // El líder solo edita cursos de sus grupos; si no, de vuelta al listado.
+  const staff = await getStaff();
+  if (!staff || !(await canManageCourse(staff, curso.id))) {
+    redirect("/admin/cursos");
+  }
 
   // Secuencia mezclada: lecciones y exámenes comparten el orden del módulo.
   const modules: ModuloEditable[] = curso.modules.map((m) => {

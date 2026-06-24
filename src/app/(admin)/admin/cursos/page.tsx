@@ -1,5 +1,5 @@
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { getStaff } from "@/lib/staff";
 import { Header } from "@/components/layout/Header";
 import {
   CursosAdminLista,
@@ -12,10 +12,18 @@ function toDateInput(d: Date | null): string | null {
 }
 
 export default async function GestionarCursosPage() {
-  const session = await auth();
-  const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
+  const staff = await getStaff();
+  const isSuperAdmin = staff?.role === "SUPER_ADMIN";
+  const ledGroupIds = staff?.ledGroupIds ?? [];
+  // El admin ve todos los cursos; el líder solo los asignados a sus grupos.
+  const cursoWhere = isSuperAdmin
+    ? undefined
+    : { grupos: { some: { id: { in: ledGroupIds } } } };
+  const grupoWhere = isSuperAdmin ? undefined : { id: { in: ledGroupIds } };
+
   const [cursos, grupos] = await Promise.all([
     prisma.course.findMany({
+      where: cursoWhere,
       orderBy: { createdAt: "asc" },
       include: {
         grupos: { select: { id: true } },
@@ -23,6 +31,7 @@ export default async function GestionarCursosPage() {
       },
     }),
     prisma.grupo.findMany({
+      where: grupoWhere,
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),

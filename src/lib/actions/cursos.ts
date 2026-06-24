@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { requireStaff, assertCourse } from "@/lib/staff";
 import type { Prisma } from "@/generated/prisma/client";
 
 type Category =
@@ -14,16 +14,6 @@ type Category =
   | "PROCESO";
 type Company = "AMBIENTE_AZUL" | "DOM_DESIGN" | "AMBAS";
 type Status = "DRAFT" | "PUBLISHED" | "ARCHIVED";
-
-async function requireAdmin(): Promise<string> {
-  const s = await auth();
-  const role = s?.user?.role;
-  // SUPER_ADMIN y AREA_LEADER pueden gestionar cursos.
-  if (role !== "SUPER_ADMIN" && role !== "AREA_LEADER") {
-    throw new Error("No autorizado");
-  }
-  return s!.user.id;
-}
 
 function refresh(courseId?: string) {
   revalidatePath("/admin/cursos");
@@ -69,10 +59,17 @@ function parseForm(formData: FormData) {
 export async function createCourse(
   formData: FormData,
 ): Promise<{ error?: string; id?: string }> {
-  const userId = await requireAdmin();
+  const staff = await requireStaff();
   const f = parseForm(formData);
   if (!f.title || !f.description) {
     return { error: "Título y descripción son obligatorios." };
+  }
+  // El líder solo asigna el curso a sus grupos liderados (y debe quedar en ≥1,
+  // si no, el curso no sería "suyo" y no podría volver a verlo).
+  let grupoIds = f.grupoIds;
+  if (staff.role === "AREA_LEADER") {
+    grupoIds = grupoIds.filter((id) => staff.ledGroupIds.includes(id));
+    if (grupoIds.length === 0) grupoIds = staff.ledGroupIds;
   }
   const curso = await prisma.course.create({
     data: {
@@ -85,9 +82,9 @@ export async function createCourse(
       passingScore: f.passingScore,
       dueDate: f.dueDate,
       dueDays: f.dueDays,
-      createdBy: userId,
-      grupos: f.grupoIds.length
-        ? { connect: f.grupoIds.map((id) => ({ id })) }
+      createdBy: staff.id,
+      grupos: grupoIds.length
+        ? { connect: grupoIds.map((id) => ({ id })) }
         : undefined,
     },
   });
@@ -99,10 +96,24 @@ export async function updateCourse(
   courseId: string,
   formData: FormData,
 ): Promise<string | undefined> {
-  await requireAdmin();
+  const staff = await assertCourse(courseId);
   const f = parseForm(formData);
   if (!f.title || !f.description) {
     return "Título y descripción son obligatorios.";
+  }
+  // Asignación a grupos: el admin reemplaza el set completo. El líder solo
+  // toca sus grupos liderados y preserva los demás (asignados por el admin).
+  let grupoIds = f.grupoIds;
+  if (staff.role === "AREA_LEADER") {
+    const actual = await prisma.course.findUnique({
+      where: { id: courseId },
+      select: { grupos: { select: { id: true } } },
+    });
+    const ajenos = (actual?.grupos ?? [])
+      .map((g) => g.id)
+      .filter((id) => !staff.ledGroupIds.includes(id));
+    const propios = f.grupoIds.filter((id) => staff.ledGroupIds.includes(id));
+    grupoIds = Array.from(new Set([...ajenos, ...propios]));
   }
   const data: Prisma.CourseUpdateInput = {
     title: f.title,
@@ -113,7 +124,7 @@ export async function updateCourse(
     passingScore: f.passingScore,
     dueDate: f.dueDate,
     dueDays: f.dueDays,
-    grupos: { set: f.grupoIds.map((id) => ({ id })) },
+    grupos: { set: grupoIds.map((id) => ({ id })) },
   };
   await prisma.course.update({ where: { id: courseId }, data });
   refresh(courseId);
@@ -121,13 +132,13 @@ export async function updateCourse(
 }
 
 export async function setCourseStatus(courseId: string, status: Status) {
-  await requireAdmin();
+  await assertCourse(courseId);
   await prisma.course.update({ where: { id: courseId }, data: { status } });
   refresh(courseId);
 }
 
 export async function deleteCourse(courseId: string) {
-  await requireAdmin();
+  await assertCourse(courseId);
   await prisma.course.delete({ where: { id: courseId } });
   refresh();
 }

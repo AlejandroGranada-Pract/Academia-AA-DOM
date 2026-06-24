@@ -14,7 +14,13 @@ type GrupoItem = {
   users: number;
 };
 
-export function GruposLista({ grupos }: { grupos: GrupoItem[] }) {
+export function GruposLista({
+  grupos,
+  isSuperAdmin = false,
+}: {
+  grupos: GrupoItem[];
+  isSuperAdmin?: boolean; // renombrar/eliminar grupo es solo del admin
+}) {
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
   const filtered = query
@@ -69,8 +75,12 @@ export function GruposLista({ grupos }: { grupos: GrupoItem[] }) {
                 >
                   Gestionar
                 </Link>
-                <RenombrarGrupoButton grupoId={g.id} grupoName={g.name} />
-                <EliminarGrupoButton grupoId={g.id} grupoName={g.name} />
+                {isSuperAdmin && (
+                  <>
+                    <RenombrarGrupoButton grupoId={g.id} grupoName={g.name} />
+                    <EliminarGrupoButton grupoId={g.id} grupoName={g.name} />
+                  </>
+                )}
               </div>
             </div>
           ))}

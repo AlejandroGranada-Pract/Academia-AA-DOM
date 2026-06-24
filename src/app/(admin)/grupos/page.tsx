@@ -1,15 +1,18 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { getStaff } from "@/lib/staff";
 import { Header } from "@/components/layout/Header";
 import { NuevoGrupoDialog } from "@/components/admin/NuevoGrupoDialog";
 import { GruposLista } from "@/components/admin/GruposLista";
 
 export default async function GruposPage() {
-  const session = await auth();
-  if (session?.user?.role !== "SUPER_ADMIN") redirect("/");
+  const staff = await getStaff();
+  if (!staff) redirect("/");
+  const isSuperAdmin = staff.role === "SUPER_ADMIN";
 
+  // El admin ve todos los grupos; el líder solo los que lidera.
   const grupos = await prisma.grupo.findMany({
+    where: isSuperAdmin ? undefined : { id: { in: staff.ledGroupIds } },
     orderBy: { name: "asc" },
     select: {
       id: true,
@@ -22,12 +25,17 @@ export default async function GruposPage() {
     <div>
       <Header
         title="Grupos"
-        subtitle="Define grupos (Técnico, Compras…) y asígnales cursos y usuarios"
+        subtitle={
+          isSuperAdmin
+            ? "Define grupos (Técnico, Compras…) y asígnales cursos y usuarios"
+            : "Gestiona los miembros y cursos de tus grupos"
+        }
       >
-        <NuevoGrupoDialog />
+        {isSuperAdmin && <NuevoGrupoDialog />}
       </Header>
 
       <GruposLista
+        isSuperAdmin={isSuperAdmin}
         grupos={grupos.map((g) => ({
           id: g.id,
           name: g.name,

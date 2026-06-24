@@ -32,10 +32,11 @@ const ADMIN_NAV: NavLink[] = [
   { href: "/reportes", label: "Reportes", icon: BarChart3 },
 ];
 
-// Gestión del líder de área (sin Usuarios ni Grupos). Mi Equipo se agrega
-// aparte si lidera algún grupo.
+// Gestión del líder de área (sin Usuarios). Mi Equipo se agrega aparte si
+// lidera algún grupo.
 const LEADER_NAV: NavLink[] = [
   { href: "/admin/cursos", label: "Gestionar Cursos", icon: LayoutGrid },
+  { href: "/grupos", label: "Grupos", icon: Boxes },
   { href: "/reportes", label: "Reportes", icon: BarChart3 },
 ];
 

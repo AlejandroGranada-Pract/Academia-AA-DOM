@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { assertGrupo } from "@/lib/staff";
 
+// Crear/renombrar/eliminar grupos: solo SUPER_ADMIN.
 async function requireAdmin() {
   const s = await auth();
   if (s?.user?.role !== "SUPER_ADMIN") throw new Error("No autorizado");
@@ -50,7 +52,7 @@ export async function toggleCourseInGrupo(
   courseId: string,
   member: boolean,
 ) {
-  await requireAdmin();
+  await assertGrupo(grupoId);
   await prisma.grupo.update({
     where: { id: grupoId },
     data: {
@@ -68,7 +70,7 @@ export async function toggleUserInGrupo(
   userId: string,
   member: boolean,
 ) {
-  await requireAdmin();
+  await assertGrupo(grupoId);
   await prisma.grupo.update({
     where: { id: grupoId },
     data: {
@@ -88,7 +90,7 @@ export async function setGrupoMembership(
   courseIds: string[],
   userIds: string[],
 ): Promise<string | undefined> {
-  await requireAdmin();
+  await assertGrupo(grupoId);
   await prisma.grupo.update({
     where: { id: grupoId },
     data: {

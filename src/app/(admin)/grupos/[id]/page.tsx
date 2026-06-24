@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { getStaff, canManageGrupo } from "@/lib/staff";
 import { Header } from "@/components/layout/Header";
 import { GrupoMembership } from "@/components/admin/GrupoMembership";
 
@@ -17,8 +17,10 @@ export default async function GrupoDetallePage({
 }: {
   params: { id: string };
 }) {
-  const session = await auth();
-  if (session?.user?.role !== "SUPER_ADMIN") redirect("/");
+  const staff = await getStaff();
+  if (!staff) redirect("/");
+  // El líder solo entra a sus grupos liderados; si no, de vuelta al listado.
+  if (!canManageGrupo(staff, params.id)) redirect("/grupos");
 
   const grupo = await prisma.grupo.findUnique({
     where: { id: params.id },
