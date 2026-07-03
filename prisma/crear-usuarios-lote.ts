@@ -28,7 +28,14 @@ const USERS: { name: string; email: string; role?: Role }[] = [
   { name: "Miguel Simson", email: "comercialmed@domdesign.co" },
   { name: "Katherin Obregón", email: "k.obregon@ambienteazul.com.co" },
   { name: "Isabel Ramírez", email: "isa@domdesign.co", role: "SUPER_ADMIN" },
-  // Pendientes por correo duplicado (delineante@): Carlos Andrés y Jordan Bustos.
+  { name: "Carlos Andrés", email: "delineante@ambienteazul.com.co" },
+  { name: "Sophia Orquijo", email: "directorbogota@ambienteazul.com.co" },
+  { name: "Andrés Flórez", email: "andresflorez@ambienteazul.com.co" },
+  { name: "Camilo Urrego", email: "dircompras@domdesign.co" },
+  { name: "Felipe Isaza", email: "analistacompras@ambienteazul.com.co" },
+  { name: "Daniela Orozco", email: "auxcontable@ambienteazul.com.co" },
+  { name: "Juan Pablo", email: "juanpablo@ambienteazul.com.co" },
+  { name: "Jordan Bustos", email: "bustosjordan10@gmail.com" },
 ];
 
 async function main() {
