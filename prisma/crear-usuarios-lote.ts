@@ -17,14 +17,17 @@ const prisma = new PrismaClient({ adapter });
 
 const PASSWORD = "Academia2026*";
 
-// Correos en minúscula (el login no distingue mayúsculas).
-const USERS: { name: string; email: string }[] = [
+type Role = "SUPER_ADMIN" | "AREA_LEADER" | "EMPLOYEE" | "EXTERNAL";
+
+// Correos en minúscula (el login no distingue mayúsculas). role por defecto EMPLOYEE.
+const USERS: { name: string; email: string; role?: Role }[] = [
   { name: "Kevin", email: "arquitectura@ambienteazul.com.co" },
   { name: "Paula Bedoya", email: "sst@ambienteazul.com.co" },
   { name: "Lina Cano", email: "linacano@ambienteazul.com.co" },
   { name: "María Juanita", email: "auxcomercial@ambienteazul.com.co" },
   { name: "Miguel Simson", email: "comercialmed@domdesign.co" },
   { name: "Katherin Obregón", email: "k.obregon@ambienteazul.com.co" },
+  { name: "Isabel Ramírez", email: "isa@domdesign.co", role: "SUPER_ADMIN" },
   // Pendientes por correo duplicado (delineante@): Carlos Andrés y Jordan Bustos.
 ];
 
@@ -45,12 +48,12 @@ async function main() {
         name: u.name,
         email,
         passwordHash: hash,
-        role: "EMPLOYEE",
+        role: u.role ?? "EMPLOYEE",
         company: "AMBAS",
         active: true,
       },
     });
-    console.log(`✅ creado: ${u.name} <${email}>`);
+    console.log(`✅ creado: ${u.name} <${email}> [${u.role ?? "EMPLOYEE"}]`);
     creados++;
   }
   console.log(`\nResumen: ${creados} creado(s), ${existentes} ya existía(n).`);
