@@ -70,26 +70,33 @@ export async function issueCertificateIfComplete(
       data: { userId, courseId, code: generarCodigo() },
     });
 
-    // Correo de felicitación con el certificado (no bloquea ni rompe el flujo).
+    // Correo de felicitación EN SEGUNDO PLANO: no se hace await para no demorar
+    // el render de la página del curso (el envío SMTP es lento).
     if (mailEnabled()) {
-      const [user, course] = await Promise.all([
-        prisma.user.findUnique({
-          where: { id: userId },
-          select: { name: true, email: true },
-        }),
-        prisma.course.findUnique({
-          where: { id: courseId },
-          select: { title: true },
-        }),
-      ]);
-      if (user?.email && course) {
-        await enviarCertificado({
-          to: user.email,
-          nombre: user.name?.split(" ")[0] ?? "",
-          cursoTitle: course.title,
-          certId: cert.id,
-        });
-      }
+      void (async () => {
+        try {
+          const [user, course] = await Promise.all([
+            prisma.user.findUnique({
+              where: { id: userId },
+              select: { name: true, email: true },
+            }),
+            prisma.course.findUnique({
+              where: { id: courseId },
+              select: { title: true },
+            }),
+          ]);
+          if (user?.email && course) {
+            await enviarCertificado({
+              to: user.email,
+              nombre: user.name?.split(" ")[0] ?? "",
+              cursoTitle: course.title,
+              certId: cert.id,
+            });
+          }
+        } catch (e) {
+          console.error("[certificados] correo:", e);
+        }
+      })();
     }
   } catch {
     // Carrera o error puntual: no interrumpimos el flujo del usuario.
