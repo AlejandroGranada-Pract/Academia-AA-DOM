@@ -24,6 +24,7 @@ const USERS: { name: string; email: string }[] = [
   { name: "Daniela Orozco", email: "auxcontable@ambienteazul.com.co" },
   { name: "Juan Pablo", email: "juanpablo@ambienteazul.com.co" },
   { name: "Jordan Bustos", email: "bustosjordan10@gmail.com" },
+  { name: "Ronal Urrego", email: "bodega@ambienteazul.com.co" },
 ];
 
 async function main() {
@@ -31,9 +32,19 @@ async function main() {
     console.error("❌ El correo no está configurado (faltan variables SMTP_*).");
     process.exit(1);
   }
+  // Si se pasan correos como argumentos, solo se envía a esos (para no reenviar
+  // a todo el lote). Ej: npx tsx prisma/enviar-bienvenidas-lote.ts bodega@ambienteazul.com.co
+  const filtro = process.argv.slice(2).map((e) => e.trim().toLowerCase());
+  const objetivo = filtro.length
+    ? USERS.filter((u) => filtro.includes(u.email.trim().toLowerCase()))
+    : USERS;
+  if (!objetivo.length) {
+    console.error("❌ Ningún usuario coincide con el filtro:", filtro.join(", "));
+    process.exit(1);
+  }
   let ok = 0;
   let fail = 0;
-  for (const u of USERS) {
+  for (const u of objetivo) {
     const email = u.email.trim().toLowerCase();
     try {
       await enviarBienvenida({

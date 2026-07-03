@@ -36,6 +36,8 @@ const USERS: { name: string; email: string; role?: Role }[] = [
   { name: "Daniela Orozco", email: "auxcontable@ambienteazul.com.co" },
   { name: "Juan Pablo", email: "juanpablo@ambienteazul.com.co" },
   { name: "Jordan Bustos", email: "bustosjordan10@gmail.com" },
+  { name: "Ronal Urrego", email: "bodega@ambienteazul.com.co" },
+  // Pendiente: Sebastián Cortés (comparte bodega@ con Ronal; necesita correo propio).
 ];
 
 async function main() {
