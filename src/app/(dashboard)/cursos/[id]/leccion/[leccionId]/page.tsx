@@ -82,6 +82,16 @@ export default async function LeccionPage({
 
   const completed = completedIds.has(lesson.id);
 
+  // % ya visto de cada video de esta lección (para mostrarlo y pre-desbloquear).
+  const videoPct: Record<string, number> = {};
+  if (userId) {
+    const vistas = await prisma.videoView.findMany({
+      where: { userId, lessonId: lesson.id },
+      select: { url: true, pct: true },
+    });
+    for (const v of vistas) videoPct[v.url] = v.pct;
+  }
+
   // Foro de la lección: preguntas raíz con sus respuestas.
   const comentariosRaw = await prisma.lessonComment.findMany({
     where: { lessonId: lesson.id, parentId: null },
@@ -131,7 +141,10 @@ export default async function LeccionPage({
       <h1 className="mb-6 mt-1 text-3xl text-foreground">{lesson.title}</h1>
 
       {/* El gate coordina los videos con el botón de completar */}
-      <LeccionGate>
+      <LeccionGate
+        lessonId={isPreview ? null : lesson.id}
+        initialPct={videoPct}
+      >
         <LeccionViewer
           type={lesson.type}
           content={

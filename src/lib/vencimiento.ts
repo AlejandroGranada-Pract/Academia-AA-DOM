@@ -16,23 +16,18 @@ function toDate(d: Date | string): Date {
 // - Fecha fija: la misma para todos.
 // - Sin nada: null.
 export function effectiveDueDate(
-  course: {
+  _course: {
     dueDate: Date | string | null;
     dueDays: number | null;
     createdAt: Date | string;
   },
-  userCreatedAt: Date | string | null | undefined,
+  _userCreatedAt: Date | string | null | undefined,
 ): Date | null {
-  if (course.dueDays != null) {
-    const courseCreated = toDate(course.createdAt);
-    const userCreated = userCreatedAt ? toDate(userCreatedAt) : courseCreated;
-    const anchor =
-      userCreated.getTime() > courseCreated.getTime() ? userCreated : courseCreated;
-    const due = new Date(anchor);
-    due.setDate(due.getDate() + course.dueDays);
-    return due;
-  }
-  if (course.dueDate) return toDate(course.dueDate);
+  // Vencimientos DESACTIVADOS en toda la plataforma: cada empleado avanza a su
+  // ritmo, sin fecha límite (decisión de negocio, jul-2026). Devolvemos null
+  // siempre; así desaparecen las alertas "Vence en…" y los recordatorios por
+  // vencimiento. Para reactivarlos, restaura la lógica original (ver historial).
+  void toDate; // se conserva el helper por si se reactiva
   return null;
 }
 

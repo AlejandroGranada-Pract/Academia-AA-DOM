@@ -89,12 +89,14 @@ export type LessonBlock = {
     | "image"
     | "video"
     | "pdf"
-    | "table";
+    | "table"
+    | "prompt";
   text?: string;
   items?: string[];
   url?: string;
   caption?: string;
   title?: string;
+  label?: string; // prompt: título opcional de la caja
   style?: "info" | "warning" | "tip";
   source?: string;
   headers?: string[]; // tabla: encabezados de columna
@@ -157,7 +159,12 @@ export async function updateLesson(
     .filter((b) => {
       if (b.type === "list") return (b.items ?? []).length > 0;
       if (b.type === "table") return (b.rows ?? []).length > 0;
-      if (b.type === "heading" || b.type === "paragraph" || b.type === "callout")
+      if (
+        b.type === "heading" ||
+        b.type === "paragraph" ||
+        b.type === "callout" ||
+        b.type === "prompt"
+      )
         return (b.text ?? "").trim().length > 0;
       return (b.url ?? "").trim().length > 0;
     });

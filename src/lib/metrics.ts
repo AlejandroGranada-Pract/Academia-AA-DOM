@@ -42,6 +42,13 @@ export type AlertaIntegridad = {
   fecha: string; // ISO
 };
 
+export type VideoAvance = {
+  userName: string;
+  leccion: string;
+  cursoTitle: string;
+  pct: number; // máximo % visto (0-100)
+};
+
 export type AdminMetrics = {
   usuariosActivos: number;
   cursosActivos: number;
@@ -52,6 +59,7 @@ export type AdminMetrics = {
   examenes: ExamenMetric[];
   ranking: RankingItem[];
   alertasIntegridad: AlertaIntegridad[];
+  avanceVideos: VideoAvance[];
 };
 
 export async function getAdminMetrics(): Promise<AdminMetrics> {
@@ -293,6 +301,29 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
     fecha: a.startedAt.toISOString(),
   }));
 
+  // Avance de videos: máximo % visto por persona en cada video de una lección.
+  const vistas = await prisma.videoView.findMany({
+    where: { user: { role: { in: [...LEARNER_ROLES] } } },
+    orderBy: { pct: "asc" }, // primero los que menos vieron
+    take: 300,
+    select: {
+      pct: true,
+      user: { select: { name: true } },
+      lesson: {
+        select: {
+          title: true,
+          module: { select: { course: { select: { title: true } } } },
+        },
+      },
+    },
+  });
+  const avanceVideos: VideoAvance[] = vistas.map((v) => ({
+    userName: v.user.name,
+    leccion: v.lesson.title,
+    cursoTitle: v.lesson.module?.course.title ?? "—",
+    pct: v.pct,
+  }));
+
   return {
     usuariosActivos: learners.length,
     cursosActivos: cursos.length,
@@ -305,6 +336,7 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
     examenes,
     ranking,
     alertasIntegridad,
+    avanceVideos,
   };
 }
 

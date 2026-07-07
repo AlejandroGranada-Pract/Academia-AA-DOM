@@ -13,6 +13,7 @@ import {
   PlayCircle,
   FileDown,
   Table as TableIcon,
+  Sparkles,
   Pencil,
   Eye,
   Upload,
@@ -47,6 +48,7 @@ const BLOCK_TYPES: {
   { type: "paragraph", label: "Párrafo", icon: AlignLeft },
   { type: "list", label: "Lista", icon: List },
   { type: "callout", label: "Nota", icon: MessageSquareWarning },
+  { type: "prompt", label: "Prompt", icon: Sparkles },
   { type: "image", label: "Imagen", icon: ImageIcon },
   { type: "video", label: "Video", icon: PlayCircle },
   { type: "pdf", label: "PDF", icon: FileDown },
@@ -80,6 +82,8 @@ function emptyBlock(type: LessonBlock["type"]): LessonBlock {
       return { type, url: "", title: "" };
     case "table":
       return { type, headers: [], rows: [] };
+    case "prompt":
+      return { type, text: "", label: "" };
     default:
       return { type, text: "" };
   }
@@ -324,6 +328,22 @@ export function LeccionEditorDialog({
                         rows={2}
                         placeholder="Texto de la nota"
                         className={areaClass}
+                        value={b.text ?? ""}
+                        onChange={(e) => patch(i, { text: e.target.value })}
+                      />
+                    </div>
+                  )}
+                  {b.type === "prompt" && (
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Título de la caja (opcional, ej. “Prompt para presupuesto”)"
+                        value={b.label ?? ""}
+                        onChange={(e) => patch(i, { label: e.target.value })}
+                      />
+                      <textarea
+                        rows={5}
+                        placeholder="Escribe aquí el prompt listo para copiar y pegar en Claude"
+                        className={`${areaClass} font-mono text-xs`}
                         value={b.text ?? ""}
                         onChange={(e) => patch(i, { text: e.target.value })}
                       />

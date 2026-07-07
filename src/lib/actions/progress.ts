@@ -49,3 +49,27 @@ export async function setLessonProgress(
 
   return nuevasInsignias;
 }
+
+// Registra el máximo % visto de un video de una lección (monótono: nunca baja).
+// Lo llama el reproductor de YouTube mientras avanza. Silencioso.
+export async function registrarAvanceVideo(
+  lessonId: string,
+  url: string,
+  pct: number,
+): Promise<void> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId || !lessonId || !url) return;
+  const p = Math.max(0, Math.min(100, Math.round(pct)));
+
+  await prisma.videoView.upsert({
+    where: { userId_lessonId_url: { userId, lessonId, url } },
+    create: { userId, lessonId, url, pct: p },
+    update: {}, // no pisar hacia abajo aquí
+  });
+  // Solo sube si el nuevo % es mayor al guardado.
+  await prisma.videoView.updateMany({
+    where: { userId, lessonId, url, pct: { lt: p } },
+    data: { pct: p },
+  });
+}

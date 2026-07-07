@@ -31,9 +31,6 @@ function parseForm(formData: FormData) {
   const company = String(formData.get("company") ?? "AMBIENTE_AZUL") as Company;
   const hoursRaw = String(formData.get("estimatedHours") ?? "").trim();
   const passingRaw = String(formData.get("passingScore") ?? "70").trim();
-  const dueMode = String(formData.get("dueMode") ?? "none"); // none | days | date
-  const dueRaw = String(formData.get("dueDate") ?? "").trim();
-  const dueDaysRaw = String(formData.get("dueDays") ?? "").trim();
   const grupoIds = formData
     .getAll("grupoIds")
     .map((v) => String(v))
@@ -46,12 +43,9 @@ function parseForm(formData: FormData) {
     company,
     estimatedHours: hoursRaw ? Number(hoursRaw) : null,
     passingScore: passingRaw ? Math.min(100, Math.max(0, parseInt(passingRaw, 10))) : 70,
-    // Solo uno aplica según el modo elegido.
-    dueDate: dueMode === "date" && dueRaw ? new Date(dueRaw) : null,
-    dueDays:
-      dueMode === "days" && dueDaysRaw
-        ? Math.max(1, parseInt(dueDaysRaw, 10))
-        : null,
+    // Vencimientos desactivados en toda la plataforma: nunca se fija fecha límite.
+    dueDate: null,
+    dueDays: null,
     grupoIds,
   };
 }

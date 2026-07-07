@@ -89,6 +89,7 @@ model User {
   certificates    Certificate[]
   badges          UserBadge[]
   lessonComments  LessonComment[]
+  videoViews      VideoView[]
   grupos          Grupo[]            @relation("UserGrupos") // grupos a los que pertenece
   gruposLiderados Grupo[]            @relation("GrupoLideres") // grupos que lidera (AREA_LEADER)
 }
@@ -167,8 +168,9 @@ model Lesson {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  progress UserProgress[]
-  comments LessonComment[]
+  progress   UserProgress[]
+  comments   LessonComment[]
+  videoViews VideoView[]
 }
 
 model Exam {
@@ -271,6 +273,22 @@ model LessonComment {
   body      String
   createdAt DateTime        @default(now())
 
+  @@index([lessonId])
+}
+
+// Avance de reproducción de un video de YouTube dentro de una lección. Guarda el
+// máximo porcentaje visto por cada persona (para exigir verlo y reportarlo).
+model VideoView {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  url       String // URL del video (identifica el video dentro de la lección)
+  pct       Int      @default(0) // máximo % visto (0-100)
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, lessonId, url])
   @@index([lessonId])
 }
 

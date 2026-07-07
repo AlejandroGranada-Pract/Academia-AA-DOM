@@ -1,6 +1,7 @@
 import { Info, AlertTriangle, Lightbulb } from "lucide-react";
 import { VideoEmbed } from "@/components/curso/VideoEmbed";
 import { PdfEmbed } from "@/components/curso/PdfEmbed";
+import { PromptBlock } from "@/components/curso/PromptBlock";
 
 // Tipos laxos: el contenido es JSON polimórfico (ver spec sección 6).
 type Block = {
@@ -12,12 +13,14 @@ type Block = {
     | "image"
     | "video"
     | "pdf"
-    | "table";
+    | "table"
+    | "prompt";
   text?: string;
   items?: string[];
   url?: string;
   caption?: string;
   title?: string;
+  label?: string;
   style?: "info" | "warning" | "tip";
   headers?: string[];
   rows?: string[][];
@@ -137,6 +140,10 @@ function BlockRenderer({ block }: { block: Block }) {
       return block.url ? <PdfEmbed url={block.url} title={block.title} /> : null;
     case "table":
       return <TableBlock headers={block.headers} rows={block.rows} />;
+    case "prompt":
+      return block.text ? (
+        <PromptBlock text={block.text} label={block.label} />
+      ) : null;
     default:
       return null;
   }
