@@ -71,13 +71,6 @@ type Pregunta = {
 type Examen = { title: string; description: string; timeLimitMin: number; questions: Pregunta[] };
 type Modulo = { title: string; lecciones: Leccion[]; examen: Examen };
 
-// Videos (tutoriales reales de Claude en español encontrados en YouTube).
-// Nota: verifícalos y ajústalos al tono de la empresa antes de publicar.
-const VIDEO_INTRO = "https://www.youtube.com/watch?v=CmmLH307Dow";
-const VIDEO_PROMPTS = "https://www.youtube.com/watch?v=imAjmQy8p8c";
-const NOTA_VIDEO =
-  "Este video es un tutorial externo de referencia. Verifica que siga disponible y que encaje con el tono de la empresa antes de publicar el curso.";
-
 async function construirModulos(): Promise<Modulo[]> {
   // Fotos reutilizadas para el módulo de Ambiente Azul.
   const imgPiscina = await img("cot-infinity.jpg", "Piscina (contexto AA)");
@@ -157,16 +150,6 @@ async function construirModulos(): Promise<Modulo[]> {
               ],
             ),
             info("En los siguientes módulos verás cómo pedir cada una de estas cosas —y cómo aplicarlas a Ambiente Azul y a DOM Design— para que salgan bien desde la primera."),
-          ],
-        },
-        {
-          title: "Video: primer vistazo a Claude",
-          durationMin: 8,
-          blocks: [
-            h("Míralo en acción"),
-            p("Este tutorial muestra cómo se ve Claude y los primeros pasos. Sirve para familiarizarte con la herramienta antes de empezar a usarla en tu día a día."),
-            video(VIDEO_INTRO),
-            warn(NOTA_VIDEO),
           ],
         },
       ],
@@ -275,16 +258,6 @@ async function construirModulos(): Promise<Modulo[]> {
               "“A partir de esta conversación, redáctame la respuesta.”",
             ]),
             info("Cuanto más claro sea el documento que le pegas, mejor será el resultado."),
-          ],
-        },
-        {
-          title: "Video: cómo pedirle bien (prompts)",
-          durationMin: 8,
-          blocks: [
-            h("Aprende a pedir"),
-            p("Este tutorial refuerza cómo escribir buenas instrucciones para obtener mejores respuestas."),
-            video(VIDEO_PROMPTS),
-            warn(NOTA_VIDEO),
           ],
         },
       ],
