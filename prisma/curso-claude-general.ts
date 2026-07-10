@@ -10,6 +10,7 @@ import {
   SVG_WEB,
   SVG_CHECKLIST,
   SVG_PRIVACIDAD,
+  SVG_CONECTORES,
 } from "./seed-assets/claude-svgs";
 
 // Crea (o REEMPLAZA) el curso GENERAL "Claude para el Día a Día" como BORRADOR.
@@ -60,12 +61,13 @@ type Modulo = { title: string; lecciones: Leccion[]; examen: Examen };
 async function construirModulos(): Promise<Modulo[]> {
   const imgInterfaz = await svgImg(SVG_INTERFAZ, "Tour de la pantalla de Claude");
   const imgCiclo = await svgImg(SVG_CICLO, "Ciclo: pide, revisa, ajusta");
-  const imgReceta = await svgImg(SVG_RECETA, "La receta: contexto, tarea y formato");
+  const imgReceta = await svgImg(SVG_RECETA, "El método RAFA: rol, acción, formato y audiencia");
   const imgProyecto = await svgImg(SVG_PROYECTO, "Cómo crear un proyecto en Claude");
   const imgAdjuntar = await svgImg(SVG_ADJUNTAR, "Cómo adjuntar un archivo en Claude");
   const imgWeb = await svgImg(SVG_WEB, "Cómo activar la búsqueda web en Claude");
   const imgChecklist = await svgImg(SVG_CHECKLIST, "Checklist antes de enviar");
   const imgPrivacidad = await svgImg(SVG_PRIVACIDAD, "Qué sí y qué no pegar en Claude");
+  const imgConectores = await svgImg(SVG_CONECTORES, "Conectores: herramientas externas en Claude");
 
   return [
     // ======================= MÓDULO 1 =======================
@@ -173,19 +175,20 @@ async function construirModulos(): Promise<Modulo[]> {
       title: "Cómo pedirle bien las cosas",
       lecciones: [
         {
-          title: "La receta: contexto + tarea + formato",
-          durationMin: 8,
+          title: "La receta: RAFA (Rol · Acción · Formato · Audiencia)",
+          durationMin: 9,
           blocks: [
-            h("El secreto de una buena respuesta"),
-            p("La calidad de lo que Claude te entrega depende de cómo se lo pidas. La receta sencilla tiene 3 partes:"),
+            h("El método RAFA"),
+            p("La calidad de lo que Claude te entrega depende de cómo se lo pidas. Un método fácil de recordar es RAFA, cuatro partes:"),
             list([
-              "Contexto: cuéntale la situación (qué pasó, para quién es, qué necesitas).",
-              "Tarea: dile exactamente qué quieres (un correo, un resumen, 3 ideas).",
-              "Formato: cómo lo quieres (corto, en viñetas, tono formal, máximo 5 líneas).",
+              "R — Rol: dile qué papel tomar (ej. “Actúa como mi asistente de oficina…”).",
+              "A — Acción: di exactamente qué quieres (un correo, un resumen, 3 ideas).",
+              "F — Formato: cómo lo quieres (corto, en viñetas, tono formal, máximo 5 líneas).",
+              "A — Audiencia: para quién es (tu equipo, tu jefe, un proveedor).",
             ]),
-            image(imgReceta, "Contexto + Tarea + Formato: las tres partes de un buen pedido, con un ejemplo real."),
-            prompt("La reunión de equipo se movió del martes al jueves a las 3 p. m. Escríbeme un correo corto y claro para avisarle al equipo, en tono cordial y de máximo 5 líneas."),
-            tip("No necesitas las 3 partes siempre, pero entre más contexto le des, mejor te responde."),
+            image(imgReceta, "RAFA: Rol + Acción + Formato + Audiencia, con un ejemplo real."),
+            prompt("Actúa como mi asistente de oficina. Escríbeme un correo corto y cordial (máx. 5 líneas) para avisarle a mi equipo que la reunión se movió del martes al jueves a las 3 p. m.", "Prompt con RAFA"),
+            tip("Truco: el Rol puedes dejarlo fijo en las Instrucciones de tu Proyecto. Así, en cada prompt te concentras en la Acción, el Formato y la Audiencia."),
           ],
         },
         {
@@ -224,11 +227,11 @@ async function construirModulos(): Promise<Modulo[]> {
         timeLimitMin: 10,
         questions: [
           {
-            question: "La receta para un buen pedido incluye…",
+            question: "¿Qué significa RAFA, el método para pedir bien?",
             type: "MULTIPLE_CHOICE",
-            options: ["Contexto, tarea y formato", "Solo la palabra “hazlo”", "Códigos y comandos", "El logo de la empresa"],
+            options: ["Rol, Acción, Formato y Audiencia", "Solo la palabra “hazlo”", "Códigos y comandos", "Rápido, Ágil, Fácil y Ahora"],
             correctAnswer: 0,
-            explanation: "Contexto (la situación) + tarea (qué quieres) + formato (cómo lo quieres).",
+            explanation: "RAFA = Rol (qué papel tome) + Acción (qué quieres) + Formato (cómo) + Audiencia (para quién).",
           },
           {
             question: "¿Cuál es el mejor pedido?",
@@ -326,6 +329,30 @@ Cuando te pida algo:
             ]),
             prompt("Activa la búsqueda web y dime, en lenguaje sencillo, qué días son festivos en Colombia el próximo mes. Incluye el enlace de la fuente."),
             warn("La búsqueda web ayuda a orientarte, pero siempre revisa la fuente antes de dar un dato por cierto."),
+          ],
+        },
+        {
+          title: "Conecta Claude con tus herramientas",
+          durationMin: 8,
+          blocks: [
+            h("¿Qué son los conectores?"),
+            p("Los conectores dejan que Claude use directamente tus herramientas —como Gmail, Google Drive o Google Calendar— sin que copies y pegues. Por ejemplo: buscar un correo, sacar un archivo de tu Drive o revisar tu agenda."),
+            image(imgConectores, "En Configuración → Conectores activas cada herramienta con “Conectar”."),
+            h("Cómo conectarlos, paso a paso"),
+            list([
+              "Paso 1. En claude.ai, entra a Configuración → Conectores.",
+              "Paso 2. Junto a la herramienta que quieras (Gmail, Google Drive, Calendar…), pulsa “Conectar”.",
+              "Paso 3. Inicia sesión con tu cuenta y autoriza el acceso.",
+              "Paso 4. Listo: en tus conversaciones ya puedes pedirle que use esa herramienta.",
+            ]),
+            h("Cómo administrarlos"),
+            list([
+              "Puedes desconectar una herramienta cuando quieras desde el mismo menú de Conectores.",
+              "Revisa de vez en cuando qué está conectado y deja solo lo que uses.",
+              "Cada conexión pide permisos: concede solo los necesarios.",
+            ]),
+            prompt("Actúa como mi asistente. Revisa mi Google Calendar y dime qué reuniones tengo mañana, en una lista corta con la hora y el tema de cada una.", "Prompt con un conector (Calendar)"),
+            warn("Conecta solo cuentas de la empresa o autorizadas, y concede únicamente los permisos necesarios. No compartas accesos que no debas y desconecta lo que dejes de usar. Ante la duda, consulta con la empresa."),
           ],
         },
       ],
@@ -442,14 +469,14 @@ Cuando te pida algo:
           durationMin: 6,
           blocks: [
             h("Manos a la obra"),
-            p("Escribe un correo real de tu trabajo usando la receta (contexto + tarea + formato). Pasos:"),
+            p("Escribe un correo real de tu trabajo usando RAFA (Rol, Acción, Formato, Audiencia). Pasos:"),
             list([
               "Piensa el contexto: ¿de qué se trata y para quién?",
-              "Escribe el pedido con contexto + tarea + formato.",
+              "Escribe el pedido con RAFA: Rol, Acción, Formato y Audiencia.",
               "Lee la respuesta y ajústala (tono, largo, saludo).",
               "Revisa y úsala.",
             ]),
-            prompt("Necesito avisar a mi área que a partir del lunes cambia el horario de almuerzo. Escríbeme un correo corto y cordial, con un asunto sugerido.", "Prompt para practicar"),
+            prompt("Actúa como mi asistente de oficina. Escríbeme un correo corto y cordial, con un asunto sugerido, para avisarle a mi área que a partir del lunes cambia el horario de almuerzo.", "Prompt para practicar (RAFA)"),
           ],
         },
         {
@@ -458,7 +485,7 @@ Cuando te pida algo:
           blocks: [
             h("Traduce y resume"),
             p("Toma un documento o unas notas que tengas y pídele a Claude que las resuma u ordene."),
-            prompt("Resume este texto en 5 puntos y dime si hay alguna tarea o fecha importante: [pega el texto].", "Prompt para practicar"),
+            prompt("Actúa como mi asistente. Resume este texto en 5 puntos y dime si hay alguna tarea o fecha importante: [pega el texto].", "Prompt para practicar (RAFA)"),
             warn("Verifica cualquier dato importante antes de usarlo."),
           ],
         },
@@ -468,7 +495,7 @@ Cuando te pida algo:
           blocks: [
             h("Que te lo expliquen fácil"),
             p("¿Hay algún término o proceso que te cueste? Pídele a Claude que te lo explique en simple."),
-            prompt("Explícame en 3 frases sencillas, sin tecnicismos, qué es [tema] y por qué es importante en mi trabajo.", "Prompt para practicar"),
+            prompt("Actúa como un experto que explica fácil. Explícame en 3 frases sencillas, sin tecnicismos, qué es [tema] y por qué es importante en mi trabajo.", "Prompt para practicar (RAFA)"),
             h("¡Felicitaciones!"),
             p("Ya tienes lo necesario para usar Claude en tu día a día: pedir bien, trabajar ordenado con tu proyecto y tus archivos, y hacerlo con criterio. Úsalo como tu aliado para ahorrar tiempo y trabajar mejor."),
           ],

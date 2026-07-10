@@ -209,26 +209,28 @@ export const SVG_INTERFAZ = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
 </svg>`;
 
 // ===================================================================
-// 7) La receta: Contexto + Tarea + Formato
+// 7) El método RAFA: Rol + Acción + Formato + Audiencia
 // ===================================================================
 function receta(y: number, color: string, titulo: string, desc: string): string {
   return `
-    <rect x="120" y="${y}" width="960" height="86" rx="14" fill="#ffffff" stroke="${color}" stroke-width="2.5"/>
-    <rect x="120" y="${y}" width="14" height="86" rx="7" fill="${color}"/>
-    <text x="160" y="${y + 36}" fill="${color}" font-family="${FONT}" font-size="20" font-weight="700">${titulo}</text>
-    <text x="160" y="${y + 64}" fill="#4a4740" font-family="${FONT}" font-size="16">${desc}</text>`;
+    <rect x="120" y="${y}" width="960" height="80" rx="14" fill="#ffffff" stroke="${color}" stroke-width="2.5"/>
+    <rect x="120" y="${y}" width="14" height="80" rx="7" fill="${color}"/>
+    <text x="160" y="${y + 34}" fill="${color}" font-family="${FONT}" font-size="20" font-weight="700">${titulo}</text>
+    <text x="160" y="${y + 60}" fill="#4a4740" font-family="${FONT}" font-size="16">${desc}</text>`;
 }
-export const SVG_RECETA = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" font-family="${FONT}">
-  <rect width="1200" height="620" fill="#F8F7F4"/>
-  <text x="600" y="56" text-anchor="middle" fill="#1F1F1F" font-family="${FONT}" font-size="26" font-weight="700">La receta de un buen pedido</text>
-  ${receta(90, "#76B8E0", "1. Contexto", "Cuéntale la situación: quién es el cliente, qué producto, qué pasó.")}
-  ${receta(190, "#BE9B60", "2. Tarea", "Di exactamente qué quieres: un correo, un resumen, 3 ideas.")}
-  ${receta(290, "#1F1F1F", "3. Formato", "Di cómo lo quieres: corto, en viñetas, tono formal, máx. 5 líneas.")}
-  <rect x="120" y="410" width="960" height="150" rx="14" fill="#1F1F1F"/>
-  <text x="150" y="446" fill="#9a958c" font-family="${FONT}" font-size="14" letter-spacing="1">EJEMPLO COMPLETO</text>
-  <text x="150" y="480" font-family="${FONT}" font-size="16"><tspan fill="#76B8E0">Un cliente cotizó un spa hace 2 semanas y no responde.</tspan></text>
-  <text x="150" y="508" font-family="${FONT}" font-size="16"><tspan fill="#d8b877">Escríbeme un correo de seguimiento amable</tspan></text>
-  <text x="150" y="536" font-family="${FONT}" font-size="16"><tspan fill="#ffffff">corto, de máximo 5 líneas, e invítalo a agendar una llamada.</tspan></text>
+export const SVG_RECETA = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" font-family="${FONT}">
+  <rect width="1200" height="700" fill="#F8F7F4"/>
+  <text x="600" y="52" text-anchor="middle" fill="#1F1F1F" font-family="${FONT}" font-size="26" font-weight="700">El método RAFA para pedir bien</text>
+  ${receta(80, "#76B8E0", "R — Rol", "Dile qué papel tome: “Actúa como asesor de Ambiente Azul…”.")}
+  ${receta(172, "#BE9B60", "A — Acción", "Di exactamente qué quieres: un correo, un resumen, 3 ideas.")}
+  ${receta(264, "#1F1F1F", "F — Formato", "Di cómo lo quieres: corto, en viñetas, tono formal, máx. 5 líneas.")}
+  ${receta(356, "#3aa564", "A — Audiencia", "Para quién es: un cliente, un arquitecto, tu jefe.")}
+  <rect x="120" y="470" width="960" height="180" rx="14" fill="#1F1F1F"/>
+  <text x="150" y="506" fill="#9a958c" font-family="${FONT}" font-size="14" letter-spacing="1">EJEMPLO COMPLETO CON RAFA</text>
+  <text x="150" y="540" font-family="${FONT}" font-size="16"><tspan fill="#76B8E0">Actúa como asesor de Ambiente Azul.</tspan> <tspan fill="#d8b877">Escríbeme un correo de seguimiento</tspan></text>
+  <text x="150" y="568" font-family="${FONT}" font-size="16"><tspan fill="#ffffff">corto, cálido y de máximo 5 líneas,</tspan> <tspan fill="#7fd3a6">para un cliente que cotizó un spa</tspan></text>
+  <text x="150" y="596" font-family="${FONT}" font-size="16"><tspan fill="#7fd3a6">hace 2 semanas y no ha respondido.</tspan></text>
+  <text x="150" y="632" font-family="${FONT}" font-size="13" fill="#9a958c">Azul = Rol · Dorado = Acción · Blanco = Formato · Verde = Audiencia</text>
 </svg>`;
 
 // ===================================================================
@@ -401,4 +403,37 @@ export const SVG_DOM = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120
   <text x="945" y="367" text-anchor="middle" fill="#EFE6D2" font-family="${FONT}" font-size="18" font-weight="600">Piedra natural</text>
 
   <text x="600" y="440" text-anchor="middle" fill="#9a958c" font-family="${FONT}" font-size="15">Textura, borde y acabado: cada elección cambia cómo se ve y se siente el espacio.</text>
+</svg>`;
+
+// ===================================================================
+// 11) Conectores: herramientas externas (Gmail, Drive, Calendar…)
+// ===================================================================
+function conector(y: number, color: string, nombre: string, estado: "conectado" | "conectar"): string {
+  const on = estado === "conectado";
+  return `
+    <rect x="150" y="${y}" width="900" height="64" rx="12" fill="#ffffff" stroke="#e7e2d8" stroke-width="2"/>
+    <rect x="172" y="${y + 16}" width="32" height="32" rx="7" fill="${color}"/>
+    <text x="224" y="${y + 40}" fill="#1F1F1F" font-family="${FONT}" font-size="17" font-weight="600">${nombre}</text>
+    <rect x="900" y="${y + 15}" width="128" height="34" rx="17" fill="${on ? "#e9f5ec" : "#eef5fb"}" stroke="${on ? "#3aa564" : "#76B8E0"}" stroke-width="2"/>
+    <text x="964" y="${y + 37}" text-anchor="middle" fill="${on ? "#2b8a55" : "#2f6d99"}" font-family="${FONT}" font-size="14" font-weight="600">${on ? "✓ Conectado" : "Conectar"}</text>`;
+}
+export const SVG_CONECTORES = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" font-family="${FONT}">
+  <rect width="1200" height="720" fill="#F8F7F4"/>
+  ${ventana(`
+    <text x="150" y="150" fill="#1F1F1F" font-family="${FONT}" font-size="24" font-weight="700">Configuración · Conectores</text>
+    <text x="150" y="180" fill="#7d7a73" font-family="${FONT}" font-size="15">Conecta Claude con tus herramientas para que las use por ti.</text>
+    ${conector(210, "#2f6d99", "Google Drive", "conectar")}
+    ${conector(288, "#d9534f", "Gmail", "conectado")}
+    ${conector(366, "#3a86c8", "Google Calendar", "conectar")}
+    ${conector(444, "#4a154b", "Slack", "conectar")}
+    ${paso(1028, 305, 1)}
+    ${nota(150, 560, 720, "1. Pulsa “Conectar”, inicia sesión y autoriza el acceso")}
+    <path d="M300 560 L940 340" stroke="#1F1F1F" stroke-width="2.5" fill="none" marker-end="url(#cx)"/>
+    <defs>
+      <marker id="cx" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+        <path d="M0 0 L6 3 L0 6 z" fill="#1F1F1F"/>
+      </marker>
+    </defs>
+  `)}
+  <text x="600" y="742" text-anchor="middle" fill="#7d7a73" font-family="${FONT}" font-size="14">Ilustración de la interfaz de Claude. Los conectores disponibles dependen de tu plan.</text>
 </svg>`;

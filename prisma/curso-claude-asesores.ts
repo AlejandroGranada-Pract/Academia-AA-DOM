@@ -14,6 +14,7 @@ import {
   SVG_CICLO,
   SVG_CHECKLIST,
   SVG_PRIVACIDAD,
+  SVG_CONECTORES,
 } from "./seed-assets/claude-svgs";
 
 const connectionString = process.env.DATABASE_URL!;
@@ -85,10 +86,11 @@ async function construirModulos(): Promise<Modulo[]> {
   const imgDom = await svgImg(SVG_DOM, "Materiales DOM: mosaico, porcelanato y piedra");
   const imgProyecto = await svgImg(SVG_PROYECTO, "Cómo crear un proyecto en Claude");
   const imgInterfaz = await svgImg(SVG_INTERFAZ, "Tour de la pantalla de Claude");
-  const imgReceta = await svgImg(SVG_RECETA, "La receta: contexto, tarea y formato");
+  const imgReceta = await svgImg(SVG_RECETA, "El método RAFA: rol, acción, formato y audiencia");
   const imgCiclo = await svgImg(SVG_CICLO, "Ciclo: pide, revisa, ajusta");
   const imgChecklist = await svgImg(SVG_CHECKLIST, "Checklist antes de enviar");
   const imgPrivacidad = await svgImg(SVG_PRIVACIDAD, "Qué sí y qué no pegar en Claude");
+  const imgConectores = await svgImg(SVG_CONECTORES, "Conectores: herramientas externas en Claude");
 
   return [
     // ======================= MÓDULO 1 =======================
@@ -195,19 +197,20 @@ async function construirModulos(): Promise<Modulo[]> {
       title: "Cómo pedirle bien las cosas",
       lecciones: [
         {
-          title: "La receta: contexto + tarea + formato",
-          durationMin: 8,
+          title: "La receta: RAFA (Rol · Acción · Formato · Audiencia)",
+          durationMin: 9,
           blocks: [
-            h("El secreto de una buena respuesta"),
-            p("La calidad de lo que Claude te entrega depende de cómo se lo pidas. La receta sencilla tiene 3 partes:"),
+            h("El método RAFA"),
+            p("La calidad de lo que Claude te entrega depende de cómo se lo pidas. Un método fácil de recordar es RAFA, cuatro partes:"),
             list([
-              "Contexto: cuéntale la situación (quién es el cliente, qué producto, qué pasó).",
-              "Tarea: dile exactamente qué quieres (un correo, un resumen, 3 ideas).",
-              "Formato: cómo lo quieres (corto, en viñetas, tono formal, máximo 5 líneas).",
+              "R — Rol: dile qué papel tomar (ej. “Actúa como asesor de Ambiente Azul…”).",
+              "A — Acción: di exactamente qué quieres (un correo, un resumen, 3 ideas).",
+              "F — Formato: cómo lo quieres (corto, en viñetas, tono formal, máximo 5 líneas).",
+              "A — Audiencia: para quién es (un cliente, un arquitecto, tu jefe).",
             ]),
-            image(imgReceta, "Contexto + Tarea + Formato: las tres partes de un buen pedido, con un ejemplo real."),
-            prompt("Un cliente cotizó un jacuzzi hace dos semanas y no ha respondido. Escríbeme un correo de seguimiento amable, corto, de máximo 5 líneas y con una invitación a agendar una llamada."),
-            tip("No necesitas las 3 partes siempre, pero entre más contexto le des, mejor te responde."),
+            image(imgReceta, "RAFA: Rol + Acción + Formato + Audiencia, con un ejemplo real."),
+            prompt("Actúa como asesor comercial de Ambiente Azul. Escríbeme un correo de seguimiento, corto y cálido, de máximo 5 líneas, para un cliente que cotizó un jacuzzi hace dos semanas y no ha respondido; invítalo a agendar una llamada.", "Prompt con RAFA"),
+            tip("Truco: el Rol puedes dejarlo fijo en las Instrucciones de tu Proyecto. Así, en cada prompt te concentras en la Acción, el Formato y la Audiencia."),
           ],
         },
         {
@@ -267,11 +270,11 @@ async function construirModulos(): Promise<Modulo[]> {
         timeLimitMin: 10,
         questions: [
           {
-            question: "La receta para un buen pedido incluye…",
+            question: "¿Qué significa RAFA, el método para pedir bien?",
             type: "MULTIPLE_CHOICE",
-            options: ["Contexto, tarea y formato", "Solo la palabra “hazlo”", "Códigos y comandos", "El precio del producto"],
+            options: ["Rol, Acción, Formato y Audiencia", "Solo la palabra “hazlo”", "Códigos y comandos", "Rápido, Ágil, Fácil y Ahora"],
             correctAnswer: 0,
-            explanation: "Contexto (la situación) + tarea (qué quieres) + formato (cómo lo quieres).",
+            explanation: "RAFA = Rol (qué papel tome) + Acción (qué quieres) + Formato (cómo) + Audiencia (para quién).",
           },
           {
             question: "¿Cuál es el mejor pedido?",
@@ -870,6 +873,30 @@ Un cliente quiere saber el caudal (GPM) recomendado y el consumo aproximado de u
           ],
         },
         {
+          title: "Conecta Claude con tus herramientas",
+          durationMin: 8,
+          blocks: [
+            h("¿Qué son los conectores?"),
+            p("Los conectores dejan que Claude use directamente tus herramientas —como Gmail, Google Drive o Google Calendar— sin que copies y pegues. Por ejemplo: buscar un correo, sacar un archivo de tu Drive o revisar tu agenda."),
+            image(imgConectores, "En Configuración → Conectores activas cada herramienta con “Conectar”."),
+            h("Cómo conectarlos, paso a paso"),
+            list([
+              "Paso 1. En claude.ai, entra a Configuración → Conectores.",
+              "Paso 2. Junto a la herramienta que quieras (Gmail, Google Drive, Calendar…), pulsa “Conectar”.",
+              "Paso 3. Inicia sesión con tu cuenta y autoriza el acceso.",
+              "Paso 4. Listo: en tus conversaciones ya puedes pedirle que use esa herramienta.",
+            ]),
+            h("Cómo administrarlos"),
+            list([
+              "Puedes desconectar una herramienta cuando quieras desde el mismo menú de Conectores.",
+              "Revisa de vez en cuando qué está conectado y deja solo lo que uses.",
+              "Cada conexión pide permisos: concede solo los necesarios.",
+            ]),
+            prompt("Actúa como mi asistente comercial. Busca en mi Google Drive la cotización “COT-2026-0035” y hazme un resumen de una página, en tono claro, para enviárselo al cliente.", "Prompt con un conector (Drive)"),
+            warn("Conecta solo cuentas de la empresa o autorizadas, y concede únicamente los permisos necesarios. No compartas accesos que no debas y desconecta lo que dejes de usar. Ante la duda, consulta con la empresa."),
+          ],
+        },
+        {
           title: "Explícale al cliente cómo usar su producto",
           durationMin: 10,
           blocks: [
@@ -1087,15 +1114,15 @@ Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantal
           durationMin: 8,
           blocks: [
             h("Manos a la obra"),
-            p("Escribe un correo de seguimiento para un cliente de piscina o spa usando la receta. Pasos:"),
+            p("Escribe un correo de seguimiento para un cliente de piscina o spa usando RAFA. Pasos:"),
             list([
               "Piensa el contexto: ¿quién es el cliente y qué cotizó?",
-              "Escribe el pedido con contexto + tarea + formato.",
+              "Escribe el pedido con RAFA: Rol, Acción, Formato y Audiencia.",
               "Lee la respuesta y ajústala (tono, largo, saludo).",
               "Personaliza con el nombre real y los datos correctos.",
               "Revisa y envía.",
             ]),
-            prompt("Cliente cotizó un spa hace 3 semanas y no responde. Escríbeme un correo cálido y corto, con una invitación a agendar una llamada esta semana.", "Prompt para practicar"),
+            prompt("Actúa como asesor de Ambiente Azul. Escríbeme un correo cálido y corto (máx. 5 líneas) para un cliente que cotizó un spa hace 3 semanas y no responde, invitándolo a agendar una llamada esta semana.", "Prompt para practicar (RAFA)"),
           ],
         },
         {
@@ -1104,7 +1131,7 @@ Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantal
           blocks: [
             h("Comunicación con el canal técnico"),
             p("Redacta un correo profesional para un arquitecto presentando un material para un proyecto."),
-            prompt("Redacta un correo profesional y breve para un arquitecto presentando nuestra Zona PRO y ofreciendo asesoría para especificar materiales en un proyecto de zona húmeda.", "Prompt para practicar"),
+            prompt("Actúa como asesor de DOM Design. Redacta un correo profesional y breve para un arquitecto, presentándole la Zona PRO y ofreciéndole asesoría para especificar materiales en un proyecto de zona húmeda.", "Prompt para practicar (RAFA)"),
             tip("Pídele tono técnico y preciso; luego agrega las referencias oficiales."),
           ],
         },
@@ -1114,7 +1141,7 @@ Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantal
           blocks: [
             h("Traduce y resume"),
             p("Toma un producto o una ficha que te cueste explicar y pídele una versión simple para el cliente."),
-            prompt("Explica en 3 frases sencillas, sin tecnicismos, un beneficio clave de [producto], para un cliente que no conoce el tema.", "Prompt para practicar"),
+            prompt("Actúa como asesor de AA | DOM. Explica en 3 frases sencillas, sin tecnicismos, un beneficio clave de [producto], para un cliente que no conoce el tema.", "Prompt para practicar (RAFA)"),
             warn("Verifica cualquier dato técnico del resultado con la ficha oficial antes de enviárselo al cliente."),
             h("¡Felicitaciones!"),
             p("Ya tienes lo necesario para usar Claude en tu día a día como asesor de AA | DOM: pedir bien, aplicarlo a cada empresa y cada tipo de cliente, y hacerlo con criterio. Úsalo como tu aliado para vender mejor y ahorrar tiempo."),
