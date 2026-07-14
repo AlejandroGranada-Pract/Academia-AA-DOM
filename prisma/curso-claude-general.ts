@@ -172,6 +172,72 @@ async function construirModulos(): Promise<Modulo[]> {
 
     // ======================= MÓDULO 2 =======================
     {
+      title: "Tu espacio de trabajo: crea tu Proyecto",
+      lecciones: [
+        {
+          title: "Crea tu Proyecto en Claude (uno por tema)",
+          durationMin: 9,
+          blocks: [
+            h("Lo primero: arma tu espacio"),
+            p("Antes de aprender a pedir cosas, conviene tener tu espacio listo. Un Proyecto es un lugar dentro de Claude donde guardas todo lo de UN mismo tema: unas instrucciones fijas (cómo quieres que Claude te responda), los archivos de ese tema y todas sus conversaciones. La idea NO es tener un solo proyecto para todo, sino crear UN proyecto por cada tema de tu trabajo."),
+            info("Piénsalo como carpetas: en vez de una sola carpeta con todo revuelto, tienes una carpeta por tema. Ejemplos: “Correos”, “Actas de reunión”, “Informes”."),
+            image(imgProyecto, "Un proyecto por tema: cada uno con sus propias Instrucciones y Archivos."),
+            h("Paso a paso para crear un proyecto"),
+            list([
+              "Paso 1. Entra a claude.ai.",
+              "Paso 2. En la barra de la izquierda, busca la sección “Proyectos”.",
+              "Paso 3. Haz clic en “Proyecto nuevo” (o el botón +).",
+              "Paso 4. Ponle el nombre del TEMA, por ejemplo: “Correos” o “Actas de reunión”.",
+              "Paso 5. Haz clic en “Crear”. Repite el proceso para cada tema que manejes.",
+            ]),
+            info("Si no ves la sección “Proyectos” en tu cuenta, avísale a la empresa: puede que tu plan aún no la tenga activada."),
+            h("Configura cada proyecto: las Instrucciones"),
+            p("Dentro de cada proyecto hay un espacio de “Instrucciones”. Ahí le explicas a Claude, para ese tema, cómo quieres que te ayude. Este es un ejemplo para un proyecto de “Correos” (ajústalo a ti):"),
+            prompt(
+              `Actúa como mi asistente para redactar CORREOS de trabajo. Trabajo en [tu área] de Ambiente Azul / DOM Design.
+
+Cuando te pida algo:
+- Responde en español (Colombia), claro y sin tecnicismos, en tono profesional pero cercano.
+- Haz los correos breves y con un asunto sugerido.
+- Si te falta un dato, déjalo marcado como "[por confirmar]" en vez de inventarlo.`,
+              "Instrucciones del proyecto “Correos”",
+            ),
+            tip("Regla simple: ¿tema nuevo? → proyecto nuevo. Abre el proyecto del tema y crea ahí una conversación por cada caso."),
+          ],
+        },
+      ],
+      examen: {
+        title: "Evaluación — Tu Proyecto",
+        description: "Crea y organiza tus proyectos por tema.",
+        timeLimitMin: 8,
+        questions: [
+          {
+            question: "¿Cuál es la mejor forma de organizar tus proyectos?",
+            type: "MULTIPLE_CHOICE",
+            options: ["Un solo proyecto para todo", "Un proyecto por cada tema (Correos, Actas, Informes…)", "No usar proyectos", "Un proyecto por día"],
+            correctAnswer: 1,
+            explanation: "Un proyecto por tema mantiene cada cosa enfocada y ordenada.",
+          },
+          {
+            question: "¿Para qué sirven las “Instrucciones” de un proyecto?",
+            type: "MULTIPLE_CHOICE",
+            options: ["Se escriben una vez y le dicen a Claude cómo ayudarte en ese tema", "Hay que repetirlas en cada mensaje", "No sirven para nada", "Son para otros usuarios"],
+            correctAnswer: 0,
+            explanation: "Las escribes una sola vez y aplican a todas las conversaciones de ese proyecto.",
+          },
+          {
+            question: "Un Proyecto guarda tus instrucciones, tus archivos y tus conversaciones de ese tema.",
+            type: "TRUE_FALSE",
+            options: ["Verdadero", "Falso"],
+            correctAnswer: 0,
+            explanation: "Sí: todo lo del tema queda junto en su proyecto.",
+          },
+        ],
+      },
+    },
+
+    // ======================= MÓDULO 3 =======================
+    {
       title: "Cómo pedirle bien las cosas",
       lecciones: [
         {
@@ -258,41 +324,10 @@ async function construirModulos(): Promise<Modulo[]> {
       },
     },
 
-    // ======================= MÓDULO 3 =======================
+    // ======================= MÓDULO 4 =======================
     {
-      title: "Tu Proyecto, tus archivos y la búsqueda web",
+      title: "Archivos y herramientas de Claude",
       lecciones: [
-        {
-          title: "Crea tu Proyecto en Claude (tu espacio de trabajo)",
-          durationMin: 9,
-          blocks: [
-            h("¿Qué es un “Proyecto” y por qué uno por tema?"),
-            p("Un Proyecto es un espacio dentro de Claude donde guardas todo lo de UN mismo tema en un solo lugar: unas instrucciones fijas (cómo quieres que Claude te responda), los archivos de ese tema y todas sus conversaciones. La idea NO es tener un solo proyecto para todo, sino crear UN proyecto por cada tema de tu trabajo. Así cada uno queda enfocado y Claude responde mejor."),
-            info("Piénsalo como carpetas: en vez de una sola carpeta con todo revuelto, tienes una carpeta por tema. Ejemplos: “Correos”, “Actas de reunión”, “Informes”."),
-            image(imgProyecto, "Un proyecto por tema: cada uno con sus propias Instrucciones y Archivos."),
-            h("Paso a paso para crear un proyecto"),
-            list([
-              "Paso 1. Entra a claude.ai.",
-              "Paso 2. En la barra de la izquierda, busca la sección “Proyectos”.",
-              "Paso 3. Haz clic en “Proyecto nuevo” (o el botón +).",
-              "Paso 4. Ponle el nombre del TEMA, por ejemplo: “Correos” o “Actas de reunión”.",
-              "Paso 5. Haz clic en “Crear”. Repite el proceso para cada tema que manejes.",
-            ]),
-            info("Si no ves la sección “Proyectos” en tu cuenta, avísale a la empresa: puede que tu plan aún no la tenga activada."),
-            h("Configura cada proyecto: las Instrucciones"),
-            p("Dentro de cada proyecto hay un espacio de “Instrucciones”. Ahí le explicas a Claude, para ese tema, cómo quieres que te ayude. Este es un ejemplo para un proyecto de “Correos” (ajústalo a ti):"),
-            prompt(
-              `Actúa como mi asistente para redactar CORREOS de trabajo. Trabajo en [tu área] de Ambiente Azul / DOM Design.
-
-Cuando te pida algo:
-- Responde en español (Colombia), claro y sin tecnicismos, en tono profesional pero cercano.
-- Haz los correos breves y con un asunto sugerido.
-- Si te falta un dato, déjalo marcado como "[por confirmar]" en vez de inventarlo.`,
-              "Instrucciones del proyecto “Correos”",
-            ),
-            tip("Regla simple: ¿tema nuevo? → proyecto nuevo. Abre el proyecto del tema y crea ahí una conversación por cada caso."),
-          ],
-        },
         {
           title: "Sube tus archivos a Claude",
           durationMin: 8,
@@ -356,17 +391,10 @@ Cuando te pida algo:
         },
       ],
       examen: {
-        title: "Evaluación — Proyecto, archivos y web",
-        description: "Trabaja ordenado: proyecto, archivos y búsqueda web.",
+        title: "Evaluación — Archivos y herramientas",
+        description: "Archivos, búsqueda web y conectores.",
         timeLimitMin: 10,
         questions: [
-          {
-            question: "¿Para qué sirve crear un “Proyecto” en Claude?",
-            type: "MULTIPLE_CHOICE",
-            options: ["Para tener en un solo lugar tus instrucciones, archivos y conversaciones", "Para pagar menos", "Para que otros vean tus chats", "No sirve para nada"],
-            correctAnswer: 0,
-            explanation: "Un proyecto reúne instrucciones, archivos y conversaciones; trabajas siempre dentro de él.",
-          },
           {
             question: "Para que Claude trabaje sobre un documento tuyo, primero debes…",
             type: "MULTIPLE_CHOICE",
@@ -388,11 +416,120 @@ Cuando te pida algo:
             correctAnswer: 1,
             explanation: "Falso: siempre conviene revisar la fuente.",
           },
+          {
+            question: "Los “conectores” de Claude sirven para…",
+            type: "MULTIPLE_CHOICE",
+            options: ["Conectar Claude con tus herramientas (Gmail, Drive, Calendar) para que las use", "Cambiar el color de la app", "Pagar la suscripción", "Borrar tus datos"],
+            correctAnswer: 0,
+            explanation: "Los conectores permiten que Claude use tus herramientas; concede solo los permisos necesarios.",
+          },
         ],
       },
     },
 
-    // ======================= MÓDULO 4 =======================
+    // ======================= MÓDULO 5 =======================
+    {
+      title: "Más usos para tu día a día",
+      lecciones: [
+        {
+          title: "Traducir correos y textos",
+          durationMin: 6,
+          blocks: [
+            h("Escribe en español, envía en otro idioma"),
+            p("¿Te toca escribirle a alguien en inglés (por ejemplo, un contacto en Miami)? Escribe en español y pídele a Claude que lo traduzca bien, con tono natural."),
+            prompt("Actúa como traductor profesional. Traduce este correo al inglés, en tono profesional y cordial y que suene natural (no literal), para enviárselo a un proveedor: [pega aquí tu correo en español]", "Prompt — Traducir un correo"),
+            tip("Sirve en los dos sentidos: también puedes pegar un texto en inglés y pedirle “tradúcemelo al español y explícame lo importante”."),
+          ],
+        },
+        {
+          title: "Ordena una reunión en un acta",
+          durationMin: 6,
+          blocks: [
+            h("De notas sueltas a un acta clara"),
+            p("Después de una reunión quedas con apuntes desordenados. Claude los organiza en un acta lista para compartir."),
+            prompt("Actúa como mi asistente. Con estas notas de una reunión, arma un acta clara para el equipo, con: (1) resumen, (2) decisiones, (3) tareas con responsable y fecha, y (4) pendientes: [pega aquí tus notas]", "Prompt — Acta de reunión"),
+            tip("Guárdala en tu proyecto “Actas de reunión” para tener todas juntas."),
+          ],
+        },
+        {
+          title: "Corrige y mejora un texto",
+          durationMin: 5,
+          blocks: [
+            h("Un segundo par de ojos"),
+            p("Antes de enviar algo importante, pídele a Claude que lo revise: ortografía, claridad y tono."),
+            prompt("Actúa como corrector de estilo. Revisa este texto y devuélvemelo con mejor ortografía, redacción y un tono profesional pero cercano, sin cambiar el significado, para publicarlo en un comunicado interno: [pega aquí tu texto]", "Prompt — Corregir y mejorar"),
+            info("Puedes pedirle también: “explícame qué cambiaste y por qué”, para aprender de los ajustes."),
+          ],
+        },
+        {
+          title: "Compara opciones en una tabla",
+          durationMin: 6,
+          blocks: [
+            h("Decide más fácil"),
+            p("Cuando tienes que elegir entre opciones (proveedores, planes, productos), pídele una tabla comparativa sencilla."),
+            prompt("Actúa como mi asistente. Compárame estas opciones en una tabla sencilla (ventajas, desventajas y para qué caso conviene cada una), para ayudarme a decidir: [pega o describe las opciones]. No inventes datos; si falta información, márcala como \"[por confirmar]\".", "Prompt — Tabla comparativa"),
+            warn("Verifica los datos que Claude ponga en la tabla antes de usarlos para decidir."),
+          ],
+        },
+        {
+          title: "Aprende o explica un tema difícil",
+          durationMin: 6,
+          blocks: [
+            h("Que te lo expliquen fácil"),
+            p("¿Hay un término, una norma o un proceso que no entiendes? Pídele que te lo explique en simple, con un ejemplo."),
+            prompt("Actúa como un profesor que explica fácil. Explícame en pocas frases, sin tecnicismos y con un ejemplo cotidiano, qué es [tema] y por qué me sirve en mi trabajo.", "Prompt — Explícamelo fácil"),
+            tip("Si quieres profundizar, sigue preguntando: “dame un ejemplo”, “¿y en qué se diferencia de…?”, “resúmemelo en una frase”."),
+          ],
+        },
+        {
+          title: "Ensaya una conversación difícil",
+          durationMin: 6,
+          blocks: [
+            h("Practica antes de la llamada"),
+            p("¿Una llamada o reunión que te pone nervioso? Ensáyala con Claude: que haga de la otra persona y te dé tips."),
+            prompt("Actúa como un cliente molesto porque su pedido se retrasó. Simula la conversación conmigo (tú respondes como el cliente) para que yo practique cómo responder con calma y profesionalismo. Al final, dame 3 consejos para mejorar.", "Prompt — Role-play de práctica"),
+            info("Cambia el personaje según lo que necesites: un proveedor, tu jefe, un compañero. Es solo práctica; nadie más lo ve."),
+          ],
+        },
+      ],
+      examen: {
+        title: "Evaluación — Más usos",
+        description: "Traducir, actas, corregir, comparar, aprender y ensayar.",
+        timeLimitMin: 10,
+        questions: [
+          {
+            question: "Para escribirle a alguien en otro idioma, lo más fácil es…",
+            type: "MULTIPLE_CHOICE",
+            options: ["Escribir en español y pedirle a Claude que lo traduzca natural", "No escribirle", "Usar solo palabras que sepas", "Escribir en mayúsculas"],
+            correctAnswer: 0,
+            explanation: "Escribes en español y Claude lo pasa a otro idioma con tono natural.",
+          },
+          {
+            question: "Con tus notas sueltas de una reunión, Claude puede…",
+            type: "MULTIPLE_CHOICE",
+            options: ["Armar un acta con decisiones, tareas y pendientes", "Borrarlas", "Enviarlas por ti", "Nada"],
+            correctAnswer: 0,
+            explanation: "Las organiza en un acta lista para compartir.",
+          },
+          {
+            question: "Antes de usar una tabla comparativa que hizo Claude, ¿qué haces?",
+            type: "MULTIPLE_CHOICE",
+            options: ["Confiar sin revisar", "Verificar los datos", "Nada", "Borrarla"],
+            correctAnswer: 1,
+            explanation: "Claude ordena la información; tú verificas los datos antes de decidir.",
+          },
+          {
+            question: "Puedes usar a Claude para ensayar una conversación difícil (role-play).",
+            type: "TRUE_FALSE",
+            options: ["Verdadero", "Falso"],
+            correctAnswer: 0,
+            explanation: "Sí: hace de la otra persona y te da consejos para mejorar.",
+          },
+        ],
+      },
+    },
+
+    // ======================= MÓDULO 6 =======================
     {
       title: "Úsalo con cabeza",
       lecciones: [
@@ -404,6 +541,30 @@ Cuando te pida algo:
             p("A veces Claude da respuestas que suenan muy seguras pero tienen errores o datos inventados (a esto se le llama “alucinar”). Por eso, tú eres el filtro: lee, corrige nombres y datos, y usa la respuesta solo cuando estés seguro."),
             tip("Regla de oro: Claude redacta, tú revisas y apruebas."),
             image(imgChecklist, "Antes de enviar o usar algo importante, pásale esta lista rápida."),
+          ],
+        },
+        {
+          title: "Cuando Claude se equivoca: cómo arreglarlo",
+          durationMin: 8,
+          blocks: [
+            h("Se equivocó… ¿y ahora qué?"),
+            p("Claude no siempre acierta a la primera, y está bien. Casi todo se arregla en la MISMA conversación, diciéndole qué pasó. No borres y empieces de cero: corrígelo con una frase."),
+            table(
+              ["Qué pasó", "Qué le dices para arreglarlo"],
+              [
+                ["Se inventó un dato (alucinó)", "“¿De dónde sacaste ese dato? Si no estás seguro, dímelo.” Activa la búsqueda web o dale tú el dato correcto."],
+                ["No entendió lo que querías", "“No era eso. Lo que necesito es…”, y reformula con más contexto (usa RAFA)."],
+                ["Quedó muy largo / corto / formal", "“Hazlo más corto”, “más cercano”, “en viñetas”."],
+                ["Le faltó algo / quedó incompleto", "“Te faltó [X]. Agrégalo.”"],
+                ["Respuesta genérica o floja", "Dale más contexto y un ejemplo: “Usa este texto como modelo: …”."],
+                ["Se cortó a mitad", "Escribe: “continúa”."],
+                ["Se enredó / se fue por las ramas", "“Empecemos de nuevo, solo esto: …”, o abre una conversación nueva."],
+              ],
+            ),
+            prompt("Eso no es lo que necesito. Reescríbelo teniendo en cuenta que [aclara el contexto]. Hazlo [formato, ej. corto y en viñetas] para [audiencia, ej. mi equipo].", "Prompt — corregir el rumbo"),
+            prompt("Revisa tu respuesta anterior: ¿hay algún dato del que no estés 100% seguro? Márcalo como \"[por confirmar]\" y dime en qué te basaste.", "Prompt — pídele que se autorrevise"),
+            tip("Entre más claro le digas QUÉ estuvo mal y QUÉ quieres, mejor lo corrige. Es normal ir afinando en 2 o 3 mensajes."),
+            warn("Si aun así no logras el resultado, o el tema es delicado (datos importantes, cifras, legal), no fuerces la respuesta: verifícalo con la fuente oficial o con quien corresponda."),
           ],
         },
         {
@@ -455,11 +616,18 @@ Cuando te pida algo:
             correctAnswer: 1,
             explanation: "Ante la duda, no lo pegues; usa datos genéricos.",
           },
+          {
+            question: "Si Claude responde algo que no era lo que querías, lo mejor es…",
+            type: "MULTIPLE_CHOICE",
+            options: ["Borrar y empezar de cero siempre", "Decirle en la misma conversación qué estuvo mal y qué quieres", "Usarlo igual", "Dejar de usarlo"],
+            correctAnswer: 1,
+            explanation: "Casi todo se arregla corrigiéndolo en la misma conversación; afinar 2–3 veces es normal.",
+          },
         ],
       },
     },
 
-    // ======================= MÓDULO 5 =======================
+    // ======================= MÓDULO 7 =======================
     {
       title: "Práctica guiada",
       lecciones: [

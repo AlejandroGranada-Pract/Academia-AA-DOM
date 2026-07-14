@@ -194,6 +194,74 @@ async function construirModulos(): Promise<Modulo[]> {
 
     // ======================= MÓDULO 2 =======================
     {
+      title: "Tu espacio de trabajo: crea tu Proyecto",
+      lecciones: [
+        {
+          title: "Crea tu Proyecto en Claude (uno por tema)",
+          durationMin: 10,
+          blocks: [
+            h("Lo primero: arma tu espacio"),
+            p("Antes de aprender a pedir cosas, conviene tener tu espacio listo. Un Proyecto es un lugar dentro de Claude donde guardas todo lo de UN mismo tema: unas instrucciones fijas (cómo quieres que Claude te responda), los archivos de ese tema y todas sus conversaciones. La idea NO es tener un solo proyecto para todo, sino crear UN proyecto por cada tema de tu trabajo."),
+            info("Piénsalo como carpetas: en vez de una sola carpeta con todo revuelto, tienes una carpeta por tema. Ejemplos para un asesor: “Cotizaciones”, “Seguimiento de clientes”, “Correos y propuestas”."),
+            image(imgProyecto, "Un proyecto por tema: cada uno con sus propias Instrucciones y Archivos."),
+            h("Paso a paso para crear un proyecto"),
+            list([
+              "Paso 1. Entra a claude.ai.",
+              "Paso 2. En la barra de la izquierda, busca la sección “Proyectos”.",
+              "Paso 3. Haz clic en “Proyecto nuevo” (o el botón +).",
+              "Paso 4. Ponle el nombre del TEMA, por ejemplo: “Cotizaciones” o “Seguimiento de clientes”.",
+              "Paso 5. Haz clic en “Crear”. Repite el proceso para cada tema que manejes.",
+            ]),
+            info("Si no ves la sección “Proyectos” en tu cuenta, avísale a la empresa: puede que tu plan aún no la tenga activada."),
+            h("Configura cada proyecto: las Instrucciones"),
+            p("Dentro de cada proyecto hay un espacio de “Instrucciones”. Ahí le explicas a Claude, para ese tema, cómo quieres que te ayude. Este es un ejemplo para el proyecto “Cotizaciones” (ajústalo a ti):"),
+            prompt(
+              `Actúa como asesor comercial de Ambiente Azul y DOM Design, apoyándome con COTIZACIONES.
+
+Cuando te pida algo:
+- Responde en español (Colombia), con un tono profesional pero cálido.
+- Ordena la información con claridad (por sistemas o capítulos) y resalta los beneficios para el cliente.
+- No inventes precios, garantías ni especificaciones: si faltan datos, déjalos marcados como "[por confirmar]".`,
+              "Instrucciones del proyecto “Cotizaciones”",
+            ),
+            h("Agrega los Archivos del tema"),
+            p("En cada proyecto sube los archivos propios de ese tema (plantillas, listas de productos, formatos). Quedan disponibles en todas las conversaciones de ese proyecto, sin volver a subirlos."),
+            tip("Regla simple: ¿tema nuevo? → proyecto nuevo. Abre el proyecto del tema y crea ahí una conversación por cada caso (por ejemplo, una por cliente)."),
+          ],
+        },
+      ],
+      examen: {
+        title: "Evaluación — Tu Proyecto",
+        description: "Crea y organiza tus proyectos por tema.",
+        timeLimitMin: 8,
+        questions: [
+          {
+            question: "¿Cuál es la mejor forma de organizar tus proyectos?",
+            type: "MULTIPLE_CHOICE",
+            options: ["Un solo proyecto para todo", "Un proyecto por cada tema (Cotizaciones, Seguimiento, Correos…)", "No usar proyectos", "Uno por día"],
+            correctAnswer: 1,
+            explanation: "Un proyecto por tema mantiene cada cosa enfocada y ordenada.",
+          },
+          {
+            question: "¿Para qué sirven las “Instrucciones” de un proyecto?",
+            type: "MULTIPLE_CHOICE",
+            options: ["Se escriben una vez y le dicen a Claude cómo ayudarte en ese tema", "Hay que repetirlas en cada mensaje", "No sirven para nada", "Son para otros usuarios"],
+            correctAnswer: 0,
+            explanation: "Las escribes una sola vez y aplican a todas las conversaciones de ese proyecto.",
+          },
+          {
+            question: "Un Proyecto guarda tus instrucciones, tus archivos y tus conversaciones de ese tema.",
+            type: "TRUE_FALSE",
+            options: ["Verdadero", "Falso"],
+            correctAnswer: 0,
+            explanation: "Sí: todo lo del tema queda junto en su proyecto.",
+          },
+        ],
+      },
+    },
+
+    // ======================= MÓDULO 3 =======================
+    {
       title: "Cómo pedirle bien las cosas",
       lecciones: [
         {
@@ -308,7 +376,7 @@ async function construirModulos(): Promise<Modulo[]> {
       },
     },
 
-    // ======================= MÓDULO 3 =======================
+    // ======================= MÓDULO 4 =======================
     {
       title: "Claude en tus tareas de venta",
       lecciones: [
@@ -448,7 +516,7 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
       },
     },
 
-    // ======================= MÓDULO 4 =======================
+    // ======================= MÓDULO 5 =======================
     {
       title: "Claude para Ambiente Azul",
       lecciones: [
@@ -535,7 +603,7 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
       },
     },
 
-    // ======================= MÓDULO 5 =======================
+    // ======================= MÓDULO 6 =======================
     {
       title: "Claude para DOM Design",
       lecciones: [
@@ -621,7 +689,7 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
       },
     },
 
-    // ======================= MÓDULO 6 =======================
+    // ======================= MÓDULO 7 =======================
     {
       title: "Atención, seguimiento y postventa",
       lecciones: [
@@ -686,43 +754,10 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
       },
     },
 
-    // ======================= MÓDULO 7 (NUEVO) =======================
+    // ======================= MÓDULO 8 =======================
     {
       title: "Trabaja con tus archivos: cotizaciones, presupuestos y contratos",
       lecciones: [
-        {
-          title: "Crea tu Proyecto en Claude (tu espacio de trabajo)",
-          durationMin: 10,
-          blocks: [
-            h("¿Qué es un “Proyecto” y por qué uno por tema?"),
-            p("Un Proyecto es un espacio dentro de Claude donde guardas todo lo de UN mismo tema en un solo lugar: unas instrucciones fijas (cómo quieres que Claude te responda), los archivos de ese tema y todas sus conversaciones. La idea NO es tener un solo proyecto para todo, sino crear UN proyecto por cada tema de tu trabajo. Así cada uno queda enfocado y Claude responde mejor."),
-            info("Piénsalo como carpetas: en vez de una sola carpeta con todo revuelto, tienes una carpeta por tema. Ejemplos para un asesor: “Cotizaciones”, “Seguimiento de clientes”, “Correos y propuestas”."),
-            image(imgProyecto, "Un proyecto por tema: cada uno con sus propias Instrucciones y Archivos."),
-            h("Paso a paso para crear un proyecto"),
-            list([
-              "Paso 1. Entra a claude.ai.",
-              "Paso 2. En la barra de la izquierda, busca la sección “Proyectos”.",
-              "Paso 3. Haz clic en “Proyecto nuevo” (o el botón +).",
-              "Paso 4. Ponle el nombre del TEMA, por ejemplo: “Cotizaciones” o “Seguimiento de clientes”.",
-              "Paso 5. Haz clic en “Crear”. Repite el proceso para cada tema que manejes.",
-            ]),
-            info("Si no ves la sección “Proyectos” en tu cuenta, avísale a la empresa: puede que tu plan aún no la tenga activada."),
-            h("Configura cada proyecto: las Instrucciones"),
-            p("Dentro de cada proyecto hay un espacio de “Instrucciones”. Ahí le explicas a Claude, para ese tema, cómo quieres que te ayude. Este es un ejemplo para el proyecto “Cotizaciones” (ajústalo a ti):"),
-            prompt(
-              `Actúa como asesor comercial de Ambiente Azul y DOM Design, apoyándome con COTIZACIONES.
-
-Cuando te pida algo:
-- Responde en español (Colombia), con un tono profesional pero cálido.
-- Ordena la información con claridad (por sistemas o capítulos) y resalta los beneficios para el cliente.
-- No inventes precios, garantías ni especificaciones: si faltan datos, déjalos marcados como "[por confirmar]".`,
-              "Instrucciones del proyecto “Cotizaciones”",
-            ),
-            h("Agrega los Archivos del tema"),
-            p("En cada proyecto sube los archivos propios de ese tema (plantillas, listas de productos, formatos). Quedan disponibles en todas las conversaciones de ese proyecto, sin volver a subirlos."),
-            tip("Regla simple: ¿tema nuevo? → proyecto nuevo. Abre el proyecto del tema y crea ahí una conversación por cada caso (por ejemplo, una por cliente)."),
-          ],
-        },
         {
           title: "Sube tus archivos a Claude",
           durationMin: 9,
@@ -932,18 +967,6 @@ Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantal
         timeLimitMin: 12,
         questions: [
           {
-            question: "¿Para qué sirve crear un “Proyecto” en Claude?",
-            type: "MULTIPLE_CHOICE",
-            options: [
-              "Para tener en un solo lugar tus instrucciones, archivos y conversaciones",
-              "Para pagar menos",
-              "Para que otros vean tus chats",
-              "No sirve para nada",
-            ],
-            correctAnswer: 0,
-            explanation: "Un proyecto reúne instrucciones, archivos y conversaciones; trabajas siempre dentro de él.",
-          },
-          {
             question: "Para que Claude trabaje sobre tu cotización, primero debes…",
             type: "MULTIPLE_CHOICE",
             options: [
@@ -1014,7 +1037,7 @@ Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantal
       },
     },
 
-    // ======================= MÓDULO 8 =======================
+    // ======================= MÓDULO 9 =======================
     {
       title: "Úsalo con cabeza",
       lecciones: [
@@ -1026,6 +1049,30 @@ Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantal
             p("A veces Claude da respuestas que suenan muy seguras pero tienen errores o datos inventados (a esto se le llama “alucinar”). Por eso, tú eres el filtro: lee, corrige nombres y datos, y envía solo cuando estés seguro."),
             tip("Regla de oro: Claude redacta, tú revisas y apruebas."),
             image(imgChecklist, "Antes de enviar cualquier cosa al cliente, pásale esta lista rápida."),
+          ],
+        },
+        {
+          title: "Cuando Claude se equivoca: cómo arreglarlo",
+          durationMin: 8,
+          blocks: [
+            h("Se equivocó… ¿y ahora qué?"),
+            p("Claude no siempre acierta a la primera, y está bien. La buena noticia: casi todo se arregla en la MISMA conversación, diciéndole qué pasó. No borres y empieces de cero: corrígelo con una frase."),
+            table(
+              ["Qué pasó", "Qué le dices para arreglarlo"],
+              [
+                ["Se inventó un dato (alucinó)", "“¿De dónde sacaste ese dato? Si no estás seguro, dímelo.” Activa la búsqueda web o dale tú el dato correcto."],
+                ["No entendió lo que querías", "“No era eso. Lo que necesito es…”, y reformula con más contexto (usa RAFA)."],
+                ["Quedó muy largo / corto / formal", "“Hazlo más corto”, “más cálido”, “en viñetas”, “de máximo 5 líneas”."],
+                ["Le faltó algo / quedó incompleto", "“Te faltó [X]. Agrégalo.”"],
+                ["Respuesta genérica o floja", "Dale más contexto y un ejemplo: “Usa este correo como modelo: …”."],
+                ["Se cortó a mitad", "Escribe: “continúa”."],
+                ["Se enredó / se fue por las ramas", "“Empecemos de nuevo, solo esto: …”, o abre una conversación nueva."],
+              ],
+            ),
+            prompt("Eso no es lo que necesito. Reescríbelo teniendo en cuenta que [aclara el contexto]. Hazlo [formato, ej. corto y en viñetas] para [audiencia, ej. un cliente].", "Prompt — corregir el rumbo"),
+            prompt("Revisa tu respuesta anterior: ¿hay algún dato del que no estés 100% seguro? Márcalo como \"[por confirmar]\" y dime en qué te basaste.", "Prompt — pídele que se autorrevise"),
+            tip("Entre más claro le digas QUÉ estuvo mal y QUÉ quieres, mejor lo corrige. Es normal ir afinando en 2 o 3 mensajes."),
+            warn("Si aun así no logras el resultado, o el tema es delicado (datos técnicos, precios, garantías, legal), no fuerces la respuesta: verifícalo con la ficha/fuente oficial o con la persona responsable."),
           ],
         },
         {
@@ -1100,11 +1147,18 @@ Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantal
             correctAnswer: 1,
             explanation: "Las afirmaciones de marca se verifican con la fuente oficial.",
           },
+          {
+            question: "Si Claude responde algo que no era lo que querías, lo mejor es…",
+            type: "MULTIPLE_CHOICE",
+            options: ["Borrar y empezar de cero siempre", "Decirle en la misma conversación qué estuvo mal y qué quieres", "Enviarlo igual", "Dejar de usarlo"],
+            correctAnswer: 1,
+            explanation: "Casi todo se arregla corrigiéndolo en la misma conversación; afinar 2–3 veces es normal.",
+          },
         ],
       },
     },
 
-    // ======================= MÓDULO 9 =======================
+    // ======================= MÓDULO 10 =======================
     {
       title: "Práctica guiada",
       lecciones: [
