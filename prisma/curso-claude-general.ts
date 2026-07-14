@@ -213,7 +213,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Enséñale con un ejemplo"),
             p("Si quieres que siga un estilo, muéstraselo. Pégale un correo tuyo que te haya gustado y dile: “usa este mismo tono y estructura para escribir uno nuevo sobre…”."),
-            prompt("Este es un correo que suelo enviar: [pega aquí tu correo]. Escríbeme uno con el mismo tono para avisar que el sistema estará en mantenimiento el sábado."),
+            prompt("Actúa como mi asistente de oficina. Este es un correo que suelo enviar: [pega aquí tu correo]. Escríbeme uno con el mismo tono y estructura, para avisarle a mi equipo que el sistema estará en mantenimiento el sábado."),
             h("Dale el tono que necesitas"),
             p("Puedes pedirle el estilo exacto y afinarlo con frases cortas:"),
             list(["“Hazlo más corto.”", "“Más formal.”", "“Más cercano.”", "“Cámbiale el saludo.”", "“Quítale los tecnicismos.”"]),
@@ -266,32 +266,31 @@ async function construirModulos(): Promise<Modulo[]> {
           title: "Crea tu Proyecto en Claude (tu espacio de trabajo)",
           durationMin: 9,
           blocks: [
-            h("¿Qué es un “Proyecto” y por qué usar solo uno?"),
-            p("Un Proyecto es un espacio dentro de Claude donde guardas todo lo de un mismo tema en un solo lugar: unas instrucciones fijas (cómo quieres que Claude te responda), los archivos que usas siempre y todas tus conversaciones. La idea es que crees UN proyecto para tu trabajo y siempre trabajes ahí dentro."),
-            info("Piénsalo como una carpeta de trabajo: en vez de tener papeles sueltos por todos lados, tienes una sola carpeta con todo tu material ordenado."),
-            image(imgProyecto, "Un proyecto guarda tus Instrucciones y tus Archivos, disponibles en todas las conversaciones."),
-            h("Paso a paso para crearlo (una sola vez)"),
+            h("¿Qué es un “Proyecto” y por qué uno por tema?"),
+            p("Un Proyecto es un espacio dentro de Claude donde guardas todo lo de UN mismo tema en un solo lugar: unas instrucciones fijas (cómo quieres que Claude te responda), los archivos de ese tema y todas sus conversaciones. La idea NO es tener un solo proyecto para todo, sino crear UN proyecto por cada tema de tu trabajo. Así cada uno queda enfocado y Claude responde mejor."),
+            info("Piénsalo como carpetas: en vez de una sola carpeta con todo revuelto, tienes una carpeta por tema. Ejemplos: “Correos”, “Actas de reunión”, “Informes”."),
+            image(imgProyecto, "Un proyecto por tema: cada uno con sus propias Instrucciones y Archivos."),
+            h("Paso a paso para crear un proyecto"),
             list([
               "Paso 1. Entra a claude.ai.",
               "Paso 2. En la barra de la izquierda, busca la sección “Proyectos”.",
               "Paso 3. Haz clic en “Proyecto nuevo” (o el botón +).",
-              "Paso 4. Ponle un nombre, por ejemplo tu área: “Mi trabajo — [tu nombre]”.",
-              "Paso 5. Haz clic en “Crear”.",
+              "Paso 4. Ponle el nombre del TEMA, por ejemplo: “Correos” o “Actas de reunión”.",
+              "Paso 5. Haz clic en “Crear”. Repite el proceso para cada tema que manejes.",
             ]),
             info("Si no ves la sección “Proyectos” en tu cuenta, avísale a la empresa: puede que tu plan aún no la tenga activada."),
-            h("Configúralo una vez: las Instrucciones"),
-            p("Dentro del proyecto hay un espacio de “Instrucciones”. Ahí le explicas a Claude, de una vez y para siempre, cómo quieres que te ayude. Copia este texto y ajústalo a ti:"),
+            h("Configura cada proyecto: las Instrucciones"),
+            p("Dentro de cada proyecto hay un espacio de “Instrucciones”. Ahí le explicas a Claude, para ese tema, cómo quieres que te ayude. Este es un ejemplo para un proyecto de “Correos” (ajústalo a ti):"),
             prompt(
-              `Trabajo en [tu área] de Ambiente Azul / DOM Design.
+              `Actúa como mi asistente para redactar CORREOS de trabajo. Trabajo en [tu área] de Ambiente Azul / DOM Design.
 
 Cuando te pida algo:
-- Responde en español (Colombia), claro y sin tecnicismos.
-- Tono profesional pero cercano.
-- Si te falta un dato, déjalo marcado como "[por confirmar]" en vez de inventarlo.
-- Cuando escribas correos, hazlos breves y con un asunto sugerido.`,
-              "Instrucciones del proyecto (pégalas una vez)",
+- Responde en español (Colombia), claro y sin tecnicismos, en tono profesional pero cercano.
+- Haz los correos breves y con un asunto sugerido.
+- Si te falta un dato, déjalo marcado como "[por confirmar]" en vez de inventarlo.`,
+              "Instrucciones del proyecto “Correos”",
             ),
-            tip("De aquí en adelante, trabaja dentro de tu proyecto: ábrelo y crea una conversación nueva ahí."),
+            tip("Regla simple: ¿tema nuevo? → proyecto nuevo. Abre el proyecto del tema y crea ahí una conversación por cada caso."),
           ],
         },
         {
@@ -303,13 +302,13 @@ Cuando te pida algo:
             image(imgAdjuntar, "Para adjuntar: haz clic en el botón + junto a la caja de texto y elige tu archivo."),
             h("Paso a paso"),
             list([
-              "Paso 1. En claude.ai (dentro de tu proyecto), abre una conversación nueva.",
+              "Paso 1. En claude.ai, abre el proyecto del tema y crea una conversación nueva dentro de él.",
               "Paso 2. Haz clic en el botón + que está junto a la caja de texto.",
               "Paso 3. Elige el archivo desde tu computador y espera a que aparezca su nombre.",
               "Paso 4. Escribe qué quieres que haga con él y envía.",
             ]),
-            prompt("Resume este documento en 5 puntos claros y dime si hay alguna fecha o tarea importante que deba tener en cuenta."),
-            prompt("Ordena estas notas de la reunión en: (1) decisiones, (2) tareas con responsable, (3) pendientes."),
+            prompt("Actúa como mi asistente. Resume este documento en 5 puntos claros, para mí, y dime si hay alguna fecha o tarea importante que deba tener en cuenta."),
+            prompt("Actúa como mi asistente. Ordena estas notas de la reunión, para compartirlas con el equipo, en: (1) decisiones, (2) tareas con responsable y (3) pendientes."),
             tip("También puedes arrastrar el archivo con el mouse y soltarlo sobre la caja de texto."),
             warn("Antes de subir un documento con datos personales o información interna, revisa el módulo “Úsalo con cabeza”."),
           ],
@@ -327,7 +326,7 @@ Cuando te pida algo:
               "Paso 3. Envía y espera: Claude buscará y te responderá citando de dónde sacó la información.",
               "Paso 4. Pídele el enlace de la fuente para verificar.",
             ]),
-            prompt("Activa la búsqueda web y dime, en lenguaje sencillo, qué días son festivos en Colombia el próximo mes. Incluye el enlace de la fuente."),
+            prompt("Actúa como mi asistente y activa la búsqueda web. Dime, en lenguaje sencillo y en una lista, qué días son festivos en Colombia el próximo mes, e incluye el enlace de la fuente."),
             warn("La búsqueda web ayuda a orientarte, pero siempre revisa la fuente antes de dar un dato por cierto."),
           ],
         },

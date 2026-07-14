@@ -328,12 +328,16 @@ export const SVG_PROYECTO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
     <!-- botón proyecto nuevo resaltado -->
     <rect x="80" y="228" width="210" height="42" rx="10" fill="#ffffff" stroke="#BE9B60" stroke-width="3"/>
     <text x="102" y="255" fill="#1F1F1F" font-family="${FONT}" font-size="15" font-weight="600">+  Proyecto nuevo</text>
-    <rect x="82" y="284" width="206" height="34" rx="8" fill="#ece7dd"/>
-    <text x="104" y="306" fill="#4a4740" font-family="${FONT}" font-size="14">Ventas — AA | DOM</text>
+    <rect x="82" y="284" width="206" height="32" rx="8" fill="#ece7dd"/>
+    <text x="104" y="305" fill="#4a4740" font-family="${FONT}" font-size="14" font-weight="600">Cotizaciones</text>
+    <rect x="82" y="320" width="206" height="32" rx="8" fill="#ffffff"/>
+    <text x="104" y="341" fill="#7d7a73" font-family="${FONT}" font-size="14">Seguimiento de clientes</text>
+    <rect x="82" y="356" width="206" height="32" rx="8" fill="#ffffff"/>
+    <text x="104" y="377" fill="#7d7a73" font-family="${FONT}" font-size="14">Correos y propuestas</text>
 
     <!-- panel del proyecto -->
-    <text x="346" y="150" fill="#1F1F1F" font-family="${FONT}" font-size="24" font-weight="700">Ventas — Ambiente Azul y DOM</text>
-    <text x="346" y="180" fill="#7d7a73" font-family="${FONT}" font-size="15">Tu espacio de trabajo: todo queda guardado aquí.</text>
+    <text x="346" y="150" fill="#1F1F1F" font-family="${FONT}" font-size="24" font-weight="700">Proyecto: Cotizaciones</text>
+    <text x="346" y="180" fill="#7d7a73" font-family="${FONT}" font-size="15">Un proyecto por tema: aquí vive TODO lo de las cotizaciones.</text>
 
     <rect x="346" y="210" width="360" height="180" rx="14" fill="#ffffff" stroke="#e7e2d8" stroke-width="2"/>
     <text x="368" y="246" fill="#BE9B60" font-family="${FONT}" font-size="13" font-weight="700" letter-spacing="1">INSTRUCCIONES</text>
@@ -348,7 +352,7 @@ export const SVG_PROYECTO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
     <text x="748" y="320" fill="#4a4740" font-family="${FONT}" font-size="14">mano en todas las conversaciones.</text>
 
     ${paso(300, 249, 1)}
-    ${nota(346, 440, 620, "1. Haz clic en “Proyecto nuevo”, ponle nombre y créalo")}
+    ${nota(346, 440, 760, "1. Crea un proyecto por cada tema (Cotizaciones, Seguimiento…)")}
     <path d="M470 440 L300 292" stroke="#1F1F1F" stroke-width="2.5" fill="none" marker-end="url(#p)"/>
     <defs>
       <marker id="p" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
@@ -356,7 +360,7 @@ export const SVG_PROYECTO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
       </marker>
     </defs>
   `)}
-  <text x="600" y="740" text-anchor="middle" fill="#7d7a73" font-family="${FONT}" font-size="14">Ilustración de la interfaz de Claude. Trabaja siempre dentro de tu proyecto.</text>
+  <text x="600" y="740" text-anchor="middle" fill="#7d7a73" font-family="${FONT}" font-size="14">Ilustración de la interfaz de Claude. Crea un proyecto por cada tema y trabaja dentro de él.</text>
 </svg>`;
 
 // ===================================================================

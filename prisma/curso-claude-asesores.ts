@@ -235,7 +235,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Enséñale con un ejemplo"),
             p("Si quieres que siga un estilo, muéstraselo. Pégale un correo tuyo que te haya gustado y dile: “usa este mismo tono y estructura para escribir uno nuevo sobre…”."),
-            prompt("Este es un correo que suelo enviar: [pega aquí tu correo]. Escríbeme uno con el mismo tono para un cliente que pidió cotización de porcelanato para su terraza."),
+            prompt("Actúa como asesor de DOM Design. Este es un correo que suelo enviar: [pega aquí tu correo]. Escríbeme uno con el mismo tono y estructura, para un cliente que pidió cotización de porcelanato para su terraza."),
             tip("También puedes pedirle que te arme una plantilla reutilizable: “Hazme una plantilla de correo de seguimiento donde yo solo cambie el nombre y el producto.”"),
           ],
         },
@@ -318,10 +318,10 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Correos de seguimiento"),
             p("Es de lo más útil: recordar cotizaciones, retomar clientes fríos, agradecer una visita."),
-            prompt("Cliente visitó el showroom y cotizó un sauna, pero no ha respondido en 10 días. Escríbeme un correo de seguimiento cálido, corto, que invite a resolver dudas por WhatsApp."),
+            prompt("Actúa como asesor de Ambiente Azul. Escríbeme un correo de seguimiento cálido y corto, que invite a resolver dudas por WhatsApp, para un cliente que visitó el showroom y cotizó un sauna pero no ha respondido en 10 días."),
             h("Responder con tacto"),
             p("Cuando un cliente pone una objeción o un mensaje difícil, pídele a Claude un borrador amable y profesional."),
-            prompt("Un cliente respondió que lo va a pensar. Escríbeme una respuesta breve, sin presionar, que mantenga vivo el interés y ofrezca ayuda."),
+            prompt("Actúa como asesor de Ambiente Azul. Escríbeme una respuesta breve y sin presionar, que mantenga vivo el interés y ofrezca ayuda, para un cliente que respondió que “lo va a pensar”."),
             tip("Siempre léelo antes de enviar: pon el nombre real del cliente y confirma que los datos estén correctos."),
           ],
         },
@@ -331,7 +331,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("De lo técnico a lo simple"),
             p("Muchos clientes no entienden los términos técnicos. Pídele a Claude que los traduzca a un lenguaje claro y con un beneficio concreto."),
-            prompt("Explícale a un cliente, en lenguaje simple y con un beneficio claro, qué es un sistema de cloración salina y por qué le conviene frente al cloro tradicional."),
+            prompt("Actúa como asesor de Ambiente Azul. Explica en lenguaje simple y con un beneficio claro, para un cliente sin conocimientos técnicos, qué es un sistema de cloración salina y por qué le conviene frente al cloro tradicional."),
             warn("Si hay datos técnicos (medidas, capacidades, especificaciones), verifícalos con la ficha oficial de la marca antes de dárselos al cliente. Claude redacta muy bien, pero no inventes especificaciones."),
           ],
         },
@@ -341,7 +341,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Resúmenes en segundos"),
             p("Pega un texto largo —una ficha técnica, un correo extenso, una norma— y pídele un resumen a tu medida."),
-            prompt("Resume esta ficha técnica en 5 puntos que le pueda explicar a un cliente, resaltando beneficios y no tecnicismos."),
+            prompt("Actúa como asesor de Ambiente Azul. Resume esta ficha técnica en 5 puntos, resaltando beneficios y sin tecnicismos, para explicárselos a un cliente."),
             tip("Puedes pedir “en 5 viñetas”, “en una sola frase”, o “los 3 beneficios para el cliente”."),
           ],
         },
@@ -351,7 +351,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Propuestas más rápidas"),
             p("Dale los datos (producto, necesidad del cliente, puntos a destacar) y pídele una propuesta breve y ordenada que luego tú completas."),
-            prompt("Arma una propuesta breve y ordenada para un cliente que quiere renovar su zona húmeda: destaca durabilidad, acabado y asesoría. Deja espacios para que yo ponga precios."),
+            prompt("Actúa como asesor de AA | DOM. Arma una propuesta breve y ordenada, que destaque durabilidad, acabado y asesoría, para un cliente que quiere renovar su zona húmeda. Deja espacios para que yo ponga los precios."),
             h("Objeciones frecuentes"),
             table(
               ["Objeción del cliente", "Qué pedirle a Claude"],
@@ -373,7 +373,7 @@ async function construirModulos(): Promise<Modulo[]> {
             h("1. Correos en inglés (clientes de Miami)"),
             p("Ambiente Azul tiene showroom en Miami, así que a veces vas a escribirle a un cliente en inglés. No necesitas dominar el idioma: escribe en español y pídele a Claude que lo pase a inglés, bien redactado."),
             prompt(
-              `Traduce este correo al inglés, en un tono profesional y cálido, para un cliente en Miami interesado en un spa. Que suene natural, no a traducción literal:
+              `Actúa como asesor de Ambiente Azul. Traduce este correo al inglés, en tono profesional y cálido y que suene natural (no traducción literal), para un cliente en Miami interesado en un spa:
 
 [pega aquí tu correo en español]`,
               "Prompt — Correo en inglés",
@@ -381,17 +381,17 @@ async function construirModulos(): Promise<Modulo[]> {
             h("2. Convierte las notas de una visita en seguimiento"),
             p("Después de una visita o una llamada quedas con notas sueltas. Pégaselas a Claude y te las ordena, y hasta te redacta el correo de seguimiento."),
             prompt(
-              `Estas son mis notas sueltas de una visita a un cliente:
+              `Actúa como mi asistente comercial. Estas son mis notas sueltas de una visita a un cliente:
 
 [pega aquí tus notas]
 
-Organízalas en: (1) resumen de lo que quiere el cliente, (2) próximos pasos para mí (lista corta), y (3) un correo de seguimiento breve y cálido.`,
+Organízalas para mí en: (1) resumen de lo que quiere el cliente, (2) próximos pasos (lista corta), y (3) un correo de seguimiento breve y cálido para el cliente.`,
               "Prompt — Notas de visita → seguimiento",
             ),
             h("3. Compara dos productos para el cliente"),
             p("Cuando el cliente duda entre dos opciones, una comparación clara lo ayuda a decidir. Pídele a Claude una tabla sencilla."),
             prompt(
-              `Compárame estos dos productos para un cliente que no es técnico. Hazlo en una tabla sencilla con: para qué sirve, ventajas de cada uno y para quién es mejor cada opción.
+              `Actúa como asesor de AA | DOM. Compárame estos dos productos en una tabla sencilla (para qué sirve, ventajas de cada uno y para quién es mejor cada opción), pensada para un cliente que no es técnico:
 
 Producto A: [nombre / datos]
 Producto B: [nombre / datos]
@@ -470,8 +470,8 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
             h("Traduce el bienestar a beneficios"),
             p("El cliente de Ambiente Azul compra una experiencia, no una ficha técnica. Pídele a Claude que hable de sensaciones y beneficios."),
             image(imgSpa, "El spa se vende por la experiencia: relajación y bienestar."),
-            prompt("Explícale a un cliente, en tono cálido y aspiracional, qué es un cold plunge y qué beneficios tiene para su bienestar, sin tecnicismos."),
-            prompt("Escríbeme 3 frases para redes sobre el ritual sauna–cold plunge que conecten con el bienestar."),
+            prompt("Actúa como asesor de Ambiente Azul. Explica en tono cálido y aspiracional, sin tecnicismos, para un cliente, qué es un cold plunge y qué beneficios tiene para su bienestar."),
+            prompt("Actúa como community manager de Ambiente Azul. Escríbeme 3 frases para redes sociales sobre el ritual sauna–cold plunge, en tono aspiracional, dirigidas a clientes interesados en bienestar."),
             tip("Para spas Hot Spring, si mencionas una colección (Highlife, Limelight, Hotspot, Freeflow), confirma que sea la correcta antes de enviarlo al cliente."),
           ],
         },
@@ -482,7 +482,7 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
             h("Temas técnicos, explicados fácil"),
             p("Preguntas típicas: “¿sal o cloro?”, “¿cómo caliento el agua?”, “¿cada cuánto el mantenimiento?”. Claude te ayuda a responder claro."),
             image(imgClima, "La climatización y el tratamiento del agua generan muchas preguntas del cliente."),
-            prompt("Un cliente pregunta si le conviene cloración salina o cloro tradicional. Dame una respuesta corta, equilibrada y en lenguaje simple."),
+            prompt("Actúa como asesor de Ambiente Azul. Dame una respuesta corta, equilibrada y en lenguaje simple, para un cliente que pregunta si le conviene cloración salina o cloro tradicional."),
             warn("Para recomendaciones de equipos, capacidades o periodicidad de mantenimiento, apóyate en la ficha oficial y en el área técnica. No prometas resultados ni plazos sin confirmarlos."),
           ],
         },
@@ -493,7 +493,7 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
             h("Proyectos comerciales"),
             p("Con clubs y hoteles el tono es más formal y el enfoque más técnico-comercial. Claude te ayuda a redactar propuestas y correos serios y profesionales."),
             image(imgHotel, "Los proyectos de hotel y club piden un tono formal y profesional."),
-            prompt("Redacta un correo formal para el administrador de un hotel presentando nuestra asesoría integral en piscina y zona húmeda, resaltando respaldo y servicio postventa."),
+            prompt("Actúa como asesor de Ambiente Azul. Redacta un correo formal para el administrador de un hotel, presentando nuestra asesoría integral en piscina y zona húmeda y resaltando respaldo y servicio postventa."),
             tip("Pídele a Claude que use un tono formal y evite promesas: tú añades luego las condiciones oficiales."),
           ],
         },
@@ -556,9 +556,9 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
           blocks: [
             h("Del catálogo al lenguaje del cliente"),
             p("Los clientes preguntan por diferencias entre materiales, acabados, dónde usar cada uno. Pídele a Claude explicaciones claras y orientadas al uso."),
-            prompt("Explica en lenguaje simple, para un cliente, la diferencia entre porcelanato y cerámica y en qué caso conviene cada uno."),
+            prompt("Actúa como asesor de DOM Design. Explica en lenguaje simple, para un cliente, la diferencia entre porcelanato y cerámica y en qué caso conviene cada uno."),
             info("Recuerda verificar cualquier dato técnico con la ficha oficial antes de enviarlo."),
-            prompt("Dame 3 recomendaciones de acabado para una terraza exterior expuesta al agua, en lenguaje de cliente."),
+            prompt("Actúa como asesor de DOM Design. Dame 3 recomendaciones de acabado, en lenguaje de cliente, para una terraza exterior expuesta al agua."),
             warn("Antes de afirmar resistencias, medidas o usos, confírmalo con la ficha del material. No inventes propiedades."),
           ],
         },
@@ -568,8 +568,8 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
           blocks: [
             h("Hablar con el canal técnico"),
             p("Con arquitectos, diseñadores y constructores el tono es técnico y preciso. Claude te ayuda a redactar comunicaciones profesionales y a preparar información para especificación."),
-            prompt("Redacta un correo profesional para un arquitecto presentando la Zona PRO y los beneficios de especificar con nosotros (asesoría, disponibilidad y acompañamiento)."),
-            prompt("Ordena estas características del material en una ficha breve y clara para incluir en una especificación: [pega aquí los datos oficiales]."),
+            prompt("Actúa como asesor de DOM Design. Redacta un correo profesional para un arquitecto, presentándole la Zona PRO y los beneficios de especificar con nosotros (asesoría, disponibilidad y acompañamiento)."),
+            prompt("Actúa como asesor técnico de DOM Design. Ordena estas características del material en una ficha breve y clara, para incluir en una especificación dirigida a un arquitecto: [pega aquí los datos oficiales]."),
             tip("Para este público, pídele a Claude un tono técnico y preciso, y evita lenguaje de venta agresivo."),
           ],
         },
@@ -579,7 +579,7 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
           blocks: [
             h("Propuestas que enamoran por el detalle"),
             p("Dale el proyecto del cliente (espacio, estilo, necesidad) y pídele una propuesta que destaque cómo los materiales logran el resultado deseado."),
-            prompt("Arma una propuesta breve para un cliente que quiere una terraza tipo spa en casa: destaca textura, antideslizante y estética, con espacios para que yo ponga referencias y precios."),
+            prompt("Actúa como asesor de DOM Design. Arma una propuesta breve que destaque textura, antideslizante y estética, para un cliente que quiere una terraza tipo spa en casa. Deja espacios para que yo ponga referencias y precios."),
             warn("Las referencias, formatos y precios los pones tú desde la información oficial. Claude te da la estructura y la redacción."),
           ],
         },
@@ -631,7 +631,7 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
           blocks: [
             h("Cortos, cálidos y claros"),
             p("Gran parte de la venta pasa por WhatsApp. Pídele a Claude mensajes breves, amables y directos."),
-            prompt("Escríbeme un WhatsApp corto y cálido para recordarle a un cliente su cita en el showroom mañana a las 10 a. m."),
+            prompt("Actúa como asesor de AA | DOM. Escríbeme un WhatsApp corto y cálido para un cliente, recordándole su cita en el showroom mañana a las 10 a. m."),
             tip("Pide siempre “corto para WhatsApp”: los mensajes largos se ignoran."),
           ],
         },
@@ -641,7 +641,7 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
           blocks: [
             h("Que ningún cliente se enfríe"),
             p("Claude te ayuda a mantener el contacto sin sonar repetitivo."),
-            prompt("Dame 3 mensajes distintos de seguimiento para un cliente que cotizó hace un mes y no responde, cada uno con un ángulo diferente (novedad, beneficio, disponibilidad)."),
+            prompt("Actúa como asesor de AA | DOM. Dame 3 mensajes de seguimiento distintos (cada uno con un ángulo: novedad, beneficio, disponibilidad), para un cliente que cotizó hace un mes y no responde."),
             tip("Guarda tus mejores mensajes como plantillas y pídele variaciones cuando las necesites."),
           ],
         },
@@ -651,7 +651,7 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
           blocks: [
             h("La venta no termina en la entrega"),
             p("Un buen postventa fideliza y trae recomendaciones. Claude te ayuda con mensajes de agradecimiento, recordatorios de mantenimiento y encuestas."),
-            prompt("Escríbeme un mensaje de postventa para un cliente que acaba de recibir su spa: agradece, ofrece acompañamiento y recuerda el mantenimiento."),
+            prompt("Actúa como asesor de Ambiente Azul. Escríbeme un mensaje de postventa, cálido y breve, para un cliente que acaba de recibir su spa: agradece, ofrece acompañamiento y recuérdale el mantenimiento."),
             warn("Para instrucciones de mantenimiento o garantías, usa la información oficial; Claude redacta el mensaje, no define las condiciones."),
           ],
         },
@@ -694,34 +694,33 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
           title: "Crea tu Proyecto en Claude (tu espacio de trabajo)",
           durationMin: 10,
           blocks: [
-            h("¿Qué es un “Proyecto” y por qué usar solo uno?"),
-            p("Un Proyecto es un espacio dentro de Claude donde guardas todo lo de un mismo tema en un solo lugar: unas instrucciones fijas (cómo quieres que Claude te responda), los archivos que usas siempre y todas tus conversaciones. La idea es que crees UN proyecto para tu trabajo de ventas y siempre trabajes ahí dentro. Así no empiezas de cero cada vez y Claude ya “sabe” quién eres y cómo hablas."),
-            info("Piénsalo como una carpeta de trabajo: en vez de tener papeles sueltos por todos lados, tienes una sola carpeta con todo tu material de ventas ordenado."),
-            image(imgProyecto, "Un proyecto guarda tus Instrucciones y tus Archivos, disponibles en todas las conversaciones."),
-            h("Paso a paso para crearlo (se hace una sola vez)"),
+            h("¿Qué es un “Proyecto” y por qué uno por tema?"),
+            p("Un Proyecto es un espacio dentro de Claude donde guardas todo lo de UN mismo tema en un solo lugar: unas instrucciones fijas (cómo quieres que Claude te responda), los archivos de ese tema y todas sus conversaciones. La idea NO es tener un solo proyecto para todo, sino crear UN proyecto por cada tema de tu trabajo. Así cada uno queda enfocado y Claude responde mejor."),
+            info("Piénsalo como carpetas: en vez de una sola carpeta con todo revuelto, tienes una carpeta por tema. Ejemplos para un asesor: “Cotizaciones”, “Seguimiento de clientes”, “Correos y propuestas”."),
+            image(imgProyecto, "Un proyecto por tema: cada uno con sus propias Instrucciones y Archivos."),
+            h("Paso a paso para crear un proyecto"),
             list([
               "Paso 1. Entra a claude.ai.",
               "Paso 2. En la barra de la izquierda, busca la sección “Proyectos”.",
               "Paso 3. Haz clic en “Proyecto nuevo” (o el botón +).",
-              "Paso 4. Escribe un nombre, por ejemplo: “Ventas — Ambiente Azul y DOM”.",
-              "Paso 5. Haz clic en “Crear”. ¡Listo, ya tienes tu espacio!",
+              "Paso 4. Ponle el nombre del TEMA, por ejemplo: “Cotizaciones” o “Seguimiento de clientes”.",
+              "Paso 5. Haz clic en “Crear”. Repite el proceso para cada tema que manejes.",
             ]),
             info("Si no ves la sección “Proyectos” en tu cuenta, avísale a la empresa: puede que tu plan aún no la tenga activada."),
-            h("Configúralo una vez: las Instrucciones"),
-            p("Dentro del proyecto hay un espacio de “Instrucciones”. Ahí le explicas a Claude, de una vez y para siempre, cómo quieres que te ayude. Copia este texto y pégalo en las instrucciones de tu proyecto (ajústalo a ti):"),
+            h("Configura cada proyecto: las Instrucciones"),
+            p("Dentro de cada proyecto hay un espacio de “Instrucciones”. Ahí le explicas a Claude, para ese tema, cómo quieres que te ayude. Este es un ejemplo para el proyecto “Cotizaciones” (ajústalo a ti):"),
             prompt(
-              `Soy asesor comercial de Ambiente Azul (piscinas, spas, saunas, bienestar) y DOM Design (enchapes, porcelanatos, mosaicos, piedra natural).
+              `Actúa como asesor comercial de Ambiente Azul y DOM Design, apoyándome con COTIZACIONES.
 
 Cuando te pida algo:
 - Responde en español (Colombia), con un tono profesional pero cálido.
-- Para Ambiente Azul, conecta con bienestar y experiencia. Para DOM, resalta el detalle y el acabado.
-- Escribe claro y sin tecnicismos, pensando en el cliente final.
+- Ordena la información con claridad (por sistemas o capítulos) y resalta los beneficios para el cliente.
 - No inventes precios, garantías ni especificaciones: si faltan datos, déjalos marcados como "[por confirmar]".`,
-              "Instrucciones del proyecto (pégalas una vez)",
+              "Instrucciones del proyecto “Cotizaciones”",
             ),
-            h("Agrega tus Archivos fijos"),
-            p("En el proyecto también puedes subir archivos que usas siempre (una lista de productos, tus plantillas de correo). Quedan disponibles en todas las conversaciones de ese proyecto, sin volver a subirlos."),
-            tip("De aquí en adelante, TODO lo de este módulo (presupuestos, revisar contratos, dudas técnicas) hazlo dentro de tu proyecto: abre el proyecto y crea una conversación nueva ahí."),
+            h("Agrega los Archivos del tema"),
+            p("En cada proyecto sube los archivos propios de ese tema (plantillas, listas de productos, formatos). Quedan disponibles en todas las conversaciones de ese proyecto, sin volver a subirlos."),
+            tip("Regla simple: ¿tema nuevo? → proyecto nuevo. Abre el proyecto del tema y crea ahí una conversación por cada caso (por ejemplo, una por cliente)."),
           ],
         },
         {
@@ -756,7 +755,7 @@ Cuando te pida algo:
             info("Antes de empezar: ten el archivo de la cotización guardado en tu computador (en PDF o Excel) para poder subirlo."),
             h("Paso a paso"),
             list([
-              "Paso 1. Entra a claude.ai, abre tu proyecto y crea una conversación nueva dentro de él.",
+              "Paso 1. Entra a claude.ai, abre el proyecto del tema (ej. “Cotizaciones”) y crea una conversación nueva dentro de él.",
               "Paso 2. Haz clic en el botón + y sube el archivo de la cotización (espera a que aparezca su nombre).",
               "Paso 3. Copia el prompt de abajo con el botón “Copiar”.",
               "Paso 4. Pégalo en la caja de texto (clic derecho → Pegar, o Ctrl+V) y presiona Enter.",
@@ -765,9 +764,9 @@ Cuando te pida algo:
             h("Opción A — Presupuesto en HTML (se ve elegante y se imprime)"),
             p("El HTML es una página que se abre en el navegador y se ve muy profesional. Copia y pega este prompt (ya trae todo lo que Claude necesita):"),
             prompt(
-              `Adjunto la cotización detallada del proyecto.
+              `Actúa como asesor comercial de Ambiente Azul. Adjunto la cotización detallada del proyecto.
 
-Conviértela en un PRESUPUESTO FINAL en un solo archivo HTML, listo para abrir e imprimir. Requisitos:
+Conviértela en un PRESUPUESTO FINAL en un solo archivo HTML, listo para abrir e imprimir, pensado para presentárselo al cliente. Requisitos:
 - Encabezado con: nombre del proyecto, cliente, asesor, ciudad y fecha (déjalos en blanco si no están).
 - Agrupa los ítems por sistema (motobomba, filtración, desinfección, calefacción, iluminación, etc.), con su subtotal por grupo.
 - Una tabla por grupo con: ítem, cantidad, valor unitario y valor total.
@@ -787,7 +786,7 @@ Conviértela en un PRESUPUESTO FINAL en un solo archivo HTML, listo para abrir e
             h("Opción B — Que Claude te entregue el PDF directamente"),
             p("Si prefieres no hacer el paso de imprimir, pídele el PDF así:"),
             prompt(
-              `Con la misma cotización adjunta, genera un PRESUPUESTO FINAL en PDF, detallado pero ordenado:
+              `Actúa como asesor comercial de Ambiente Azul. Con la misma cotización adjunta, genera un PRESUPUESTO FINAL en PDF para el cliente, detallado pero ordenado:
 - Portada breve con proyecto, cliente y fecha.
 - Ítems agrupados por sistema con subtotales.
 - Totales claros: subtotal, IVA y valor final.
@@ -806,7 +805,7 @@ Mantén un diseño profesional y fácil de leer. Usa únicamente la información
             p("Cuando ya existe un contrato y un presupuesto final del mismo proyecto, conviene compararlos antes de firmar o facturar. Es fácil que se cuele una diferencia: un valor que no coincide, una cantidad distinta, un alcance que cambió o una forma de pago diferente. En vez de leer los dos documentos línea por línea, Claude los lee por ti y te dice en qué se diferencian."),
             h("Paso a paso"),
             list([
-              "Paso 1. Entra a claude.ai, abre tu proyecto y crea una conversación nueva dentro de él.",
+              "Paso 1. Entra a claude.ai, abre el proyecto del tema (ej. “Cotizaciones”) y crea una conversación nueva dentro de él.",
               "Paso 2. Haz clic en el botón + y sube el PRESUPUESTO FINAL.",
               "Paso 3. Haz clic OTRA VEZ en el botón + y sube también el CONTRATO. (Sí, puedes subir dos archivos en el mismo mensaje.)",
               "Paso 4. Copia y pega el prompt de abajo, y presiona Enter.",
@@ -822,9 +821,9 @@ Mantén un diseño profesional y fácil de leer. Usa únicamente la información
               "Plazos de entrega.",
             ]),
             prompt(
-              `Adjunto dos documentos del mismo proyecto: (1) el PRESUPUESTO FINAL y (2) el CONTRATO.
+              `Actúa como mi asistente de revisión. Adjunto dos documentos del mismo proyecto: (1) el PRESUPUESTO FINAL y (2) el CONTRATO.
 
-Compáralos y ayúdame a encontrar diferencias o posibles errores. Entrégame:
+Compáralos y ayúdame a encontrar diferencias o posibles errores (esto es para mí, uso interno). Entrégame:
 1. Una tabla con columnas: Concepto | Valor en el presupuesto | Valor en el contrato | ¿Coincide? (Sí/No).
    Incluye al menos: valor total, IVA, descuentos, anticipo/forma de pago, alcance y plazos.
 2. Una lista de "Diferencias a revisar" explicando cada punto que no coincida.
@@ -861,7 +860,7 @@ No saques conclusiones legales; solo señala las diferencias para que yo las ver
             ]),
             info("¿No ves la opción? A veces está dentro del mismo botón + o de un pequeño menú de ajustes junto a la caja. El nombre puede cambiar con las actualizaciones, pero siempre habla de “web” o “buscar”."),
             prompt(
-              `Activa la búsqueda web para responder esto:
+              `Actúa como asesor de Ambiente Azul y activa la búsqueda web para responder esto:
 
 Un cliente quiere saber el caudal (GPM) recomendado y el consumo aproximado de una bomba de calor de 105.000 BTU para una piscina de unos 75 m³.
 - Dame una respuesta corta y en lenguaje sencillo para el cliente.
@@ -910,9 +909,9 @@ Un cliente quiere saber el caudal (GPM) recomendado y el consumo aproximado de u
               "Paso 4. Copia la guía que te dé y envíasela al cliente (por correo o WhatsApp).",
             ]),
             prompt(
-              `Adjunto el manual del equipo (o pego el texto abajo).
+              `Actúa como asesor de Ambiente Azul. Adjunto el manual del equipo (o pego el texto abajo).
 
-Conviértelo en una guía sencilla para el cliente, así:
+Conviértelo en una guía sencilla para el cliente (que no es técnico), así:
 - Título amable y una frase de introducción.
 - Pasos numerados para el uso diario, en lenguaje simple y sin tecnicismos.
 - Una sección corta de "Cuidados" y otra de "Qué NO hacer".
