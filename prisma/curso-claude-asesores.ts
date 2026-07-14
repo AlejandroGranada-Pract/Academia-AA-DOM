@@ -221,7 +221,7 @@ async function construirModulos(): Promise<Modulo[]> {
 Cuando te pida algo:
 - Responde en español (Colombia), con un tono profesional pero cálido.
 - Ordena la información con claridad (por sistemas o capítulos) y resalta los beneficios para el cliente.
-- No inventes precios, garantías ni especificaciones: si faltan datos, déjalos marcados como "[por confirmar]".`,
+- NUNCA supongas ni inventes datos (precios, garantías, especificaciones, nombres): si te falta información, pregúntame o márcala como "[por confirmar]". Prefiero que preguntes a que adivines.`,
               "Instrucciones del proyecto “Cotizaciones”",
             ),
             h("Agrega los Archivos del tema"),
@@ -278,6 +278,7 @@ Cuando te pida algo:
             ]),
             image(imgReceta, "RAFA: Rol + Acción + Formato + Audiencia, con un ejemplo real."),
             prompt("Actúa como asesor comercial de Ambiente Azul. Escríbeme un correo de seguimiento, corto y cálido, de máximo 5 líneas, para un cliente que cotizó un jacuzzi hace dos semanas y no ha respondido; invítalo a agendar una llamada.", "Prompt con RAFA"),
+            warn("Regla de oro para TODOS tus prompts: pídele que NUNCA suponga ni invente. Si le falta un dato, que te lo pregunte o lo marque como “[por confirmar]” — así no te mete información falsa. Consejo: déjalo fijo en las Instrucciones de tu proyecto para que aplique siempre."),
             tip("Truco: el Rol puedes dejarlo fijo en las Instrucciones de tu Proyecto. Así, en cada prompt te concentras en la Acción, el Formato y la Audiencia."),
           ],
         },
@@ -1175,7 +1176,7 @@ Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantal
               "Personaliza con el nombre real y los datos correctos.",
               "Revisa y envía.",
             ]),
-            prompt("Actúa como asesor de Ambiente Azul. Escríbeme un correo cálido y corto (máx. 5 líneas) para un cliente que cotizó un spa hace 3 semanas y no responde, invitándolo a agendar una llamada esta semana.", "Prompt para practicar (RAFA)"),
+            prompt("Actúa como asesor de Ambiente Azul. Escríbeme un correo cálido y corto (máx. 5 líneas) para un cliente que cotizó un spa hace 3 semanas y no responde, invitándolo a agendar una llamada esta semana. No supongas ni inventes datos: si te falta algo, pregúntame o márcalo como [por confirmar].", "Prompt para practicar (RAFA)"),
           ],
         },
         {
@@ -1184,7 +1185,7 @@ Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantal
           blocks: [
             h("Comunicación con el canal técnico"),
             p("Redacta un correo profesional para un arquitecto presentando un material para un proyecto."),
-            prompt("Actúa como asesor de DOM Design. Redacta un correo profesional y breve para un arquitecto, presentándole la Zona PRO y ofreciéndole asesoría para especificar materiales en un proyecto de zona húmeda.", "Prompt para practicar (RAFA)"),
+            prompt("Actúa como asesor de DOM Design. Redacta un correo profesional y breve para un arquitecto, presentándole la Zona PRO y ofreciéndole asesoría para especificar materiales en un proyecto de zona húmeda. No supongas ni inventes datos: si te falta algo, pregúntame o márcalo como [por confirmar].", "Prompt para practicar (RAFA)"),
             tip("Pídele tono técnico y preciso; luego agrega las referencias oficiales."),
           ],
         },
@@ -1192,9 +1193,9 @@ Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantal
           title: "Ejercicio 3: explicar y resumir",
           durationMin: 7,
           blocks: [
-            h("Traduce y resume"),
+            h("Explica y resume en simple"),
             p("Toma un producto o una ficha que te cueste explicar y pídele una versión simple para el cliente."),
-            prompt("Actúa como asesor de AA | DOM. Explica en 3 frases sencillas, sin tecnicismos, un beneficio clave de [producto], para un cliente que no conoce el tema.", "Prompt para practicar (RAFA)"),
+            prompt("Actúa como asesor de AA | DOM. Explica en 3 frases sencillas, sin tecnicismos, un beneficio clave de [producto], para un cliente que no conoce el tema. No supongas ni inventes datos: si te falta algo, pregúntame o márcalo como [por confirmar].", "Prompt para practicar (RAFA)"),
             warn("Verifica cualquier dato técnico del resultado con la ficha oficial antes de enviárselo al cliente."),
             h("¡Felicitaciones!"),
             p("Ya tienes lo necesario para usar Claude en tu día a día como asesor de AA | DOM: pedir bien, aplicarlo a cada empresa y cada tipo de cliente, y hacerlo con criterio. Úsalo como tu aliado para vender mejor y ahorrar tiempo."),
@@ -1209,9 +1210,9 @@ Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantal
           {
             question: "El orden para usar Claude en un correo es…",
             type: "MULTIPLE_CHOICE",
-            options: ["Enviar y luego pensar", "Contexto → pedir → revisar → personalizar → enviar", "Copiar de otro correo", "No revisar"],
+            options: ["Enviar y luego pensar", "Pídelo con RAFA → revisa → personaliza → envía", "Copiar de otro correo", "No revisar"],
             correctAnswer: 1,
-            explanation: "Primero le das contexto y la tarea, luego revisas y personalizas.",
+            explanation: "Le pides bien con RAFA, revisas, personalizas con los datos reales y envías.",
           },
           {
             question: "Con un cliente de Ambiente Azul el tono ideal suele ser…",

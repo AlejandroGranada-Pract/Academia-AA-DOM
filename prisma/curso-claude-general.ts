@@ -199,7 +199,7 @@ async function construirModulos(): Promise<Modulo[]> {
 Cuando te pida algo:
 - Responde en español (Colombia), claro y sin tecnicismos, en tono profesional pero cercano.
 - Haz los correos breves y con un asunto sugerido.
-- Si te falta un dato, déjalo marcado como "[por confirmar]" en vez de inventarlo.`,
+- NUNCA supongas ni inventes datos (nombres, fechas, cifras): si te falta información, pregúntame o márcala como "[por confirmar]". Prefiero que preguntes a que adivines.`,
               "Instrucciones del proyecto “Correos”",
             ),
             tip("Regla simple: ¿tema nuevo? → proyecto nuevo. Abre el proyecto del tema y crea ahí una conversación por cada caso."),
@@ -254,6 +254,7 @@ Cuando te pida algo:
             ]),
             image(imgReceta, "RAFA: Rol + Acción + Formato + Audiencia, con un ejemplo real."),
             prompt("Actúa como mi asistente de oficina. Escríbeme un correo corto y cordial (máx. 5 líneas) para avisarle a mi equipo que la reunión se movió del martes al jueves a las 3 p. m.", "Prompt con RAFA"),
+            warn("Regla de oro para TODOS tus prompts: pídele que NUNCA suponga ni invente. Si le falta un dato, que te lo pregunte o lo marque como “[por confirmar]” — así no te mete información falsa. Consejo: déjalo fijo en las Instrucciones de tu proyecto para que aplique siempre."),
             tip("Truco: el Rol puedes dejarlo fijo en las Instrucciones de tu Proyecto. Así, en cada prompt te concentras en la Acción, el Formato y la Audiencia."),
           ],
         },
@@ -643,16 +644,16 @@ Cuando te pida algo:
               "Lee la respuesta y ajústala (tono, largo, saludo).",
               "Revisa y úsala.",
             ]),
-            prompt("Actúa como mi asistente de oficina. Escríbeme un correo corto y cordial, con un asunto sugerido, para avisarle a mi área que a partir del lunes cambia el horario de almuerzo.", "Prompt para practicar (RAFA)"),
+            prompt("Actúa como mi asistente de oficina. Escríbeme un correo corto y cordial, con un asunto sugerido, para avisarle a mi área que a partir del lunes cambia el horario de almuerzo. No supongas ni inventes datos: si te falta algo, pregúntame o márcalo como [por confirmar].", "Prompt para practicar (RAFA)"),
           ],
         },
         {
           title: "Ejercicio 2: resumir y ordenar",
           durationMin: 6,
           blocks: [
-            h("Traduce y resume"),
+            h("Resume y ordena"),
             p("Toma un documento o unas notas que tengas y pídele a Claude que las resuma u ordene."),
-            prompt("Actúa como mi asistente. Resume este texto en 5 puntos y dime si hay alguna tarea o fecha importante: [pega el texto].", "Prompt para practicar (RAFA)"),
+            prompt("Actúa como mi asistente. Resume este texto en 5 puntos y dime si hay alguna tarea o fecha importante: [pega el texto]. No supongas ni inventes nada: usa solo lo que está en el texto y, si algo no está, dímelo.", "Prompt para practicar (RAFA)"),
             warn("Verifica cualquier dato importante antes de usarlo."),
           ],
         },
@@ -662,9 +663,23 @@ Cuando te pida algo:
           blocks: [
             h("Que te lo expliquen fácil"),
             p("¿Hay algún término o proceso que te cueste? Pídele a Claude que te lo explique en simple."),
-            prompt("Actúa como un experto que explica fácil. Explícame en 3 frases sencillas, sin tecnicismos, qué es [tema] y por qué es importante en mi trabajo.", "Prompt para practicar (RAFA)"),
+            prompt("Actúa como un experto que explica fácil. Explícame en 3 frases sencillas, sin tecnicismos, qué es [tema] y por qué es importante en mi trabajo. No supongas ni inventes: si no estás seguro de algo, dímelo.", "Prompt para practicar (RAFA)"),
+          ],
+        },
+        {
+          title: "Ejercicio 4: tu caso real",
+          durationMin: 6,
+          blocks: [
+            h("Aplícalo a algo tuyo de esta semana"),
+            p("Elige una tarea real que tengas pendiente (un correo, un resumen, unas notas de reunión, una traducción) y resuélvela con Claude de principio a fin:"),
+            list([
+              "Abre —o crea— el proyecto del tema.",
+              "Escribe el pedido con RAFA (Rol · Acción · Formato · Audiencia) y recuérdale que no suponga ni invente.",
+              "Revisa lo que te dé y ajústalo hasta que quede.",
+              "Úsalo. ¡Acabas de ahorrarte un rato!",
+            ]),
             h("¡Felicitaciones!"),
-            p("Ya tienes lo necesario para usar Claude en tu día a día: pedir bien, trabajar ordenado con tu proyecto y tus archivos, y hacerlo con criterio. Úsalo como tu aliado para ahorrar tiempo y trabajar mejor."),
+            p("Ya tienes lo necesario para usar Claude en tu día a día: crear tu proyecto por tema, pedir bien con RAFA, trabajar con archivos y herramientas, resolver más tareas y hacerlo con criterio. Úsalo como tu aliado para ahorrar tiempo y trabajar mejor."),
           ],
         },
       ],
@@ -676,9 +691,9 @@ Cuando te pida algo:
           {
             question: "El orden para usar Claude en una tarea es…",
             type: "MULTIPLE_CHOICE",
-            options: ["Usar y luego pensar", "Contexto → pedir → revisar → usar", "Copiar de otro lado", "No revisar"],
+            options: ["Usar y luego pensar", "Pídelo con RAFA → revisa → ajusta → usa", "Copiar de otro lado", "No revisar"],
             correctAnswer: 1,
-            explanation: "Primero le das contexto y la tarea, luego revisas y usas.",
+            explanation: "Le pides bien (RAFA), revisas lo que te da, lo ajustas y lo usas.",
           },
           {
             question: "Trabajar dentro de tu Proyecto sirve para…",
