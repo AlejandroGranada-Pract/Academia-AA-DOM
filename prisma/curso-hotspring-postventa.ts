@@ -21,6 +21,20 @@ const prisma = new PrismaClient({
 const VIDEO_FILTRACION = "https://www.youtube.com/watch?v=aV1p8XBp3No";
 const VIDEO_SALINO = "https://www.youtube.com/watch?v=4g2Vmu1uSdw";
 
+// Videos how-to oficiales del canal "Hot Spring Spas" (verificados vía oEmbed).
+// Están en inglés → cada uno lleva su ficha-resumen en español debajo.
+const YT = (id: string) => `https://www.youtube.com/watch?v=${id}`;
+const HOWTO = {
+  quimicos: YT("0FFBSLjqe1w"),   // How to Add Chemicals to Your Hot Tub
+  triX: YT("7Z_-ybIDMqw"),       // How to Clean Your Hot Spring Spas Tri-X Filter
+  filtro: YT("I9D8o9Rc05g"),     // How to Clean Your Hot Spring Hot Tub Filter
+  coverCradle: YT("SEdymZetBy0"),// CoverCradle
+  coverCradle2: YT("GaSXMzPzE60"),// CoverCradle II
+  upRite: YT("DFj3g9F7mZU"),     // UpRite
+  liftNGlide: YT("mkASnfkbvA0"), // Lift 'N Glide
+  numeroSerie: YT("azIBrAjZJNI"),// How to Find the Serial Number
+};
+
 function modulos(): Modulo[] {
   return [
     // ===== MÓDULO 0 — Fundamentos (reutilizado del Curso Comercial) =====
@@ -122,6 +136,10 @@ function modulos(): Modulo[] {
               "Ozono FreshWater III: alternativa/opción en Limelight y Hot Spot. Usa celdas de descarga Corona para generar ozono. Importante: NO es compatible con el sistema salino ni con el SMI.",
               "Filtros Tri-X: cartuchos de gran área de filtración (6 m² cada uno). Se lavan con manguera o en el lavavajillas SIN jabón ni ciclo de secado. Durables; con rotación duran años.",
             ]),
+            video(HOWTO.triX),
+            info("Resumen del video (oficial, en inglés): cómo retirar y limpiar el filtro Tri-X — enjuagar con manguera (o lavavajillas sin jabón), dejar secar al aire y rotarlo para que dure más."),
+            video(HOWTO.filtro),
+            info("Resumen del video (oficial, en inglés): limpieza del filtro estándar del spa — retirar, enjuagar los pliegues con agua a presión y volver a colocar. Recuérdale al cliente hacerlo con la frecuencia del calendario de mantenimiento."),
           ],
         },
         {
@@ -311,7 +329,16 @@ function modulos(): Modulo[] {
                 ["UpRite", "18 cm", "Para espacios muy ajustados; levanta por detrás"],
               ],
             ),
-            info("Hay videos oficiales del uso de cada elevador en la página de propietarios."),
+            h("Cómo se usa cada elevador (videos oficiales)"),
+            info("Los siguientes videos son del canal oficial Hot Spring (en inglés). Resumen en español: todos muestran lo mismo — cómo abrir y cerrar la cubierta con ese elevador y cuánto espacio libre necesita detrás del spa. Úsalos para mostrarle al cliente qué tan fácil es y para elegir el modelo según su espacio."),
+            video(HOWTO.coverCradle),
+            info("CoverCradle — el más cómodo (resortes a gas). Requiere 61 cm libres detrás."),
+            video(HOWTO.coverCradle2),
+            info("CoverCradle II — versión de un solo resorte a gas. Requiere 61 cm libres detrás."),
+            video(HOWTO.upRite),
+            info("UpRite — levanta la cubierta por detrás; ideal para espacios muy ajustados (solo 18 cm)."),
+            video(HOWTO.liftNGlide),
+            info("Lift 'N Glide — económico, sube y desliza. Requiere 36 cm libres detrás."),
           ],
         },
         {
@@ -490,6 +517,8 @@ function modulos(): Modulo[] {
                 ["Anual", "Cambio de agua (con salino puede llegar hasta 12 meses); cambio del filtro del Vigor"],
               ],
             ),
+            video(HOWTO.quimicos),
+            info("Resumen del video (oficial, en inglés): cómo y dónde añadir los químicos al spa — con la bomba de circulación encendida, dosificar según la prueba del agua y esperar antes de volver a usarlo. Es la base del ajuste semanal de la rutina."),
           ],
         },
         {
@@ -562,8 +591,10 @@ function modulos(): Modulo[] {
             list([
               "La garantía aplica solo al comprador original, con el spa instalado en el país de compra y adquirido a un distribuidor autorizado.",
               "Se anula si el spa se traspasa a otro dueño o se reubica fuera del país.",
-              "Para un reclamo: contactar al distribuidor donde se compró, con el número de serie del spa (hay un video oficial de cómo encontrarlo) y la factura original.",
+              "Para un reclamo: contactar al distribuidor donde se compró, con el número de serie del spa y la factura original.",
             ]),
+            video(HOWTO.numeroSerie),
+            info("Resumen del video (oficial, en inglés): dónde encontrar el número de serie del spa — normalmente en una etiqueta dentro del compartimiento del equipo, detrás del panel de acceso. Es el dato que se pide para cualquier reclamo de garantía o pedido de repuesto."),
             h("Puntos clave"),
             list([
               "Highlife tiene la mejor cobertura (casco 7 años); Freeflow y Hot Spot las más cortas.",
