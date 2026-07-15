@@ -8,8 +8,11 @@ import { prisma } from "@/lib/db";
 // La validación autoritativa (incluido el jti de un solo uso) vive en el
 // provider "sso"; aquí solo pre-validamos para dar mensajes de error claros.
 export async function GET(req: NextRequest) {
+  // Detrás del proxy de Heroku, req.nextUrl.origin resuelve a localhost;
+  // usar NEXTAUTH_URL como base y solo caer al origin actual si no está definida.
+  const base = process.env.NEXTAUTH_URL || req.nextUrl.origin;
   const irALogin = (codigo: string) =>
-    NextResponse.redirect(new URL(`/login?error=${codigo}`, req.nextUrl.origin));
+    NextResponse.redirect(new URL(`/login?error=${codigo}`, base));
 
   const token = req.nextUrl.searchParams.get("token");
   if (!token) return irALogin("sso");
