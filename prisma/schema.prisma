@@ -303,3 +303,10 @@ model Certificate {
 
   @@unique([userId, courseId])
 }
+
+// Tokens de paso SSO ya canjeados (anti-replay: cada jti se usa una sola vez).
+// Las filas viejas se limpian oportunísticamente en cada canje.
+model SsoJti {
+  jti     String   @id
+  usadoEn DateTime @default(now())
+}
