@@ -42,6 +42,11 @@ function parseDriveId(url: string): string | null {
   const m = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
   return m ? m[1] : null;
 }
+// Vimeo: soporta vimeo.com/ID y vimeo.com/ID/HASH (videos ocultos) y player.vimeo.com/video/ID
+function parseVimeo(url: string): { id: string; hash?: string } | null {
+  const m = url.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([\w]+))?/);
+  return m ? { id: m[1], hash: m[2] } : null;
+}
 
 export function VideoEmbed({
   url,
@@ -185,10 +190,13 @@ export function VideoEmbed({
     );
   }
 
-  // --- Google Drive u otra fuente (no rastreable): embed simple ---
-  const src = driveId
-    ? `https://drive.google.com/file/d/${driveId}/preview`
-    : url;
+  // --- Vimeo / Google Drive u otra fuente (no rastreable): embed simple ---
+  const vimeo = parseVimeo(url);
+  const src = vimeo
+    ? `https://player.vimeo.com/video/${vimeo.id}${vimeo.hash ? `?h=${vimeo.hash}` : ""}`
+    : driveId
+      ? `https://drive.google.com/file/d/${driveId}/preview`
+      : url;
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
       <iframe
