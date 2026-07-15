@@ -17,6 +17,30 @@ export const descargable = (nombre: string): Block => ({
   text: `📄 Recurso descargable: ${nombre}. (Se adjunta el PDF para descarga.)`,
 });
 
+// PDF descargable real, hospedado en Drive (carpeta "Capacitacion HotSpring -
+// Descargables", compartida como "cualquiera con el enlace: lector"). El portal
+// embebe la vista previa y ofrece el botón "Abrir".
+export const pdf = (id: string, title: string): Block => ({
+  type: "pdf",
+  url: `https://drive.google.com/file/d/${id}/view`,
+  title,
+});
+
+// IDs de Drive de los descargables oficiales (el FiberCor NO se incluye: confidencial).
+export const DRIVE = {
+  guiaProducto: "1hNoFT_ymjtvBWXytqhKzN5S8U8AOXuCX",
+  preHighlife: "1dp0rQGue3v3bFQUHAAICAm6izPoWTA4J",
+  preLimelight: "1kaBHODt8yFUphGy5AkGWVVYHtTTNTk2x",
+  preHotSpot: "1eBV4W0xtS7dlqUk1sYacdS37igoyTJFP",
+  preFreeflow: "1dtfpkbQZmPMjpbbSbqW1RmD7A0QkijiB",
+  coverMatrix: "1OwlFqPfFBJKFCmSDsgvfyN5s83YCsWcW",
+  garHighlife: "1v_dmO-tGPJ7d0FQqTPubo-Q_dQeY31Y4",
+  garLimelight: "1RuH1D4MmGfZpaL2Dxm1d32Zhj_HUvmaa",
+  garHotSpot: "19_tY-0AevJqojQYDBf1h9D1SW8lqMGhJ",
+  garFreeflow: "1ebFAFdNIy8i4wriZ0vaBSoOXI1ISDkLv",
+  garVigor: "1zlEkXghuGa29-eKQeHwtpMa-2-NbdYJb",
+} as const;
+
 export type Pregunta = {
   question: string;
   type: "MULTIPLE_CHOICE" | "TRUE_FALSE";
@@ -82,6 +106,9 @@ export function moduloFundamentos(): Modulo {
           ),
           p("La lógica de venta es sencilla: primero identificas al comprador, después le muestras la colección que encaja. Un cliente que busca lo mejor no debería empezar viendo un Hot Spot; y a uno sensible al presupuesto no lo abrumes con un Highlife de siete puestos. Freeflow es la puerta de entrada; Vigor es venta cruzada con cualquier spa."),
           tip("Cómo usarlo con el cliente: ubica al cliente en la escalera con dos o tres preguntas (Módulo “Cómo elegir el spa”). Luego ancla la conversación en la colección correcta y, si lo valora, muéstrale qué gana subiendo un escalón."),
+          h("Material de referencia"),
+          p("Guía de producto oficial del fabricante (en español). Es la fuente principal de especificaciones, colecciones e imágenes; tenla a mano para consultar detalles. Nota: es la versión 50 Hz — para datos eléctricos usa siempre las guías de preinstalación (60 Hz)."),
+          pdf(DRIVE.guiaProducto, "Guía de producto HotSpring 2025 (español, 50 Hz)"),
           h("Puntos clave"),
           list([
             "El spa combina calor + flotación + hidroterapia; se vende la experiencia, no la ficha.",

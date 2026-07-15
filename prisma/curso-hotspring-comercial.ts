@@ -2,7 +2,7 @@ import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import {
-  h, p, list, info, tip, warn, video, table, descargable,
+  h, p, list, info, tip, warn, video, table, pdf, DRIVE,
   moduloFundamentos, type Modulo,
 } from "./seed-assets/hotspring-contenido";
 
@@ -359,7 +359,11 @@ function modulos(): Modulo[] {
               "Seguridad: se recomienda barrera para evitar el acceso de niños menores de 5 años. Deja acceso libre al compartimiento del equipo y nunca permitas que el agua entre al subpanel o a la toma.",
             ]),
             warn("⚠️ Extraer o desactivar el disyuntor GFCI anula la garantía."),
-            descargable("Guías de preinstalación por colección (Highlife, Limelight, Hot Spot, Freeflow)"),
+            p("Guías de preinstalación oficiales (60 Hz) — descárgalas para revisar los requisitos eléctricos, de suelo y de acceso de cada colección:"),
+            pdf(DRIVE.preHighlife, "Preinstalación Highlife (español, 60 Hz)"),
+            pdf(DRIVE.preLimelight, "Preinstalación Limelight (español, 60 Hz)"),
+            pdf(DRIVE.preHotSpot, "Preinstalación Hot Spot (español, 60 Hz)"),
+            pdf(DRIVE.preFreeflow, "Preinstalación Freeflow (60 Hz)"),
             tip("Antes de cerrar, haz una mini-lista del sitio: ¿base de hormigón nivelada?, ¿punto eléctrico adecuado (110 V o 230 V según el modelo)?, ¿cabe por el acceso?, ¿espacio para el elevador de cubierta? Anticiparlo evita clientes molestos y sobrecostos."),
             h("Puntos clave"),
             list([

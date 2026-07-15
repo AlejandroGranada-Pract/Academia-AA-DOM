@@ -118,7 +118,8 @@ export function VideoEmbed({
         width: "100%",
         height: "100%",
         videoId: ytId,
-        playerVars: { rel: 0, modestbranding: 1 },
+        // Subtítulos en español por defecto (los videos oficiales están en inglés).
+        playerVars: { rel: 0, modestbranding: 1, cc_lang_pref: "es", cc_load_policy: 1 },
         events: {
           onStateChange: (e: any) => {
             if (e.data === YT.PlayerState.PLAYING) {

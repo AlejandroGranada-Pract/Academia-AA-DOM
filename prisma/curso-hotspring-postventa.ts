@@ -2,7 +2,7 @@ import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import {
-  h, p, list, info, tip, warn, video, table, descargable,
+  h, p, list, info, tip, warn, video, table, pdf, DRIVE,
   moduloFundamentos, type Modulo,
 } from "./seed-assets/hotspring-contenido";
 
@@ -294,7 +294,7 @@ function modulos(): Modulo[] {
               "Toma el número: el que termina en C es la cubierta; el que termina en E es el encasement (funda exterior).",
               "Verifica si incluye hinge seal (sello de bisagra).",
             ]),
-            descargable("Cover Matrix — números de parte de cubiertas por colección/modelo/año/color"),
+            pdf(DRIVE.coverMatrix, "Cover Matrix 2026 — números de parte de cubiertas (Excel)"),
             warn("El forro de cubierta de fabricación nacional (vinilcuero náutico) es un accesorio, no un reemplazo de esta cubierta. Ver Módulo 6."),
           ],
         },
@@ -539,7 +539,12 @@ function modulos(): Modulo[] {
                 ["Iluminación", "2 años", "3 años", "2 int / 1 ext", "incl.", "2 años"],
               ],
             ),
-            descargable("Certificados de garantía por colección (Highlife, Limelight, Hot Spot, Freeflow, Vigor)"),
+            p("Certificados de garantía oficiales por colección (60 Hz) — descárgalos para consultar los términos exactos:"),
+            pdf(DRIVE.garHighlife, "Garantía Highlife (60 Hz)"),
+            pdf(DRIVE.garLimelight, "Garantía Limelight (60 Hz)"),
+            pdf(DRIVE.garHotSpot, "Garantía Hot Spot (60 Hz)"),
+            pdf(DRIVE.garFreeflow, "Garantía Freeflow (60 Hz)"),
+            pdf(DRIVE.garVigor, "Garantía Vigor Cold Plunge"),
           ],
         },
         {
