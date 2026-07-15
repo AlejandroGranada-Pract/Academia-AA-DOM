@@ -86,6 +86,8 @@ export function moduloFundamentos(): Modulo {
           p("HotSpring, fabricada por Watkins Wellness, es la marca de spas más vendida del mundo, con más de 45 años perfeccionando el arte del masaje con agua caliente. Su promesa de marca resume su filosofía: “Every Day Made Better” — cada día, mejor. Detrás hay una calidad legendaria: cascos de acrílico coextruido con refuerzo de ABS resistente a impactos, subestructura y base de polímero que no se oxidan ni se pudren, y una ingeniería pensada para durar años."),
           info("Por qué importa en la venta: un spa es una inversión de largo plazo. El cliente necesita confiar en que la marca estará ahí en 5 o 10 años. Comprar un HotSpring con Ambiente Azul = la marca más vendida del mundo + un representante exclusivo que responde en el país."),
           tip("Cómo usarlo con el cliente: cuando dude, lleva la conversación al respaldo. “Este equipo lo va a tener muchos años; con nosotros tiene la marca líder del mundo y servicio propio en Colombia.” El showroom es tu mejor herramienta: invítalo a vivir la experiencia."),
+          video("https://vimeo.com/839910126/6508f709f2"),
+          info("Resumen del video (oficial, en inglés): “¿Por qué elegir un spa Hot Spring?” — repasa en 2 minutos por qué es la marca más vendida del mundo: calidad, hidroterapia, eficiencia y respaldo. Buen abrebocas para presentar la marca al cliente."),
         ],
       },
       {

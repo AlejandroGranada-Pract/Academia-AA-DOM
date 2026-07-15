@@ -49,6 +49,8 @@ function modulos(): Modulo[] {
               ],
             ),
             info("Varios modelos incluyen asiento para recostarse (lounge), donde se ubica el Moto-Massage DX para masaje de espalda completo."),
+            video("https://vimeo.com/839911429/3306d12de4"),
+            info("Resumen del video (oficial, en inglés): “¿Por qué la colección Highlife?” — muestra el diseño arquitectónico, la mejor hidroterapia y el Moto-Massage DX que definen la gama superior."),
           ],
         },
         {
@@ -67,6 +69,8 @@ function modulos(): Modulo[] {
                 ["Beam", "4", "19", "Compacto para cuatro"],
               ],
             ),
+            video("https://vimeo.com/839913099/59e7f96120"),
+            info("Resumen del video (oficial, en inglés): “¿Por qué elegir un Limelight?” — resalta el estilo contemporáneo, la iluminación y el gabinete Everwood de la gama intermedia."),
           ],
         },
         {
@@ -85,6 +89,8 @@ function modulos(): Modulo[] {
                 ["TX", "2", "11", "El más pequeño, uso individual/pareja"],
               ],
             ),
+            video("https://vimeo.com/840642515/32256e3e65"),
+            info("Resumen del video (oficial, en inglés): “¿Por qué elegir un Hot Spot?” — la calidad y la hidroterapia HotSpring al precio más accesible; ideal para entrar a la marca."),
           ],
         },
         {
@@ -133,6 +139,8 @@ function modulos(): Modulo[] {
             video(VIDEO_HIGHLIFE),
             info("Resumen del video (Introducción Highlife, en inglés): recorre la experiencia Highlife —diseño, hidroterapia y el jet Moto-Massage DX—. Puntos clave en español: masaje diferenciado por asiento, ubicación precisa de los jets y el Moto-Massage DX exclusivo de Highlife."),
             tip("Cómo usarlo con el cliente: cuando se siente en el spa del showroom, guíalo. “Este asiento trabaja la espalda alta, este otro las pantorrillas.” El objetivo es que sienta el masaje diferenciado, no que memorice nombres."),
+            video("https://vimeo.com/840642989/b0683b92b3"),
+            info("Resumen del video (oficial, en inglés): “¿Por qué menos jets?” — explica que lo que importa es la ubicación y la potencia bien dirigida, no la cantidad de jets. Justo el argumento de esta lección."),
           ],
         },
         {
@@ -149,6 +157,8 @@ function modulos(): Modulo[] {
               "HydroStream — corriente vigorosa y ajustable para espalda baja y cadera.",
               "Precision y Precision Rotary — jets compactos que trabajan en grupo para cuello, hombros, manos, muñecas y codos.",
             ]),
+            video("https://vimeo.com/839911168/ed78339154"),
+            info("Resumen del video (oficial, en inglés): “¿Por qué el Moto-Massage?” — muestra en acción el jet estrella de Highlife: dos corrientes que recorren la espalda de arriba a abajo. Tu mejor demostración del diferencial premium."),
           ],
         },
         {
@@ -195,6 +205,8 @@ function modulos(): Modulo[] {
             info("Por qué importa en la venta: el cliente premium valora no llevarse sorpresas en la factura. La eficiencia es tranquilidad y un diferencial real frente a marcas que ahorran en aislamiento."),
             video(VIDEO_FILTRACION),
             info("Resumen del video (Filtración 100% sin desviación, en inglés): explica que toda el agua pasa por el filtro antes de volver al spa → agua más limpia y filtros que duran más. Se profundiza en el Curso de Postventa."),
+            video("https://vimeo.com/843355683/e92cd30c7a"),
+            info("Resumen del video (oficial, en inglés): “¿Por qué nuestro sistema de eficiencia energética?” — resume cómo el aislamiento, la bomba de circulación y la cubierta mantienen el spa caliente con bajo consumo. Refuerza el argumento del ahorro."),
           ],
         },
         {
@@ -268,6 +280,8 @@ function modulos(): Modulo[] {
             ]),
             h("Audio inalámbrico"),
             p("Sistema de audio Bluetooth: opción para Highlife, Limelight y Hot Spot (de fábrica en Relay, Rhythm y Propel de Hot Spot). Muestra título y artista en el panel y admite subwoofer opcional para mejor calidad (no disponible en Jetsetter LX ni Jetsetter)."),
+            video("https://vimeo.com/840643638/c324d5a25b"),
+            info("Resumen del video (oficial, en inglés): “¿Por qué la luz del logo Hot Spring?” — muestra cómo la iluminación exterior del logo y del spa crean ambiente. Un detalle sensorial que enamora en la demostración nocturna."),
             tip("La experiencia sensorial se demuestra, no se explica. En el showroom, enciende la iluminación, activa la cascada, pon música. Deja que el cliente imagine su noche: la luz, el sonido del agua, la música. Ese momento vende más que cualquier ficha."),
             h("Puntos clave"),
             list([
@@ -454,6 +468,8 @@ function modulos(): Modulo[] {
               "Confianza de marca: “The Brand You Can Trust” — calidad y servicio respaldados por décadas.",
               "Experiencias reales: testimonios de propietarios satisfechos que validan la propuesta.",
             ]),
+            video("https://vimeo.com/839910898/df2c47f72b"),
+            info("Resumen del video (oficial, en inglés): “¿Por qué la sal FreshWater?” — explica el cuidado del agua salina: agua más suave, sin olor y con menos mantenimiento. Apoya la ventaja del “cuidado del agua simplificado”."),
           ],
         },
         {
@@ -470,6 +486,10 @@ function modulos(): Modulo[] {
               ],
             ),
             p("La postventa como argumento: un distribuidor autorizado entiende de instalación, sistemas de agua y da soporte de por vida. Las grandes superficies venden productos; nosotros acompañamos la experiencia de propiedad. Garantía, repuestos y servicio propio son parte del valor que se paga — y un argumento de venta, no un costo."),
+            video("https://vimeo.com/840652178/84cfbaf95a"),
+            info("Resumen del video (oficial, en inglés): “¿Por qué vale la pena un Hot Spring?” — justifica la inversión frente al precio. Úsalo para la objeción “está caro”."),
+            video("https://vimeo.com/840643386/da7607b21c"),
+            info("Resumen del video (oficial, en inglés): “¿Por qué tu distribuidor local?” — el valor del respaldo autorizado (servicio, repuestos, garantía). Ideal para la objeción de comprar por internet."),
             warn("Regla de oro: nunca denigres a la competencia. Diferénciate por valor, no por atacar."),
             h("Puntos clave"),
             list([
