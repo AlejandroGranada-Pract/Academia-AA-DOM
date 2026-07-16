@@ -112,6 +112,26 @@ async function construirModulos(): Promise<Modulo[]> {
           ],
         },
         {
+          title: "Claude en tu celular (y por voz)",
+          durationMin: 7,
+          blocks: [
+            h("Claude también va en tu bolsillo"),
+            p("No tienes que estar frente al computador. Claude tiene app para celular (iPhone y Android) y también funciona desde el navegador del teléfono. Inicias sesión con la misma cuenta y verás los mismos proyectos y conversaciones: lo que empiezas en el computador lo sigues en el celular, y al revés."),
+            h("Cómo instalarlo, paso a paso"),
+            list([
+              "Paso 1. En tu celular, abre la App Store (iPhone) o Google Play (Android).",
+              "Paso 2. Busca “Claude” (el desarrollador es Anthropic) e instálala.",
+              "Paso 3. Ábrela e inicia sesión con la misma cuenta que usas en el computador.",
+              "Paso 4. Listo: tus proyectos y chats aparecen igual que en claude.ai.",
+            ]),
+            h("Háblale por voz en vez de escribir"),
+            p("Si estás de afán o con las manos ocupadas, puedes dictarle: toca el ícono del micrófono y habla natural, como le hablarías a un compañero. Claude convierte tu voz en texto y responde. Es ideal cuando estás fuera de la oficina."),
+            prompt("Actúa como mi asistente. Te voy a dictar unas ideas sueltas; ordénalas en una lista clara de tareas con lo más importante primero: [dicta aquí]", "Prompt — dictar y ordenar"),
+            tip("Al dictar no necesitas que quede perfecto. Suelta la idea y luego pídele “ordénalo” o “hazlo más formal”."),
+            warn("Cuida lo que dictas en voz alta si hay gente cerca, y no compartas datos sensibles. Revisa el módulo “Úsalo con cabeza”."),
+          ],
+        },
+        {
           title: "Qué puede hacer por ti",
           durationMin: 6,
           blocks: [
@@ -165,6 +185,13 @@ async function construirModulos(): Promise<Modulo[]> {
             options: ["Empezar de cero siempre", "Decirle qué cambiar en la misma conversación", "Cerrar sesión", "Dejarlo así"],
             correctAnswer: 1,
             explanation: "Afinar es rápido: le dices qué ajustar y lo rehace.",
+          },
+          {
+            question: "Sobre usar Claude en el celular:",
+            type: "MULTIPLE_CHOICE",
+            options: ["No existe, solo funciona en computador", "Hay app para iPhone y Android, con la misma cuenta, y puedes dictarle por voz", "Toca pagar otra suscripción aparte", "Solo sirve para leer, no para escribir"],
+            correctAnswer: 1,
+            explanation: "La app usa tu misma cuenta (mismos proyectos y chats) y puedes dictar con el micrófono.",
           },
         ],
       },
@@ -350,6 +377,25 @@ Cuando te pida algo:
           ],
         },
         {
+          title: "Muéstrale una foto (Claude también ve imágenes)",
+          durationMin: 7,
+          blocks: [
+            h("Claude también “ve” imágenes"),
+            p("Además de documentos, puedes mostrarle una foto o una captura de pantalla y pedirle que la lea, la describa o saque los datos. Se sube igual que un archivo: con el botón + junto a la caja de texto. Desde el celular puedes tomar la foto en el momento."),
+            image(imgAdjuntar, "Una foto se adjunta igual que un archivo: botón + junto a la caja de texto (o toma la foto desde el celular)."),
+            h("Para qué te sirve"),
+            list([
+              "Captura de un mensaje o correo largo → “resúmeme esto y dime qué me están pidiendo”.",
+              "Foto de un documento o recibo → “sácame los datos importantes en una lista”.",
+              "Foto de un cartel o pantalla en otro idioma → “tradúceme lo que dice”.",
+              "Foto de notas escritas a mano → “pásalas a texto limpio y ordenado”.",
+            ]),
+            prompt("Actúa como mi asistente. Te adjunto la foto de un documento. Léela y dame en una lista los datos importantes (fechas, nombres, valores y cualquier tarea o pendiente).", "Prompt — leer una foto"),
+            tip("Entre más clara y enfocada esté la foto (buena luz, texto legible), mejor la lee."),
+            warn("Claude puede equivocarse leyendo números o medidas de una imagen: verifica siempre los datos críticos. Y no subas fotos con información personal sensible."),
+          ],
+        },
+        {
           title: "Busca información actualizada (búsqueda web)",
           durationMin: 7,
           blocks: [
@@ -409,6 +455,13 @@ Cuando te pida algo:
             options: ["Que Claude consulte internet y cite la fuente", "Cambiar el idioma", "Borrar la conversación", "Subir archivos"],
             correctAnswer: 0,
             explanation: "Actívala cuando necesites información actual o verificable.",
+          },
+          {
+            question: "Le puedes mostrar a Claude una foto o captura para que la lea o saque sus datos.",
+            type: "TRUE_FALSE",
+            options: ["Verdadero", "Falso"],
+            correctAnswer: 0,
+            explanation: "Verdadero: se adjunta igual que un archivo. Verifica los datos críticos (números/medidas).",
           },
           {
             question: "Un dato encontrado en la web se puede dar por cierto sin revisar la fuente.",

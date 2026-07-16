@@ -135,6 +135,26 @@ async function construirModulos(): Promise<Modulo[]> {
           ],
         },
         {
+          title: "Claude en tu celular (y por voz)",
+          durationMin: 7,
+          blocks: [
+            h("Claude también va en tu bolsillo"),
+            p("En el showroom, en obra o visitando un cliente casi nunca estás frente al computador. Claude tiene app para celular (iPhone y Android) y también funciona desde el navegador del teléfono. Inicias sesión con la misma cuenta y verás los mismos proyectos y conversaciones: lo que empiezas en el computador lo sigues en el celular, y al revés."),
+            h("Cómo instalarlo, paso a paso"),
+            list([
+              "Paso 1. En tu celular, abre la App Store (iPhone) o Google Play (Android).",
+              "Paso 2. Busca “Claude” (el desarrollador es Anthropic) e instálala.",
+              "Paso 3. Ábrela e inicia sesión con la misma cuenta que usas en el computador.",
+              "Paso 4. Listo: tus proyectos y chats aparecen igual que en claude.ai.",
+            ]),
+            h("Háblale por voz en vez de escribir"),
+            p("Si estás con las manos ocupadas o de afán, puedes dictarle: toca el ícono del micrófono y habla natural, como le hablarías a un compañero. Claude convierte tu voz en texto y responde. Perfecto para no perder tiempo entre visita y visita."),
+            prompt("Actúa como mi asistente comercial. Te voy a dictar lo que me pidió un cliente en la visita; ordénalo y propón el siguiente paso de seguimiento: [dicta aquí]", "Prompt — dictar tras una visita"),
+            tip("Al salir de una reunión, dicta lo que hablaste y pídele “resúmelo y dime qué le respondo”. Llegas al carro con la tarea medio hecha."),
+            warn("Cuida lo que dictas en voz alta si hay clientes o gente cerca, y no compartas datos sensibles. Revisa el módulo “Úsalo con cabeza”."),
+          ],
+        },
+        {
           title: "Qué puede hacer por ti",
           durationMin: 6,
           blocks: [
@@ -187,6 +207,13 @@ async function construirModulos(): Promise<Modulo[]> {
             options: ["Empezar de cero siempre", "Decirle qué cambiar en la misma conversación", "Cerrar sesión", "Dejarlo así"],
             correctAnswer: 1,
             explanation: "Afinar es rápido: le dices qué ajustar y lo rehace.",
+          },
+          {
+            question: "Sobre usar Claude en el celular durante una visita:",
+            type: "MULTIPLE_CHOICE",
+            options: ["No existe, solo funciona en computador", "Hay app para iPhone y Android con la misma cuenta, y puedes dictarle por voz", "Hay que pagar otra suscripción", "Solo lee, no responde"],
+            correctAnswer: 1,
+            explanation: "La app usa tu misma cuenta (mismos proyectos y chats) y puedes dictar con el micrófono.",
           },
         ],
       },
@@ -782,6 +809,27 @@ No inventes datos; si falta información, márcala como "[por confirmar]".`,
           ],
         },
         {
+          title: "Muéstrale una foto (Claude también ve imágenes)",
+          durationMin: 8,
+          blocks: [
+            h("Claude también “ve” imágenes"),
+            p("No solo lee documentos: también puedes mostrarle una foto o una captura de pantalla y pedirle que la lea, la describa o saque los datos. Se adjunta igual que un archivo (botón +), y desde el celular puedes tomar la foto en el momento —justo cuando estás con el cliente o en el sitio—."),
+            image(imgAdjuntar, "Una foto se adjunta igual que un archivo: botón + junto a la caja de texto (o tómala desde el celular)."),
+            h("Usos que te sirven en ventas"),
+            list([
+              "Foto del sitio o la terraza del cliente → “¿qué debo tener en cuenta para instalar aquí un spa/piscina?” (accesos, base, espacio).",
+              "Foto de un material o acabado (enchape, porcelanato, piedra) → “descríbeme este material para explicárselo al cliente” o “sugiere combinaciones”.",
+              "Captura de una cotización de la competencia → “resúmela y compárala con nuestra propuesta punto por punto”.",
+              "Foto de medidas escritas a mano → “pásalas a limpio en una tabla ordenada”.",
+              "Captura de un mensaje largo del cliente → “resúmeme qué me está pidiendo y qué le respondo”.",
+            ]),
+            prompt("Actúa como asesor experto de Ambiente Azul. Te adjunto la foto del espacio del cliente. Descríbeme qué ves y dame una lista de puntos a verificar antes de proponer un spa (accesos, base nivelada, punto eléctrico, espacio alrededor). No supongas datos que no se vean en la foto; si falta algo, dímelo.", "Prompt — foto del sitio (Ambiente Azul)"),
+            prompt("Actúa como especialista en materiales de DOM Design. Te adjunto la foto de un acabado. Descríbelo en lenguaje sencillo para un cliente (color, textura, estilo, dónde queda bien) y sugiere 2 combinaciones. Si no puedes identificar algo con certeza, dilo en vez de inventarlo.", "Prompt — foto de un material (DOM)"),
+            tip("Entre más clara y enfocada esté la foto (buena luz, texto legible), mejor la lee."),
+            warn("Claude puede equivocarse leyendo números o medidas de una imagen: verifica siempre los datos críticos antes de pasárselos a un cliente. Y no subas fotos con información personal o comercial sensible."),
+          ],
+        },
+        {
           title: "De la cotización al presupuesto final",
           durationMin: 14,
           blocks: [
@@ -990,6 +1038,13 @@ Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantal
             ],
             correctAnswer: 2,
             explanation: "Solo debe ordenar la información del archivo; los datos no se inventan.",
+          },
+          {
+            question: "Puedes mostrarle a Claude la foto del sitio del cliente o de un material para que la describa.",
+            type: "TRUE_FALSE",
+            options: ["Verdadero", "Falso"],
+            correctAnswer: 0,
+            explanation: "Verdadero: se adjunta como un archivo. Verifica los datos críticos (medidas/números) antes de usarlos con el cliente.",
           },
           {
             question: "Al comparar contrato y presupuesto, Claude…",
