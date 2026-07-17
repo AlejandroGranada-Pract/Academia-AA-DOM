@@ -517,11 +517,39 @@ function modulos(): Modulo[] {
       title: "Proceso comercial Ambiente Azul",
       lecciones: [
         {
-          title: "Contenido en preparación",
+          title: "Seguridad de uso del spa (orientación al cliente)",
+          durationMin: 7,
+          blocks: [
+            p("Parte de una buena venta y entrega es enseñarle al cliente a usar el spa con seguridad. Estas son recomendaciones generales de uso; los límites exactos y las advertencias del modelo específico están en el manual del equipo — remítete siempre a él."),
+            h("Temperatura y tiempo"),
+            list([
+              "Temperatura del agua: el máximo recomendado por la industria para adultos sanos es 40 °C (104 °F). Para niños y uso prolongado, más baja.",
+              "Tiempo de inmersión: sesiones de 15–20 minutos. Salir de inmediato si aparece mareo, somnolencia o malestar.",
+              "Hidratarse antes y después; el calor del agua deshidrata.",
+            ]),
+            h("Quién debe tener precaución"),
+            list([
+              "Embarazo: consultar al médico antes de usar; el agua muy caliente puede ser riesgosa.",
+              "Condiciones médicas (corazón, presión, diabetes, circulación): consultar al médico antes de usar.",
+              "Niños: supervisión permanente, nunca solos, con temperatura más baja y menos tiempo.",
+              "Nunca usar el spa bajo efectos de alcohol o medicamentos que den sueño.",
+            ]),
+            h("Seguridad física"),
+            list([
+              "Entrar y salir con cuidado (superficies húmedas): usar pasamanos o escalones.",
+              "Mantener la cubierta puesta y con seguro cuando el spa no se usa: previene accesos de niños y accidentes.",
+              "Nunca manipular la caja de control ni el sistema eléctrico con el spa energizado.",
+            ]),
+            warn("🔧 Ambiente Azul: si hay advertencias o límites propios del equipo o de norma local, añádelos o ajústalos según el manual oficial del modelo."),
+            tip("Cómo usarlo con el cliente: en la entrega, dedícale 5 minutos a repasar estos puntos. Un cliente que usa bien el spa disfruta más, tiene menos incidentes y menos quejas."),
+          ],
+        },
+        {
+          title: "Proceso comercial (en preparación)",
           durationMin: 3,
           blocks: [
-            warn("🔧 Módulo en preparación — lo completa Ambiente Azul."),
-            p("Este módulo cubrirá el proceso comercial propio de Ambiente Azul, del primer contacto a la entrega. Estructura prevista:"),
+            warn("🔧 En preparación — lo completa Ambiente Azul."),
+            p("Esta parte cubrirá el proceso comercial propio de Ambiente Azul, del primer contacto a la entrega. Estructura prevista:"),
             list([
               "Recorrido de compra y seguimiento del lead (respond.io / CRM).",
               "Cotización: cómo se arma, qué incluye, tiempos.",
@@ -530,12 +558,20 @@ function modulos(): Modulo[] {
               "Términos de garantía para Colombia.",
               "Proceso de entrega e instalación (coordinación, requisitos del sitio, grúa si aplica).",
               "Onboarding del cliente al entregar el spa.",
-              "Seguridad de uso y advertencias (temperatura, tiempo de inmersión, embarazo, niños, condiciones médicas).",
             ]),
           ],
         },
       ],
-      examen: { title: "", description: "", timeLimitMin: 10, questions: [] },
+      examen: {
+        title: "Evaluación — Seguridad de uso",
+        description: "Recomendaciones de uso seguro del spa.",
+        timeLimitMin: 6,
+        questions: [
+          { question: "¿Cuál es la temperatura máxima del agua recomendada por la industria para adultos sanos?", type: "MULTIPLE_CHOICE", options: ["45 °C", "40 °C (104 °F)", "50 °C", "No hay límite"], correctAnswer: 1, explanation: "El máximo recomendado es 40 °C (104 °F); más baja para niños y uso prolongado." },
+          { question: "Una persona embarazada o con una condición médica debe…", type: "MULTIPLE_CHOICE", options: ["Usarlo sin restricción", "Consultar al médico antes de usar el spa", "Subir la temperatura", "Usarlo solo de noche"], correctAnswer: 1, explanation: "Embarazo y condiciones médicas: consultar al médico antes de usar." },
+          { question: "Cuando el spa no se usa, la cubierta debe quedar puesta y con seguro.", type: "TRUE_FALSE", options: ["Verdadero", "Falso"], correctAnswer: 0, explanation: "Previene el acceso de niños y accidentes, además de conservar el calor." },
+        ],
+      },
     },
 
     // ===== MÓDULO 11 — Evaluación y certificación =====
