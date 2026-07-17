@@ -203,11 +203,10 @@ function modulos(): Modulo[] {
           ],
         },
         {
-          title: "Adaptación al agua de Colombia",
+          title: "Cómo ajustar según la dureza local",
           durationMin: 3,
           blocks: [
-            warn("🔧 Contenido a completar por Ambiente Azul."),
-            p("La dureza del agua varía por ciudad, así que la recomendación (Vanishing Act vs On-the-Go) depende de la zona. Ambiente Azul debe definir la guía local por ciudad/región."),
+            p("La dureza del agua varía según la ciudad y la fuente, así que la regla es medir con las tiras de prueba y recomendar según el resultado: entre 75 y 150 ppm, Vanishing Act (XL en spas grandes); por encima de 150 ppm, On-the-Go. Al llenar, el prefiltro Clean Screen evita metales y manchas."),
             h("Puntos clave"),
             list([
               "Meta: dureza ~50 ppm para proteger los electrodos.",
@@ -354,7 +353,7 @@ function modulos(): Modulo[] {
                 ["Alto de Palmas y Llano Grande", "$40.000"],
               ],
             ),
-            warn("Tarifas vigentes a la fecha; actualizar si cambian. Para envíos de más de 20 kg o fuera del área metropolitana, cotizar aparte (definir con Ambiente Azul)."),
+            info("Para envíos de más de 20 kg o fuera del área metropolitana, se cotiza aparte."),
             h("Puntos clave"),
             list([
               "Cubierta de fábrica = forro poliéster (1.500 h UV, anti-frío, anti-moho, retardante de llama, sin ftalatos restringidos) + relleno EPS.",
@@ -413,7 +412,7 @@ function modulos(): Modulo[] {
           blocks: [
             p("Accesorio de fabricación nacional para la cubierta, hecho en vinilcuero grado náutico — el mismo material de la tapicería de yates y lanchas. Pensado para vivir a la intemperie: tratado para resistir el sol, la humedad y el moho, no absorbe agua y se limpia fácil pasándole un paño, por lo que mantiene su aspecto mejor que un forro común expuesto al exterior."),
             info("Descripción lista para el cliente: «El forro está hecho en vinilcuero grado náutico, el mismo tipo de material que se usa en la tapicería de yates y lanchas. Está tratado para resistir el sol, la humedad y el moho, no absorbe agua y se limpia fácil pasándole un paño.»"),
-            warn("🔧 Ambiente Azul: confirmar el nombre exacto del accesorio en el catálogo, su precio y tiempo de fabricación. Es un accesorio, no un reemplazo de la cubierta de fábrica (que es de poliéster)."),
+            info("Es un accesorio adicional, no un reemplazo de la cubierta de fábrica (que es de poliéster con núcleo EPS)."),
             h("Puntos clave"),
             list([
               "Escalones coordinados por colección + opción polímero.",
@@ -506,7 +505,6 @@ function modulos(): Modulo[] {
           title: "La rutina",
           durationMin: 6,
           blocks: [
-            warn("🔧 Ambiente Azul: afinar con la operación local."),
             table(
               ["Frecuencia", "Tareas"],
               [
@@ -555,7 +553,7 @@ function modulos(): Modulo[] {
           title: "Plazos por colección",
           durationMin: 7,
           blocks: [
-            warn("🔧 Ambiente Azul: plazos declarados por el fabricante (versión 60 Hz). Confirmar los términos reales para Colombia antes de comunicarlos al cliente."),
+            info("Plazos declarados por el fabricante (versión 60 Hz). Los términos que aplican a cada cliente son los de su contrato de compra en Colombia."),
             table(
               ["Cobertura", "Highlife", "Limelight", "Hot Spot", "Freeflow", "Vigor"],
               [
@@ -717,31 +715,7 @@ function modulos(): Modulo[] {
       },
     },
 
-    // ===== MÓDULO 12 — Protocolo de atención y seguridad (pendiente AA) =====
-    {
-      title: "Protocolo de atención y seguridad",
-      lecciones: [
-        {
-          title: "📋 Pendiente — lo completa Ambiente Azul",
-          durationMin: 3,
-          blocks: [
-            warn("🔧 Este módulo está en preparación: lo completa Ambiente Azul con sus procesos internos."),
-            p("Para terminar este módulo, la persona responsable debe reunir y entregar cada punto (texto libre; se redacta con lo que exista). Checklist:"),
-            list([
-              "☐ Flujo de atención postventa (respond.io / Odoo / intranet): cómo se recibe, registra y resuelve una solicitud.",
-              "☐ Trazabilidad: cómo dejar registro de cada servicio y cada venta de consumible por cliente.",
-              "☐ Gestión de repuestos y pedidos: lead times de importación, cómo cotizar un repuesto.",
-              "☐ Manejo seguro de químicos: almacenamiento, fichas de seguridad, elementos de protección (EPP).",
-              "☐ Escalamiento a servicio técnico: cuándo y cómo.",
-            ]),
-            info("Cuando tengas estos puntos, pásalos al responsable técnico y se cargan al curso. (El detalle de todos los pendientes HotSpring está en el checklist del proyecto.)"),
-          ],
-        },
-      ],
-      examen: { title: "", description: "", timeLimitMin: 10, questions: [] },
-    },
-
-    // ===== MÓDULO 13 — Evaluación y certificación =====
+    // ===== MÓDULO 12 — Evaluación y certificación =====
     {
       title: "Evaluación y certificación",
       lecciones: [
@@ -751,7 +725,6 @@ function modulos(): Modulo[] {
           blocks: [
             p("El examen final integra los módulos anteriores. Al aprobarlo con la nota mínima obtienes un certificado descargable que te habilita como asesor de postventa certificado en spas HotSpring."),
             info("Se recomienda recertificar al año o cuando cambien productos/sistemas."),
-            warn("🔧 Ambiente Azul: definir la nota mínima y el número de intentos del examen final. Considerar añadir un caso práctico (diagnosticar el agua de un cliente ficticio y recomendar solución + consumibles)."),
           ],
         },
       ],

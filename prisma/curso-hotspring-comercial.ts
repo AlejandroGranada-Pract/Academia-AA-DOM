@@ -99,7 +99,6 @@ function modulos(): Modulo[] {
           blocks: [
             h("Freeflow (entrada / plug-and-play)"),
             p("La puerta de entrada a HotSpring. Construcción rotomoldeada (una sola pieza, muy resistente) y conexión plug-and-play a 110V: no requiere obra eléctrica mayor, ideal para quien empieza, espacios rentados o con limitaciones de acceso. Modelos: Mini, Azure, Aptos, Monterey, Excursion."),
-            warn("⚠️ Ambiente Azul: confirmar el lineup y las fichas (asientos, jets, medidas) que se comercializan en Colombia; la guía 50 Hz no incluye Freeflow."),
             h("Baño frío Vigor"),
             p("Un baño frío (cold plunge) para recuperación y terapia de frío, con la misma ingeniería y calidad de la colección Highlife. Un puesto; 224 × 107 × 74 cm; 425 litros. Se vende como complemento del spa o como producto de bienestar independiente."),
             tip("Cómo usarlo con el cliente: no memorices los números como un loro; aprende a navegar la tabla frente al cliente. Primero el tamaño (¿cuántos se bañan normalmente?), luego el espacio disponible, y ya reduces a dos o tres modelos."),
@@ -512,9 +511,9 @@ function modulos(): Modulo[] {
       },
     },
 
-    // ===== MÓDULO 10 — Proceso comercial AA (pendiente) =====
+    // ===== MÓDULO 10 — Seguridad de uso =====
     {
-      title: "Proceso comercial Ambiente Azul",
+      title: "Seguridad de uso del spa",
       lecciones: [
         {
           title: "Seguridad de uso del spa (orientación al cliente)",
@@ -540,26 +539,7 @@ function modulos(): Modulo[] {
               "Mantener la cubierta puesta y con seguro cuando el spa no se usa: previene accesos de niños y accidentes.",
               "Nunca manipular la caja de control ni el sistema eléctrico con el spa energizado.",
             ]),
-            warn("🔧 Ambiente Azul: si hay advertencias o límites propios del equipo o de norma local, añádelos o ajústalos según el manual oficial del modelo."),
             tip("Cómo usarlo con el cliente: en la entrega, dedícale 5 minutos a repasar estos puntos. Un cliente que usa bien el spa disfruta más, tiene menos incidentes y menos quejas."),
-          ],
-        },
-        {
-          title: "📋 Pendiente — lo completa Ambiente Azul",
-          durationMin: 3,
-          blocks: [
-            warn("🔧 Esta parte está en preparación: la completa Ambiente Azul con sus datos internos."),
-            p("Para terminar este módulo, la persona responsable debe reunir y entregar cada punto (texto libre; se redacta con lo que exista). Checklist:"),
-            list([
-              "☐ Recorrido de compra y seguimiento del lead (respond.io / CRM).",
-              "☐ Cotización: cómo se arma, qué incluye, tiempos.",
-              "☐ Precios y listas vigentes.",
-              "☐ Financiación y formas de pago.",
-              "☐ Términos de garantía para Colombia (mismo dato que Postventa M9).",
-              "☐ Proceso de entrega e instalación (coordinación, requisitos del sitio, grúa si aplica).",
-              "☐ Onboarding del cliente al entregar el spa.",
-            ]),
-            info("Cuando tengas estos puntos, pásalos al responsable técnico y se cargan al curso. (El detalle de todos los pendientes HotSpring está en el checklist del proyecto.)"),
           ],
         },
       ],
@@ -585,7 +565,6 @@ function modulos(): Modulo[] {
           blocks: [
             p("El examen final integra los módulos anteriores. Al aprobarlo con la nota mínima obtienes un certificado descargable que te habilita como asesor comercial certificado en spas HotSpring."),
             info("Se recomienda recertificar una vez al año o cada vez que cambie el portafolio (nuevos modelos, cambios de colección)."),
-            warn("⚠️ Ambiente Azul: definir la nota mínima y el número de intentos del examen final."),
             tip("Consejo: si fallas una pregunta, vuelve al módulo correspondiente, repásalo y reintenta. El objetivo es que domines el producto para asesorar con seguridad."),
           ],
         },
