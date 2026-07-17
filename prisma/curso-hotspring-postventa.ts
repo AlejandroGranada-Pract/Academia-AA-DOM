@@ -722,18 +722,19 @@ function modulos(): Modulo[] {
       title: "Protocolo de atención y seguridad",
       lecciones: [
         {
-          title: "Contenido en preparación",
+          title: "📋 Pendiente — lo completa Ambiente Azul",
           durationMin: 3,
           blocks: [
-            warn("🔧 Módulo en preparación — lo aporta Ambiente Azul."),
-            p("Este módulo cubrirá cómo operar el postventa según los procesos y estándares de seguridad de Ambiente Azul. Estructura prevista:"),
+            warn("🔧 Este módulo está en preparación: lo completa Ambiente Azul con sus procesos internos."),
+            p("Para terminar este módulo, la persona responsable debe reunir y entregar cada punto (texto libre; se redacta con lo que exista). Checklist:"),
             list([
-              "Flujo de atención postventa (respond.io / Odoo / intranet): cómo se recibe, registra y resuelve una solicitud.",
-              "Trazabilidad: cómo dejar registro de cada servicio y cada venta de consumible por cliente.",
-              "Gestión de repuestos y pedidos: lead times de importación, cómo cotizar un repuesto.",
-              "Manejo seguro de químicos: almacenamiento, fichas de seguridad, elementos de protección (EPP).",
-              "Escalamiento a servicio técnico: cuándo y cómo.",
+              "☐ Flujo de atención postventa (respond.io / Odoo / intranet): cómo se recibe, registra y resuelve una solicitud.",
+              "☐ Trazabilidad: cómo dejar registro de cada servicio y cada venta de consumible por cliente.",
+              "☐ Gestión de repuestos y pedidos: lead times de importación, cómo cotizar un repuesto.",
+              "☐ Manejo seguro de químicos: almacenamiento, fichas de seguridad, elementos de protección (EPP).",
+              "☐ Escalamiento a servicio técnico: cuándo y cómo.",
             ]),
+            info("Cuando tengas estos puntos, pásalos al responsable técnico y se cargan al curso. (El detalle de todos los pendientes HotSpring está en el checklist del proyecto.)"),
           ],
         },
       ],
