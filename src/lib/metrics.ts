@@ -558,3 +558,232 @@ export async function getLeaderMetrics(userId: string): Promise<LeaderMetrics> {
     empleadosVencidos,
   };
 }
+
+// ===========================================================================
+// Reporte DETALLADO POR PERSONA (para admin): cada empleado con su avance por
+// curso, promedio de exámenes, certificados y última actividad.
+// ===========================================================================
+
+export type PersonaCurso = {
+  courseId: string;
+  title: string;
+  company: string;
+  pct: number; // % del curso (lecciones completadas + exámenes aprobados)
+  completado: boolean; // tiene certificado
+  examenPromedio: number | null; // promedio de sus mejores puntajes en el curso
+};
+
+export type PersonaReporte = {
+  userId: string;
+  name: string;
+  email: string;
+  area: string | null;
+  company: string;
+  grupos: string[];
+  cursosElegibles: number;
+  completados: number;
+  enProgreso: number;
+  sinIniciar: number;
+  avancePromedio: number; // promedio de % sobre los cursos elegibles
+  examenPromedio: number | null; // promedio global de sus exámenes
+  certificados: number;
+  ultimaActividad: string | null; // ISO
+  cursos: PersonaCurso[];
+};
+
+export async function getReportePersonas(): Promise<PersonaReporte[]> {
+  const [learners, cursos, certificados, progresos, intentos] =
+    await Promise.all([
+      prisma.user.findMany({
+        where: { active: true, role: { in: [...LEARNER_ROLES] } },
+        orderBy: { name: "asc" },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          area: true,
+          company: true,
+          grupos: { select: { id: true, name: true } },
+        },
+      }),
+      prisma.course.findMany({
+        where: { status: "PUBLISHED" },
+        orderBy: { title: "asc" },
+        select: {
+          id: true,
+          title: true,
+          company: true,
+          category: true,
+          grupos: { select: { id: true } },
+          modules: {
+            select: {
+              lessons: { select: { id: true } },
+              exams: { select: { id: true } },
+            },
+          },
+        },
+      }),
+      prisma.certificate.findMany({ select: { userId: true, courseId: true } }),
+      prisma.userProgress.findMany({
+        where: { status: "COMPLETED" },
+        select: { userId: true, lessonId: true, completedAt: true },
+      }),
+      prisma.examAttempt.findMany({
+        where: { status: "COMPLETED" },
+        select: {
+          userId: true,
+          examId: true,
+          score: true,
+          passed: true,
+          completedAt: true,
+        },
+      }),
+    ]);
+
+  const learnerIds = new Set(learners.map((u) => u.id));
+
+  // Metadatos por curso: lecciones/exámenes y mapas inversos.
+  const lessonToCourse = new Map<string, string>();
+  const examToCourse = new Map<string, string>();
+  const courseMeta = new Map<
+    string,
+    { totalLessons: number; examIds: string[] }
+  >();
+  for (const c of cursos) {
+    const lessons = c.modules.flatMap((m) => m.lessons.map((l) => l.id));
+    const examIds = c.modules.flatMap((m) => m.exams.map((e) => e.id));
+    for (const l of lessons) lessonToCourse.set(l, c.id);
+    for (const e of examIds) examToCourse.set(e, c.id);
+    courseMeta.set(c.id, { totalLessons: lessons.length, examIds });
+  }
+
+  // Lecciones completadas por (usuario, curso).
+  const doneLessons = new Map<string, Map<string, number>>(); // userId → courseId → count
+  // Última actividad por usuario.
+  const lastActivity = new Map<string, number>();
+  const touch = (userId: string, at: Date | null) => {
+    if (!at) return;
+    const t = at.getTime();
+    if (t > (lastActivity.get(userId) ?? 0)) lastActivity.set(userId, t);
+  };
+  for (const p of progresos) {
+    if (!learnerIds.has(p.userId)) continue;
+    const courseId = lessonToCourse.get(p.lessonId);
+    if (!courseId) continue;
+    const perCourse =
+      doneLessons.get(p.userId) ??
+      doneLessons.set(p.userId, new Map()).get(p.userId)!;
+    perCourse.set(courseId, (perCourse.get(courseId) ?? 0) + 1);
+    touch(p.userId, p.completedAt);
+  }
+
+  // Mejor puntaje / aprobado por (usuario, examen).
+  const bestByUserExam = new Map<string, { best: number; passed: boolean }>();
+  const key = (u: string, e: string) => `${u}:${e}`;
+  for (const a of intentos) {
+    if (!learnerIds.has(a.userId)) continue;
+    const k = key(a.userId, a.examId);
+    const prev = bestByUserExam.get(k) ?? { best: 0, passed: false };
+    prev.best = Math.max(prev.best, a.score);
+    prev.passed = prev.passed || a.passed;
+    bestByUserExam.set(k, prev);
+    touch(a.userId, a.completedAt);
+  }
+
+  // Certificados por usuario.
+  const certsByUser = new Map<string, Set<string>>();
+  for (const cert of certificados) {
+    if (!learnerIds.has(cert.userId)) continue;
+    (certsByUser.get(cert.userId) ??
+      certsByUser.set(cert.userId, new Set()).get(cert.userId)!).add(
+      cert.courseId,
+    );
+  }
+
+  const esElegible = (
+    c: (typeof cursos)[number],
+    userGroups: { id: string }[],
+  ): boolean => {
+    if (c.category === "INDUCCION") return true;
+    const g = new Set(c.grupos.map((x) => x.id));
+    return g.size > 0 && userGroups.some((x) => g.has(x.id));
+  };
+
+  return learners.map((u) => {
+    const certSet = certsByUser.get(u.id) ?? new Set<string>();
+    const doneByCourse = doneLessons.get(u.id) ?? new Map<string, number>();
+    const bestsGlobal: number[] = [];
+
+    const cursosDetalle: PersonaCurso[] = cursos
+      .filter((c) => esElegible(c, u.grupos))
+      .map((c) => {
+        const meta = courseMeta.get(c.id)!;
+        const completedLessons = Math.min(
+          doneByCourse.get(c.id) ?? 0,
+          meta.totalLessons,
+        );
+        const bestsCurso: number[] = [];
+        let passedExams = 0;
+        for (const eid of meta.examIds) {
+          const b = bestByUserExam.get(key(u.id, eid));
+          if (b) {
+            bestsCurso.push(b.best);
+            bestsGlobal.push(b.best);
+            if (b.passed) passedExams += 1;
+          }
+        }
+        const total = meta.totalLessons + meta.examIds.length;
+        const done = completedLessons + passedExams;
+        const completado = certSet.has(c.id);
+        const pct = completado
+          ? 100
+          : total > 0
+            ? Math.round((done / total) * 100)
+            : 0;
+        const examenPromedio = bestsCurso.length
+          ? Math.round(bestsCurso.reduce((s, x) => s + x, 0) / bestsCurso.length)
+          : null;
+        return {
+          courseId: c.id,
+          title: c.title,
+          company: c.company,
+          pct,
+          completado,
+          examenPromedio,
+        };
+      });
+
+    const completados = cursosDetalle.filter((c) => c.completado).length;
+    const enProgreso = cursosDetalle.filter(
+      (c) => !c.completado && c.pct > 0,
+    ).length;
+    const sinIniciar = cursosDetalle.length - completados - enProgreso;
+    const avancePromedio = cursosDetalle.length
+      ? Math.round(
+          cursosDetalle.reduce((s, c) => s + c.pct, 0) / cursosDetalle.length,
+        )
+      : 0;
+    const examenPromedio = bestsGlobal.length
+      ? Math.round(bestsGlobal.reduce((s, x) => s + x, 0) / bestsGlobal.length)
+      : null;
+    const la = lastActivity.get(u.id);
+
+    return {
+      userId: u.id,
+      name: u.name,
+      email: u.email,
+      area: u.area,
+      company: u.company,
+      grupos: u.grupos.map((g) => g.name),
+      cursosElegibles: cursosDetalle.length,
+      completados,
+      enProgreso,
+      sinIniciar,
+      avancePromedio,
+      examenPromedio,
+      certificados: certSet.size,
+      ultimaActividad: la ? new Date(la).toISOString() : null,
+      cursos: cursosDetalle,
+    };
+  });
+}

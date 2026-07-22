@@ -9,14 +9,18 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
-import { getAdminMetrics } from "@/lib/metrics";
+import { getAdminMetrics, getReportePersonas } from "@/lib/metrics";
 import { AvanceCursosChart } from "@/components/admin/charts/AvanceCursosChart";
 import { PromedioExamenChart } from "@/components/admin/charts/PromedioExamenChart";
+import { ReportePersonas } from "@/components/admin/ReportePersonas";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export default async function ReportesPage() {
-  const m = await getAdminMetrics();
+  const [m, personas] = await Promise.all([
+    getAdminMetrics(),
+    getReportePersonas(),
+  ]);
 
   const avanceData = m.cursos.map((c) => ({
     curso: c.title.length > 24 ? c.title.slice(0, 22) + "…" : c.title,
@@ -72,6 +76,11 @@ export default async function ReportesPage() {
           <PromedioExamenChart data={examenData} />
         </Panel>
       </div>
+
+      {/* Detalle por persona: cada empleado con su avance, exámenes y certificados */}
+      <Panel titulo="Detalle por persona" className="mt-6">
+        <ReportePersonas personas={personas} />
+      </Panel>
 
       {/* Monitoreo: exámenes abiertos y no enviados (cuentan como intento) */}
       {m.examenes.some((e) => e.abandonados > 0) && (
