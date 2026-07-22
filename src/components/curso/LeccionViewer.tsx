@@ -1,7 +1,52 @@
+import type { ReactNode } from "react";
 import { Info, AlertTriangle, Lightbulb } from "lucide-react";
 import { VideoEmbed } from "@/components/curso/VideoEmbed";
 import { PdfEmbed } from "@/components/curso/PdfEmbed";
 import { PromptBlock } from "@/components/curso/PromptBlock";
+
+// Convierte texto plano en nodos con enlaces clicables. Soporta:
+//  - Markdown: [texto](https://…) → enlace con nombre
+//  - URLs sueltas: https://… o www.… → se vuelven clicables tal cual
+const LINK_RE =
+  /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|((?:https?:\/\/|www\.)[^\s<)]+)/gi;
+
+function renderRich(text?: string | null): ReactNode {
+  if (!text) return text ?? null;
+  const nodes: ReactNode[] = [];
+  const re = new RegExp(LINK_RE.source, "gi");
+  let last = 0;
+  let k = 0;
+  let m: RegExpExecArray | null;
+  const link = (href: string, label: string) => (
+    <a
+      key={k++}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-medium text-primary underline underline-offset-2 hover:text-primary/80 break-words"
+    >
+      {label}
+    </a>
+  );
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) nodes.push(text.slice(last, m.index));
+    if (m[1] && m[2]) {
+      // [texto](url)
+      nodes.push(link(m[2], m[1]));
+    } else {
+      // URL suelta: recorta puntuación final típica de la prosa
+      let raw = m[3];
+      const tm = raw.match(/[).,;:!?»"']+$/);
+      const tail = tm ? tm[0] : "";
+      if (tail) raw = raw.slice(0, raw.length - tail.length);
+      nodes.push(link(raw.startsWith("www.") ? `https://${raw}` : raw, raw));
+      if (tail) nodes.push(tail);
+    }
+    last = re.lastIndex;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  return nodes;
+}
 
 // Tipos laxos: el contenido es JSON polimórfico (ver spec sección 6).
 type Block = {
@@ -47,7 +92,7 @@ function Callout({ style = "info", text }: { style?: Block["style"]; text: strin
   return (
     <div className={`flex gap-3 rounded-r-lg border-l-4 p-4 text-sm ${className}`}>
       <Icon className="mt-0.5 h-4 w-4 shrink-0" />
-      <p className="text-foreground">{text}</p>
+      <p className="text-foreground">{renderRich(text)}</p>
     </div>
   );
 }
@@ -98,7 +143,7 @@ function TableBlock({
                   key={c}
                   className="border-b px-3 py-2 align-top text-foreground/90 last:border-r-0"
                 >
-                  {cell}
+                  {renderRich(cell)}
                 </td>
               ))}
             </tr>
@@ -120,12 +165,12 @@ function BlockRenderer({ block }: { block: Block }) {
       );
     case "paragraph":
       return (
-        <p className="leading-relaxed text-foreground/90">{block.text}</p>
+        <p className="leading-relaxed text-foreground/90">{renderRich(block.text)}</p>
       );
     case "list":
       return (
         <ul className="list-disc space-y-1 pl-5 text-foreground/90">
-          {block.items?.map((it, i) => <li key={i}>{it}</li>)}
+          {block.items?.map((it, i) => <li key={i}>{renderRich(it)}</li>)}
         </ul>
       );
     case "callout":
@@ -168,7 +213,7 @@ export function LeccionViewer({
           <VideoEmbed url={content.videoUrl} />
           {content.description && (
             <p className="leading-relaxed text-foreground/90">
-              {content.description}
+              {renderRich(content.description)}
             </p>
           )}
         </>

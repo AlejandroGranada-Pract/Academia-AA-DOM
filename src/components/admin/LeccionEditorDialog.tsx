@@ -290,13 +290,20 @@ export function LeccionEditorDialog({
                     />
                   )}
                   {b.type === "paragraph" && (
-                    <textarea
-                      rows={3}
-                      placeholder="Texto del párrafo"
-                      className={areaClass}
-                      value={b.text ?? ""}
-                      onChange={(e) => patch(i, { text: e.target.value })}
-                    />
+                    <div className="space-y-1.5">
+                      <textarea
+                        rows={3}
+                        placeholder="Texto del párrafo"
+                        className={areaClass}
+                        value={b.text ?? ""}
+                        onChange={(e) => patch(i, { text: e.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Enlaces: pega una URL (queda clicable) o usa{" "}
+                        <code className="rounded bg-muted px-1 py-0.5">[texto](https://…)</code>{" "}
+                        para un enlace con nombre. Funciona también en listas, notas y tablas.
+                      </p>
+                    </div>
                   )}
                   {b.type === "list" && (
                     <textarea
