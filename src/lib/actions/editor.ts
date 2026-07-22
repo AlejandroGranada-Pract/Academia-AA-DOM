@@ -90,7 +90,8 @@ export type LessonBlock = {
     | "video"
     | "pdf"
     | "table"
-    | "prompt";
+    | "prompt"
+    | "link";
   text?: string;
   items?: string[];
   url?: string;

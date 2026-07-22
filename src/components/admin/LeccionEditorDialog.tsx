@@ -14,6 +14,7 @@ import {
   FileDown,
   Table as TableIcon,
   Sparkles,
+  Link2,
   Pencil,
   Eye,
   Upload,
@@ -49,6 +50,7 @@ const BLOCK_TYPES: {
   { type: "list", label: "Lista", icon: List },
   { type: "callout", label: "Nota", icon: MessageSquareWarning },
   { type: "prompt", label: "Prompt", icon: Sparkles },
+  { type: "link", label: "Enlace", icon: Link2 },
   { type: "image", label: "Imagen", icon: ImageIcon },
   { type: "video", label: "Video", icon: PlayCircle },
   { type: "pdf", label: "PDF", icon: FileDown },
@@ -84,6 +86,8 @@ function emptyBlock(type: LessonBlock["type"]): LessonBlock {
       return { type, headers: [], rows: [] };
     case "prompt":
       return { type, text: "", label: "" };
+    case "link":
+      return { type, text: "", url: "" };
     default:
       return { type, text: "" };
   }
@@ -354,6 +358,24 @@ export function LeccionEditorDialog({
                         value={b.text ?? ""}
                         onChange={(e) => patch(i, { text: e.target.value })}
                       />
+                    </div>
+                  )}
+                  {b.type === "link" && (
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Texto del enlace (lo que se ve, ej. “Ver la ficha oficial”)"
+                        value={b.text ?? ""}
+                        onChange={(e) => patch(i, { text: e.target.value })}
+                      />
+                      <Input
+                        placeholder="URL (https://...)"
+                        value={b.url ?? ""}
+                        onChange={(e) => patch(i, { url: e.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Se mostrará como un botón azul clicable que abre el enlace
+                        en una pestaña nueva.
+                      </p>
                     </div>
                   )}
                   {b.type === "image" && (

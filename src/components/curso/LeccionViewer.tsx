@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Info, AlertTriangle, Lightbulb } from "lucide-react";
+import { Info, AlertTriangle, Lightbulb, Link2, ExternalLink } from "lucide-react";
 import { VideoEmbed } from "@/components/curso/VideoEmbed";
 import { PdfEmbed } from "@/components/curso/PdfEmbed";
 import { PromptBlock } from "@/components/curso/PromptBlock";
@@ -59,7 +59,8 @@ type Block = {
     | "video"
     | "pdf"
     | "table"
-    | "prompt";
+    | "prompt"
+    | "link";
   text?: string;
   items?: string[];
   url?: string;
@@ -188,6 +189,21 @@ function BlockRenderer({ block }: { block: Block }) {
     case "prompt":
       return block.text ? (
         <PromptBlock text={block.text} label={block.label} />
+      ) : null;
+    case "link":
+      return block.url ? (
+        <a
+          href={
+            block.url.startsWith("www.") ? `https://${block.url}` : block.url
+          }
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex max-w-full items-center gap-2 rounded-lg border border-primary bg-primary/8 px-4 py-2.5 font-medium text-primary transition-colors hover:bg-primary/15"
+        >
+          <Link2 className="h-4 w-4 shrink-0" />
+          <span className="truncate">{block.text?.trim() || block.url}</span>
+          <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-70" />
+        </a>
       ) : null;
     default:
       return null;
