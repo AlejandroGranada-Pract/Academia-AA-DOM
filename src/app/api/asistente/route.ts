@@ -128,31 +128,54 @@ export async function POST(req: Request) {
     ],
     // Búsqueda web (server-side): permite encontrar videos de YouTube e
     // imágenes de Wikimedia REALES. max_uses limita costo y tiempo.
-    tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 4 }],
+    tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 2 }],
     messages: [{ role: "user", content: userPrompt }],
   });
 
   const encoder = new TextEncoder();
   const readable = new ReadableStream({
     async start(controller) {
+      // Keep-alive: mientras Claude piensa o busca en la web puede pasar más de
+      // 55 s sin enviar un solo byte, y Heroku corta la conexión por inactividad
+      // (error H15 "Idle connection"). Enviamos un espacio cada ~20 s ANTES de que
+      // empiece el JSON. El cliente recorta todo lo previo al primer "{"
+      // (ver AsistenteIA.tsx), así que estos espacios no corrompen el borrador.
+      let jsonStarted = false;
+      let lastSent = Date.now();
+      const heartbeat = setInterval(() => {
+        if (!jsonStarted && Date.now() - lastSent > 20_000) {
+          try {
+            controller.enqueue(encoder.encode(" "));
+            lastSent = Date.now();
+          } catch {
+            /* stream ya cerrado: el intervalo se limpia en finally */
+          }
+        }
+      }, 5_000);
+
       try {
         for await (const event of stream) {
           if (
             event.type === "content_block_delta" &&
             event.delta.type === "text_delta"
           ) {
+            jsonStarted = true; // ya llega el JSON: dejamos de latir
+            lastSent = Date.now();
             controller.enqueue(encoder.encode(event.delta.text));
           } else if (
             event.type === "content_block_start" &&
             event.content_block.type === "server_tool_use"
           ) {
             // Mantiene vivo el panel mientras Claude busca en la web.
+            lastSent = Date.now();
             controller.enqueue(encoder.encode("\n🔎 Buscando videos e imágenes en la web…\n"));
           }
         }
         controller.close();
       } catch (err) {
         controller.error(err);
+      } finally {
+        clearInterval(heartbeat);
       }
     },
   });
