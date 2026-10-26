@@ -13,6 +13,8 @@ import {
   PlayCircle,
   FileDown,
   Table as TableIcon,
+  Sparkles,
+  Link2,
   Pencil,
   Eye,
   Upload,
@@ -47,6 +49,8 @@ const BLOCK_TYPES: {
   { type: "paragraph", label: "Párrafo", icon: AlignLeft },
   { type: "list", label: "Lista", icon: List },
   { type: "callout", label: "Nota", icon: MessageSquareWarning },
+  { type: "prompt", label: "Prompt", icon: Sparkles },
+  { type: "link", label: "Enlace", icon: Link2 },
   { type: "image", label: "Imagen", icon: ImageIcon },
   { type: "video", label: "Video", icon: PlayCircle },
   { type: "pdf", label: "PDF", icon: FileDown },
@@ -80,6 +84,10 @@ function emptyBlock(type: LessonBlock["type"]): LessonBlock {
       return { type, url: "", title: "" };
     case "table":
       return { type, headers: [], rows: [] };
+    case "prompt":
+      return { type, text: "", label: "" };
+    case "link":
+      return { type, text: "", url: "" };
     default:
       return { type, text: "" };
   }
@@ -286,13 +294,20 @@ export function LeccionEditorDialog({
                     />
                   )}
                   {b.type === "paragraph" && (
-                    <textarea
-                      rows={3}
-                      placeholder="Texto del párrafo"
-                      className={areaClass}
-                      value={b.text ?? ""}
-                      onChange={(e) => patch(i, { text: e.target.value })}
-                    />
+                    <div className="space-y-1.5">
+                      <textarea
+                        rows={3}
+                        placeholder="Texto del párrafo"
+                        className={areaClass}
+                        value={b.text ?? ""}
+                        onChange={(e) => patch(i, { text: e.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Enlaces: pega una URL (queda clicable) o usa{" "}
+                        <code className="rounded bg-muted px-1 py-0.5">[texto](https://…)</code>{" "}
+                        para un enlace con nombre. Funciona también en listas, notas y tablas.
+                      </p>
+                    </div>
                   )}
                   {b.type === "list" && (
                     <textarea
@@ -327,6 +342,40 @@ export function LeccionEditorDialog({
                         value={b.text ?? ""}
                         onChange={(e) => patch(i, { text: e.target.value })}
                       />
+                    </div>
+                  )}
+                  {b.type === "prompt" && (
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Título de la caja (opcional, ej. “Prompt para presupuesto”)"
+                        value={b.label ?? ""}
+                        onChange={(e) => patch(i, { label: e.target.value })}
+                      />
+                      <textarea
+                        rows={5}
+                        placeholder="Escribe aquí el prompt listo para copiar y pegar en Claude"
+                        className={`${areaClass} font-mono text-xs`}
+                        value={b.text ?? ""}
+                        onChange={(e) => patch(i, { text: e.target.value })}
+                      />
+                    </div>
+                  )}
+                  {b.type === "link" && (
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Texto del enlace (lo que se ve, ej. “Ver la ficha oficial”)"
+                        value={b.text ?? ""}
+                        onChange={(e) => patch(i, { text: e.target.value })}
+                      />
+                      <Input
+                        placeholder="URL (https://...)"
+                        value={b.url ?? ""}
+                        onChange={(e) => patch(i, { url: e.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Se mostrará como un botón azul clicable que abre el enlace
+                        en una pestaña nueva.
+                      </p>
                     </div>
                   )}
                   {b.type === "image" && (

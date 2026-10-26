@@ -112,31 +112,39 @@ export async function setGrupoMembership(
     },
   });
 
-  // Avisa a los miembros del grupo de los cursos recién asignados.
-  if (mailEnabled()) {
-    const nuevos = courseIds.filter((id) => !previos.includes(id));
-    if (nuevos.length && userIds.length) {
-      const [cursos, usuarios] = await Promise.all([
-        prisma.course.findMany({
-          where: { id: { in: nuevos } },
-          select: { title: true },
-        }),
-        prisma.user.findMany({
-          where: { id: { in: userIds }, active: true },
-          select: { email: true },
-        }),
-      ]);
-      for (const u of usuarios) {
-        if (!u.email) continue;
-        for (const c of cursos) {
-          await enviarCursoAsignado({ to: u.email, cursoTitle: c.title });
-        }
-      }
-    }
-  }
-
   revalidatePath(`/grupos/${grupoId}`);
   revalidatePath("/cursos");
   revalidatePath("/mi-equipo");
+
+  // Avisa a los miembros de los cursos recién asignados EN SEGUNDO PLANO: no se
+  // hace await para que la respuesta sea inmediata (los correos SMTP son lentos).
+  if (mailEnabled()) {
+    const nuevos = courseIds.filter((id) => !previos.includes(id));
+    if (nuevos.length && userIds.length) {
+      void (async () => {
+        try {
+          const [cursos, usuarios] = await Promise.all([
+            prisma.course.findMany({
+              where: { id: { in: nuevos } },
+              select: { title: true },
+            }),
+            prisma.user.findMany({
+              where: { id: { in: userIds }, active: true },
+              select: { email: true },
+            }),
+          ]);
+          for (const u of usuarios) {
+            if (!u.email) continue;
+            for (const c of cursos) {
+              await enviarCursoAsignado({ to: u.email, cursoTitle: c.title });
+            }
+          }
+        } catch (e) {
+          console.error("[grupos] error enviando avisos:", e);
+        }
+      })();
+    }
+  }
+
   return undefined;
 }

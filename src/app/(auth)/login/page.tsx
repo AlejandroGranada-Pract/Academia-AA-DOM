@@ -1,7 +1,20 @@
 import { LoginForm } from "@/components/auth/LoginForm";
 import { VideoFondo } from "@/components/auth/VideoFondo";
 
-export default function LoginPage() {
+const MENSAJES_ERROR: Record<string, string> = {
+  sso: "El enlace desde la intranet expiró o ya fue usado. Vuelve a la intranet e intenta de nuevo.",
+  "sso-inactivo": "Tu cuenta de la Academia está desactivada. Contacta al administrador.",
+};
+
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams?: { error?: string };
+}) {
+  const mensajeError = searchParams?.error
+    ? MENSAJES_ERROR[searchParams.error]
+    : undefined;
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-grafito via-[#2a2a2a] to-grafito p-5">
       {/* Video de fondo con carga diferida: el login pinta de inmediato
@@ -33,6 +46,14 @@ export default function LoginPage() {
           <p className="mb-7 text-sm text-white/55">
             Ingresa con tus credenciales para continuar
           </p>
+          {mensajeError && (
+            <p
+              className="mb-5 rounded-lg border border-red-400/30 bg-red-500/15 px-3 py-2 text-sm text-red-200"
+              role="alert"
+            >
+              {mensajeError}
+            </p>
+          )}
           <LoginForm />
         </div>
       </div>

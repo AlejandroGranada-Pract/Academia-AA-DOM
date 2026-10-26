@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { CheckCircle2, Eye } from "lucide-react";
 import { useLeccionGate } from "@/components/curso/LeccionGate";
+import { registrarAvanceVideo } from "@/lib/actions/progress";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
@@ -41,6 +42,11 @@ function parseDriveId(url: string): string | null {
   const m = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
   return m ? m[1] : null;
 }
+// Vimeo: soporta vimeo.com/ID y vimeo.com/ID/HASH (videos ocultos) y player.vimeo.com/video/ID
+function parseVimeo(url: string): { id: string; hash?: string } | null {
+  const m = url.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([\w]+))?/);
+  return m ? { id: m[1], hash: m[2] } : null;
+}
 
 export function VideoEmbed({
   url,
@@ -54,29 +60,57 @@ export function VideoEmbed({
   const ytId = parseYouTubeId(url);
   const driveId = parseDriveId(url);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [watched, setWatched] = useState(false);
 
   const registerVideo = gate?.registerVideo;
   const markWatchedInGate = gate?.markWatched;
+  const lessonId = gate?.lessonId ?? null;
+  const savedInicial = (ytId && gate?.initialPct?.[url]) || 0;
 
-  // Registra el video de YouTube como "requerido" para completar.
+  const [pct, setPct] = useState<number>(savedInicial);
+  const watched = pct >= 90;
+  const maxRef = useRef<number>(savedInicial); // máximo visto en esta sesión
+  const savedRef = useRef<number>(savedInicial); // último % guardado en servidor
+
+  // Guarda el avance en el servidor. Throttle: solo si subió ≥5 puntos (o forzado).
+  const guardar = useCallback(
+    (p: number, forzar = false) => {
+      if (!lessonId || !ytId) return; // en vista previa (lessonId null) no se guarda
+      if (!forzar && p - savedRef.current < 5) return;
+      savedRef.current = p;
+      void registrarAvanceVideo(lessonId, url, p).catch(() => {});
+    },
+    [lessonId, ytId, url],
+  );
+
+  // Sube el % visto (monótono), refleja en pantalla, desbloquea y guarda.
+  const bump = useCallback(
+    (raw: number) => {
+      const v = Math.min(100, Math.max(0, Math.round(raw)));
+      const prev = maxRef.current;
+      if (v <= prev) return;
+      maxRef.current = v;
+      setPct(v);
+      const cruzoUmbral = v >= 90 && prev < 90;
+      if (cruzoUmbral) markWatchedInGate?.(videoKey);
+      guardar(v, cruzoUmbral || v >= 100);
+    },
+    [markWatchedInGate, videoKey, guardar],
+  );
+
+  // Registra el video como requerido; si ya venía visto (≥90%), pre-desbloquea.
   useEffect(() => {
-    if (ytId && registerVideo) registerVideo(videoKey);
-  }, [ytId, registerVideo, videoKey]);
+    if (!ytId) return;
+    registerVideo?.(videoKey);
+    if (savedInicial >= 90) markWatchedInGate?.(videoKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ytId, videoKey]);
 
-  // Crea el reproductor y detecta cuando se vio (~90% o terminado).
+  // Crea el reproductor y sigue el avance (cada segundo mientras reproduce).
   useEffect(() => {
     if (!ytId || !containerRef.current) return;
     let player: any;
     let interval: ReturnType<typeof setInterval> | undefined;
     let cancelled = false;
-
-    function markWatched() {
-      if (cancelled) return;
-      if (interval) clearInterval(interval);
-      setWatched(true);
-      markWatchedInGate?.(videoKey);
-    }
 
     loadYouTubeApi().then((YT) => {
       if (cancelled || !containerRef.current) return;
@@ -84,7 +118,8 @@ export function VideoEmbed({
         width: "100%",
         height: "100%",
         videoId: ytId,
-        playerVars: { rel: 0, modestbranding: 1 },
+        // Subtítulos en español por defecto (los videos oficiales están en inglés).
+        playerVars: { rel: 0, modestbranding: 1, cc_lang_pref: "es", cc_load_policy: 1 },
         events: {
           onStateChange: (e: any) => {
             if (e.data === YT.PlayerState.PLAYING) {
@@ -92,14 +127,15 @@ export function VideoEmbed({
                 try {
                   const cur = player.getCurrentTime?.() ?? 0;
                   const dur = player.getDuration?.() ?? 0;
-                  if (dur > 0 && cur / dur >= 0.9) markWatched();
+                  if (dur > 0) bump((cur / dur) * 100);
                 } catch {
                   /* noop */
                 }
               }, 1000);
             } else {
               if (interval) clearInterval(interval);
-              if (e.data === YT.PlayerState.ENDED) markWatched();
+              if (e.data === YT.PlayerState.ENDED) bump(100);
+              else guardar(maxRef.current, true); // pausa: guarda lo alcanzado
             }
           },
         },
@@ -109,13 +145,14 @@ export function VideoEmbed({
     return () => {
       cancelled = true;
       if (interval) clearInterval(interval);
+      guardar(maxRef.current, true); // al salir, guarda lo visto
       try {
         player?.destroy?.();
       } catch {
         /* noop */
       }
     };
-  }, [ytId, markWatchedInGate, videoKey]);
+  }, [ytId, bump, guardar]);
 
   // --- YouTube (rastreable) ---
   if (ytId) {
@@ -124,31 +161,43 @@ export function VideoEmbed({
         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full">
           <div ref={containerRef} className="absolute inset-0 h-full w-full" />
         </div>
-        <p
-          className={`flex items-center gap-1.5 text-xs ${
-            watched ? "text-success" : "text-muted-foreground"
-          }`}
-        >
-          {watched ? (
-            <>
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Video visto
-            </>
-          ) : (
-            <>
-              <Eye className="h-3.5 w-3.5" />
-              Mira el video completo para poder continuar.
-            </>
-          )}
-        </p>
+        {/* Barra de avance + texto con el % visto */}
+        <div className="space-y-1">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className={`h-full rounded-full transition-all ${watched ? "bg-success" : "bg-primary"}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p
+            className={`flex items-center gap-1.5 text-xs ${
+              watched ? "text-success" : "text-muted-foreground"
+            }`}
+          >
+            {watched ? (
+              <>
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Video visto ({pct}%)
+              </>
+            ) : (
+              <>
+                <Eye className="h-3.5 w-3.5" />
+                Has visto {pct}% — míralo completo para poder continuar.
+              </>
+            )}
+          </p>
+        </div>
       </div>
     );
   }
 
-  // --- Google Drive u otra fuente (no rastreable): embed simple ---
-  const src = driveId
-    ? `https://drive.google.com/file/d/${driveId}/preview`
-    : url;
+  // --- Vimeo / Google Drive u otra fuente (no rastreable): embed simple ---
+  const vimeo = parseVimeo(url);
+  const src = vimeo
+    ? `https://player.vimeo.com/video/${vimeo.id}${vimeo.hash ? `?h=${vimeo.hash}` : ""}`
+    : driveId
+      ? `https://drive.google.com/file/d/${driveId}/preview`
+      : url;
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
       <iframe

@@ -9,14 +9,18 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
-import { getAdminMetrics } from "@/lib/metrics";
+import { getAdminMetrics, getReportePersonas } from "@/lib/metrics";
 import { AvanceCursosChart } from "@/components/admin/charts/AvanceCursosChart";
 import { PromedioExamenChart } from "@/components/admin/charts/PromedioExamenChart";
+import { ReportePersonas } from "@/components/admin/ReportePersonas";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export default async function ReportesPage() {
-  const m = await getAdminMetrics();
+  const [m, personas] = await Promise.all([
+    getAdminMetrics(),
+    getReportePersonas(),
+  ]);
 
   const avanceData = m.cursos.map((c) => ({
     curso: c.title.length > 24 ? c.title.slice(0, 22) + "…" : c.title,
@@ -72,6 +76,11 @@ export default async function ReportesPage() {
           <PromedioExamenChart data={examenData} />
         </Panel>
       </div>
+
+      {/* Detalle por persona: cada empleado con su avance, exámenes y certificados */}
+      <Panel titulo="Detalle por persona" className="mt-6">
+        <ReportePersonas personas={personas} />
+      </Panel>
 
       {/* Monitoreo: exámenes abiertos y no enviados (cuentan como intento) */}
       {m.examenes.some((e) => e.abandonados > 0) && (
@@ -172,6 +181,54 @@ export default async function ReportesPage() {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      )}
+
+      {/* Monitoreo de videos: cuánto vio cada persona de cada video */}
+      {m.avanceVideos.length > 0 && (
+        <Panel titulo="Avance de videos (cuánto vio cada persona)" className="mt-6">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="py-2 pr-4 font-medium">Persona</th>
+                  <th className="py-2 pr-4 font-medium">Lección (video)</th>
+                  <th className="py-2 pr-4 font-medium">Curso</th>
+                  <th className="py-2 font-medium">Visto</th>
+                </tr>
+              </thead>
+              <tbody>
+                {m.avanceVideos.map((v, i) => (
+                  <tr key={i} className="border-b last:border-0">
+                    <td className="py-2.5 pr-4 font-medium text-foreground">
+                      {v.userName}
+                    </td>
+                    <td className="py-2.5 pr-4 text-muted-foreground">
+                      {v.leccion}
+                    </td>
+                    <td className="py-2.5 pr-4 text-muted-foreground">
+                      {v.cursoTitle}
+                    </td>
+                    <td className="py-2.5">
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+                          <span
+                            className={`block h-full rounded-full ${v.pct >= 90 ? "bg-success" : "bg-primary"}`}
+                            style={{ width: `${v.pct}%` }}
+                          />
+                        </span>
+                        <span
+                          className={`text-xs font-semibold ${v.pct >= 90 ? "text-success" : "text-foreground"}`}
+                        >
+                          {v.pct}%
+                        </span>
+                      </span>
                     </td>
                   </tr>
                 ))}

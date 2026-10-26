@@ -48,11 +48,6 @@ export function CursoFormDialog({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
-  const modoInicial = (c?: CursoFormData | null): "none" | "days" | "date" =>
-    c?.dueDays != null ? "days" : c?.dueDate ? "date" : "none";
-  const [dueMode, setDueMode] = useState<"none" | "days" | "date">(
-    modoInicial(curso),
-  );
   const [pending, startTransition] = useTransition();
   const isEdit = !!curso?.id;
   const guard = useCierreGuard(dirty, () => onOpenChange(false));
@@ -61,7 +56,6 @@ export function CursoFormDialog({
   useEffect(() => {
     if (open) {
       setDirty(false);
-      setDueMode(modoInicial(curso));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -179,49 +173,6 @@ export function CursoFormDialog({
                 defaultValue={curso?.passingScore ?? 70}
               />
             </div>
-          </div>
-
-          {/* Fecha límite: sin límite / plazo en días (por empleado) / fecha fija */}
-          <div className="space-y-1.5">
-            <Label htmlFor="dueMode">Fecha límite</Label>
-            <select
-              id="dueMode"
-              name="dueMode"
-              className={selectClass}
-              value={dueMode}
-              onChange={(e) =>
-                setDueMode(e.target.value as "none" | "days" | "date")
-              }
-            >
-              <option value="none">Sin límite</option>
-              <option value="days">Plazo en días (por empleado)</option>
-              <option value="date">Fecha fija</option>
-            </select>
-
-            {dueMode === "days" && (
-              <div className="space-y-1">
-                <Input
-                  name="dueDays"
-                  type="number"
-                  min="1"
-                  placeholder="Ej. 30"
-                  defaultValue={curso?.dueDays ?? ""}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Cada empleado tendrá esos días desde que ingresa o recibe el
-                  curso. Ideal para inducciones (un empleado nuevo nunca lo verá
-                  vencido por una fecha vieja).
-                </p>
-              </div>
-            )}
-
-            {dueMode === "date" && (
-              <Input
-                name="dueDate"
-                type="date"
-                defaultValue={curso?.dueDate ?? ""}
-              />
-            )}
           </div>
 
           <div className="space-y-1.5">

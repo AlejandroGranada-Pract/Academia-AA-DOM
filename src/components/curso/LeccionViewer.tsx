@@ -1,6 +1,52 @@
-import { Info, AlertTriangle, Lightbulb } from "lucide-react";
+import type { ReactNode } from "react";
+import { Info, AlertTriangle, Lightbulb, Link2, ExternalLink } from "lucide-react";
 import { VideoEmbed } from "@/components/curso/VideoEmbed";
 import { PdfEmbed } from "@/components/curso/PdfEmbed";
+import { PromptBlock } from "@/components/curso/PromptBlock";
+
+// Convierte texto plano en nodos con enlaces clicables. Soporta:
+//  - Markdown: [texto](https://…) → enlace con nombre
+//  - URLs sueltas: https://… o www.… → se vuelven clicables tal cual
+const LINK_RE =
+  /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|((?:https?:\/\/|www\.)[^\s<)]+)/gi;
+
+function renderRich(text?: string | null): ReactNode {
+  if (!text) return text ?? null;
+  const nodes: ReactNode[] = [];
+  const re = new RegExp(LINK_RE.source, "gi");
+  let last = 0;
+  let k = 0;
+  let m: RegExpExecArray | null;
+  const link = (href: string, label: string) => (
+    <a
+      key={k++}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-medium text-primary underline underline-offset-2 hover:text-primary/80 break-words"
+    >
+      {label}
+    </a>
+  );
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) nodes.push(text.slice(last, m.index));
+    if (m[1] && m[2]) {
+      // [texto](url)
+      nodes.push(link(m[2], m[1]));
+    } else {
+      // URL suelta: recorta puntuación final típica de la prosa
+      let raw = m[3];
+      const tm = raw.match(/[).,;:!?»"']+$/);
+      const tail = tm ? tm[0] : "";
+      if (tail) raw = raw.slice(0, raw.length - tail.length);
+      nodes.push(link(raw.startsWith("www.") ? `https://${raw}` : raw, raw));
+      if (tail) nodes.push(tail);
+    }
+    last = re.lastIndex;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  return nodes;
+}
 
 // Tipos laxos: el contenido es JSON polimórfico (ver spec sección 6).
 type Block = {
@@ -12,12 +58,15 @@ type Block = {
     | "image"
     | "video"
     | "pdf"
-    | "table";
+    | "table"
+    | "prompt"
+    | "link";
   text?: string;
   items?: string[];
   url?: string;
   caption?: string;
   title?: string;
+  label?: string;
   style?: "info" | "warning" | "tip";
   headers?: string[];
   rows?: string[][];
@@ -44,7 +93,7 @@ function Callout({ style = "info", text }: { style?: Block["style"]; text: strin
   return (
     <div className={`flex gap-3 rounded-r-lg border-l-4 p-4 text-sm ${className}`}>
       <Icon className="mt-0.5 h-4 w-4 shrink-0" />
-      <p className="text-foreground">{text}</p>
+      <p className="text-foreground">{renderRich(text)}</p>
     </div>
   );
 }
@@ -95,7 +144,7 @@ function TableBlock({
                   key={c}
                   className="border-b px-3 py-2 align-top text-foreground/90 last:border-r-0"
                 >
-                  {cell}
+                  {renderRich(cell)}
                 </td>
               ))}
             </tr>
@@ -117,12 +166,12 @@ function BlockRenderer({ block }: { block: Block }) {
       );
     case "paragraph":
       return (
-        <p className="leading-relaxed text-foreground/90">{block.text}</p>
+        <p className="leading-relaxed text-foreground/90">{renderRich(block.text)}</p>
       );
     case "list":
       return (
         <ul className="list-disc space-y-1 pl-5 text-foreground/90">
-          {block.items?.map((it, i) => <li key={i}>{it}</li>)}
+          {block.items?.map((it, i) => <li key={i}>{renderRich(it)}</li>)}
         </ul>
       );
     case "callout":
@@ -137,6 +186,25 @@ function BlockRenderer({ block }: { block: Block }) {
       return block.url ? <PdfEmbed url={block.url} title={block.title} /> : null;
     case "table":
       return <TableBlock headers={block.headers} rows={block.rows} />;
+    case "prompt":
+      return block.text ? (
+        <PromptBlock text={block.text} label={block.label} />
+      ) : null;
+    case "link":
+      return block.url ? (
+        <a
+          href={
+            block.url.startsWith("www.") ? `https://${block.url}` : block.url
+          }
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex max-w-full items-center gap-2 rounded-lg border border-primary bg-primary/8 px-4 py-2.5 font-medium text-primary transition-colors hover:bg-primary/15"
+        >
+          <Link2 className="h-4 w-4 shrink-0" />
+          <span className="truncate">{block.text?.trim() || block.url}</span>
+          <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-70" />
+        </a>
+      ) : null;
     default:
       return null;
   }
@@ -161,7 +229,7 @@ export function LeccionViewer({
           <VideoEmbed url={content.videoUrl} />
           {content.description && (
             <p className="leading-relaxed text-foreground/90">
-              {content.description}
+              {renderRich(content.description)}
             </p>
           )}
         </>

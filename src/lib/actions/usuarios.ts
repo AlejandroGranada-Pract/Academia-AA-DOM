@@ -76,9 +76,14 @@ export async function createUser(
     },
   });
 
-  // Correo de bienvenida con sus datos de acceso (no bloquea si el correo falla).
+  // Correo de bienvenida en segundo plano (no bloquea la respuesta).
   if (mailEnabled()) {
-    await enviarBienvenida({ to: email, nombre: name.split(" ")[0] || name, email, password });
+    void enviarBienvenida({
+      to: email,
+      nombre: name.split(" ")[0] || name,
+      email,
+      password,
+    }).catch((e) => console.error("[usuarios] bienvenida:", e));
   }
 
   revalidatePath("/usuarios");
@@ -149,25 +154,31 @@ export async function updateUser(
   }
 
   await prisma.user.update({ where: { id: userId }, data });
+  revalidatePath("/usuarios");
 
-  // Avisa al usuario de los cursos recién asignados de forma individual.
+  // Avisa de los cursos recién asignados EN SEGUNDO PLANO (no bloquea).
   if (mailEnabled() && cursosNuevos.length) {
-    const u = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true },
-    });
-    const cursos = await prisma.course.findMany({
-      where: { id: { in: cursosNuevos } },
-      select: { title: true },
-    });
-    if (u?.email) {
-      for (const c of cursos) {
-        await enviarCursoAsignado({ to: u.email, cursoTitle: c.title });
+    void (async () => {
+      try {
+        const u = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true },
+        });
+        const cursos = await prisma.course.findMany({
+          where: { id: { in: cursosNuevos } },
+          select: { title: true },
+        });
+        if (u?.email) {
+          for (const c of cursos) {
+            await enviarCursoAsignado({ to: u.email, cursoTitle: c.title });
+          }
+        }
+      } catch (e) {
+        console.error("[usuarios] aviso curso:", e);
       }
-    }
+    })();
   }
 
-  revalidatePath("/usuarios");
   return undefined;
 }
 

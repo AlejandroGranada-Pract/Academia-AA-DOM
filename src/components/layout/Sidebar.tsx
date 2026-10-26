@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,10 +10,15 @@ import {
   LayoutGrid,
   BarChart3,
   Boxes,
+  BookOpen,
+  TrendingUp,
+  Award,
+  GraduationCap,
+  SlidersHorizontal,
   type LucideIcon,
 } from "lucide-react";
 import { signOutAction } from "@/lib/actions/auth";
-import { mainNavFor, isNavItemActive } from "@/components/layout/nav-items";
+import { MAIN_NAV, isNavItemActive } from "@/components/layout/nav-items";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 type Role = "SUPER_ADMIN" | "AREA_LEADER" | "EMPLOYEE" | "EXTERNAL";
@@ -23,6 +29,14 @@ type SidebarUser = {
 };
 
 type NavLink = { href: string; label: string; icon: LucideIcon };
+
+// Vista de alumno para el staff (sin "Dashboard": su home de alumno es el
+// catálogo de cursos; el dashboard "/" es solo para empleados).
+const APRENDIZAJE_NAV: NavLink[] = [
+  { href: "/cursos", label: "Cursos", icon: BookOpen },
+  { href: "/mi-progreso", label: "Mi Progreso", icon: TrendingUp },
+  { href: "/certificados", label: "Certificados", icon: Award },
+];
 
 // Sección de administración completa (SUPER_ADMIN).
 const ADMIN_NAV: NavLink[] = [
@@ -39,6 +53,16 @@ const LEADER_NAV: NavLink[] = [
   { href: "/grupos", label: "Grupos", icon: Boxes },
   { href: "/reportes", label: "Reportes", icon: BarChart3 },
 ];
+
+// Rutas de cada modo, para que el toggle siga la sección donde estás.
+const LEARNER_PATHS = ["/cursos", "/mi-progreso", "/certificados"];
+const GESTION_PATHS = ["/usuarios", "/grupos", "/admin", "/reportes", "/mi-equipo"];
+type Mode = "aprendizaje" | "gestion";
+function modeForPath(pathname: string): Mode | null {
+  if (LEARNER_PATHS.some((p) => pathname.startsWith(p))) return "aprendizaje";
+  if (GESTION_PATHS.some((p) => pathname.startsWith(p))) return "gestion";
+  return null;
+}
 
 const ROLE_LABEL: Record<Role, string> = {
   SUPER_ADMIN: "Super Admin",
@@ -93,6 +117,40 @@ function SidebarLink({
   );
 }
 
+// Interruptor Cursos / Gestión (solo staff).
+function ModeToggle({
+  mode,
+  onChange,
+}: {
+  mode: Mode;
+  onChange: (m: Mode) => void;
+}) {
+  const btn = (m: Mode, label: string, Icon: LucideIcon) => {
+    const active = mode === m;
+    return (
+      <button
+        type="button"
+        onClick={() => onChange(m)}
+        aria-pressed={active}
+        className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
+          active
+            ? "bg-sidebar-primary/20 text-sidebar-primary shadow-sm"
+            : "text-sidebar-foreground/55 hover:text-sidebar-foreground"
+        }`}
+      >
+        <Icon className="h-3.5 w-3.5 shrink-0" />
+        {label}
+      </button>
+    );
+  };
+  return (
+    <div className="mb-3 flex gap-1 rounded-lg bg-sidebar-accent/50 p-1">
+      {btn("aprendizaje", "Cursos", GraduationCap)}
+      {btn("gestion", "Gestión", SlidersHorizontal)}
+    </div>
+  );
+}
+
 export function Sidebar({
   user,
   leadsTeam,
@@ -101,17 +159,29 @@ export function Sidebar({
   leadsTeam: boolean;
 }) {
   const pathname = usePathname();
-  const mainItems = mainNavFor(user.role); // vacío para admin y líder
-  const hasTopBlock = mainItems.length > 0;
+  const isStaff = user.role === "SUPER_ADMIN" || user.role === "AREA_LEADER";
 
-  // Sección de gestión según rol. Mi Equipo se agrega si lidera algún grupo.
+  // Modo activo del staff: sigue la sección donde estás; por defecto Gestión.
+  const [mode, setMode] = useState<Mode>(() => modeForPath(pathname) ?? "gestion");
+  // Al navegar, el toggle refleja la sección actual (sin pisar un cambio manual).
+  useEffect(() => {
+    const m = modeForPath(pathname);
+    if (m) setMode(m);
+  }, [pathname]);
+
+  // Ítems de gestión según rol (+ Mi Equipo si lidera algún grupo).
   const gestion: NavLink[] = [];
   if (user.role === "SUPER_ADMIN") gestion.push(...ADMIN_NAV);
   else if (user.role === "AREA_LEADER") gestion.push(...LEADER_NAV);
   if (leadsTeam)
     gestion.push({ href: "/mi-equipo", label: "Mi Equipo", icon: Users2 });
-  const sectionLabel =
-    user.role === "SUPER_ADMIN" ? "Administración" : "Gestión";
+
+  // Qué se muestra: empleados → su menú de alumno; staff → según el toggle.
+  const items: NavLink[] = !isStaff
+    ? MAIN_NAV
+    : mode === "aprendizaje"
+      ? APRENDIZAJE_NAV
+      : gestion;
 
   return (
     <aside data-app-chrome className="fixed inset-y-0 left-0 z-40 hidden w-[260px] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground dark:bg-gradient-to-b dark:from-[#14171c] dark:via-sidebar dark:to-[#0b0d10] md:flex">
@@ -133,30 +203,14 @@ export function Sidebar({
 
       {/* Navegación */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
-        {hasTopBlock && (
-          <div className="space-y-1">
-            {mainItems.map((item) => (
-              <SidebarLink key={item.href} {...item} pathname={pathname} />
-            ))}
-          </div>
-        )}
+        {/* Toggle Cursos / Gestión: solo para admin y líder */}
+        {isStaff && <ModeToggle mode={mode} onChange={setMode} />}
 
-        {gestion.length > 0 && (
-          <>
-            <p
-              className={`px-3 pb-2 text-[10px] uppercase tracking-[0.15em] text-sidebar-foreground/40 ${
-                hasTopBlock ? "pt-5" : ""
-              }`}
-            >
-              {sectionLabel}
-            </p>
-            <div className="space-y-1">
-              {gestion.map((item) => (
-                <SidebarLink key={item.href} {...item} pathname={pathname} />
-              ))}
-            </div>
-          </>
-        )}
+        <div className="space-y-1">
+          {items.map((item) => (
+            <SidebarLink key={item.href} {...item} pathname={pathname} />
+          ))}
+        </div>
       </nav>
 
       {/* Usuario */}

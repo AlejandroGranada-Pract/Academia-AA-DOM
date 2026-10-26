@@ -3,6 +3,19 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import {
+  SVG_ADJUNTAR,
+  SVG_WEB,
+  SVG_FLUJO,
+  SVG_DOM,
+  SVG_PROYECTO,
+  SVG_INTERFAZ,
+  SVG_RECETA,
+  SVG_CICLO,
+  SVG_CHECKLIST,
+  SVG_PRIVACIDAD,
+  SVG_CONECTORES,
+} from "./seed-assets/claude-svgs";
 
 const connectionString = process.env.DATABASE_URL!;
 const isLocalDb = /localhost|127\.0\.0\.1/.test(connectionString);
@@ -26,6 +39,15 @@ async function img(file: string, name: string): Promise<string> {
   return `/api/imagenes/${a.id}`;
 }
 
+// Guarda un SVG (ilustración/captura anotada) como asset y devuelve su URL.
+async function svgImg(svg: string, name: string): Promise<string> {
+  const data = Buffer.from(svg, "utf8");
+  const a = await prisma.imageAsset.create({
+    data: { name, mime: "image/svg+xml", size: data.length, data },
+  });
+  return `/api/imagenes/${a.id}`;
+}
+
 type Block = Record<string, unknown>;
 const h = (text: string): Block => ({ type: "heading", text });
 const p = (text: string): Block => ({ type: "paragraph", text });
@@ -36,6 +58,8 @@ const warn = (text: string): Block => ({ type: "callout", style: "warning", text
 const video = (url: string): Block => ({ type: "video", url });
 const image = (url: string, caption: string): Block => ({ type: "image", url, caption });
 const table = (headers: string[], rows: string[][]): Block => ({ type: "table", headers, rows });
+const prompt = (text: string, label?: string): Block =>
+  label ? { type: "prompt", text, label } : { type: "prompt", text };
 
 type Leccion = { title: string; durationMin: number; blocks: Block[] };
 type Pregunta = {
@@ -48,19 +72,25 @@ type Pregunta = {
 type Examen = { title: string; description: string; timeLimitMin: number; questions: Pregunta[] };
 type Modulo = { title: string; lecciones: Leccion[]; examen: Examen };
 
-// Videos (tutoriales reales de Claude en español encontrados en YouTube).
-// Nota: verifícalos y ajústalos al tono de la empresa antes de publicar.
-const VIDEO_INTRO = "https://www.youtube.com/watch?v=CmmLH307Dow";
-const VIDEO_PROMPTS = "https://www.youtube.com/watch?v=imAjmQy8p8c";
-const NOTA_VIDEO =
-  "Este video es un tutorial externo de referencia. Verifica que siga disponible y que encaje con el tono de la empresa antes de publicar el curso.";
-
 async function construirModulos(): Promise<Modulo[]> {
-  // Imágenes libres (Wikimedia Commons) reutilizadas para el módulo de Ambiente Azul.
+  // Fotos reutilizadas para el módulo de Ambiente Azul.
   const imgPiscina = await img("cot-infinity.jpg", "Piscina (contexto AA)");
   const imgSpa = await img("cot-wellness.jpg", "Spa / hidromasaje (contexto AA)");
   const imgClima = await img("cot-bombacalor.jpg", "Climatización (contexto AA)");
   const imgHotel = await img("cot-hotel.jpg", "Piscina de hotel (contexto AA)");
+
+  // Ilustraciones propias (SVG): capturas anotadas y diagramas del curso.
+  const imgAdjuntar = await svgImg(SVG_ADJUNTAR, "Cómo adjuntar un archivo en Claude");
+  const imgWeb = await svgImg(SVG_WEB, "Cómo activar la búsqueda web en Claude");
+  const imgFlujo = await svgImg(SVG_FLUJO, "Flujo: de la cotización al presupuesto");
+  const imgDom = await svgImg(SVG_DOM, "Materiales DOM: mosaico, porcelanato y piedra");
+  const imgProyecto = await svgImg(SVG_PROYECTO, "Cómo crear un proyecto en Claude");
+  const imgInterfaz = await svgImg(SVG_INTERFAZ, "Tour de la pantalla de Claude");
+  const imgReceta = await svgImg(SVG_RECETA, "El método RAFA: rol, acción, formato y audiencia");
+  const imgCiclo = await svgImg(SVG_CICLO, "Ciclo: pide, revisa, ajusta");
+  const imgChecklist = await svgImg(SVG_CHECKLIST, "Checklist antes de enviar");
+  const imgPrivacidad = await svgImg(SVG_PRIVACIDAD, "Qué sí y qué no pegar en Claude");
+  const imgConectores = await svgImg(SVG_CONECTORES, "Conectores: herramientas externas en Claude");
 
   return [
     // ======================= MÓDULO 1 =======================
@@ -94,12 +124,34 @@ async function construirModulos(): Promise<Modulo[]> {
               "Inicia sesión con la cuenta que te indique la empresa.",
               "Verás una caja de texto abajo: ahí escribes lo que necesitas.",
             ]),
+            image(imgInterfaz, "Así se ve la pantalla de Claude. Los números te muestran para qué sirve cada parte."),
             h("Tu primer mensaje"),
             p("Escríbele como si le hablaras a un colega. Por ejemplo: “Ayúdame a redactar un correo corto y amable para recordarle a un cliente que su cotización sigue disponible.”"),
             p("Claude responde en segundos. Si algo no quedó como querías, se lo dices: “hazlo más corto”, “más formal”, “agrégale una despedida”."),
             tip("No tienes que escribir “perfecto”. Escribe natural; si la respuesta no te convence, la ajustas con otra frase."),
+            image(imgCiclo, "Trabajar con Claude es un ciclo: le pides, revisas lo que te da, y le pides ajustes hasta que quede."),
             h("Conversaciones"),
             p("Cada tema puede ir en su propia conversación, y Claude recuerda lo que hablaron dentro de ella. Para un tema nuevo, abre una conversación nueva."),
+          ],
+        },
+        {
+          title: "Claude en tu celular (y por voz)",
+          durationMin: 7,
+          blocks: [
+            h("Claude también va en tu bolsillo"),
+            p("En el showroom, en obra o visitando un cliente casi nunca estás frente al computador. Claude tiene app para celular (iPhone y Android) y también funciona desde el navegador del teléfono. Inicias sesión con la misma cuenta y verás los mismos proyectos y conversaciones: lo que empiezas en el computador lo sigues en el celular, y al revés."),
+            h("Cómo instalarlo, paso a paso"),
+            list([
+              "Paso 1. En tu celular, abre la App Store (iPhone) o Google Play (Android).",
+              "Paso 2. Busca “Claude” (el desarrollador es Anthropic) e instálala.",
+              "Paso 3. Ábrela e inicia sesión con la misma cuenta que usas en el computador.",
+              "Paso 4. Listo: tus proyectos y chats aparecen igual que en claude.ai.",
+            ]),
+            h("Háblale por voz en vez de escribir"),
+            p("Si estás con las manos ocupadas o de afán, puedes dictarle: toca el ícono del micrófono y habla natural, como le hablarías a un compañero. Claude convierte tu voz en texto y responde. Perfecto para no perder tiempo entre visita y visita."),
+            prompt("Actúa como mi asistente comercial. Te voy a dictar lo que me pidió un cliente en la visita; ordénalo y propón el siguiente paso de seguimiento: [dicta aquí]", "Prompt — dictar tras una visita"),
+            tip("Al salir de una reunión, dicta lo que hablaste y pídele “resúmelo y dime qué le respondo”. Llegas al carro con la tarea medio hecha."),
+            warn("Cuida lo que dictas en voz alta si hay clientes o gente cerca, y no compartas datos sensibles. Revisa el módulo “Úsalo con cabeza”."),
           ],
         },
         {
@@ -120,16 +172,6 @@ async function construirModulos(): Promise<Modulo[]> {
               ],
             ),
             info("En los siguientes módulos verás cómo pedir cada una de estas cosas —y cómo aplicarlas a Ambiente Azul y a DOM Design— para que salgan bien desde la primera."),
-          ],
-        },
-        {
-          title: "Video: primer vistazo a Claude",
-          durationMin: 8,
-          blocks: [
-            h("Míralo en acción"),
-            p("Este tutorial muestra cómo se ve Claude y los primeros pasos. Sirve para familiarizarte con la herramienta antes de empezar a usarla en tu día a día."),
-            video(VIDEO_INTRO),
-            warn(NOTA_VIDEO),
           ],
         },
       ],
@@ -166,27 +208,105 @@ async function construirModulos(): Promise<Modulo[]> {
             correctAnswer: 1,
             explanation: "Afinar es rápido: le dices qué ajustar y lo rehace.",
           },
+          {
+            question: "Sobre usar Claude en el celular durante una visita:",
+            type: "MULTIPLE_CHOICE",
+            options: ["No existe, solo funciona en computador", "Hay app para iPhone y Android con la misma cuenta, y puedes dictarle por voz", "Hay que pagar otra suscripción", "Solo lee, no responde"],
+            correctAnswer: 1,
+            explanation: "La app usa tu misma cuenta (mismos proyectos y chats) y puedes dictar con el micrófono.",
+          },
         ],
       },
     },
 
     // ======================= MÓDULO 2 =======================
     {
+      title: "Tu espacio de trabajo: crea tu Proyecto",
+      lecciones: [
+        {
+          title: "Crea tu Proyecto en Claude (uno por tema)",
+          durationMin: 10,
+          blocks: [
+            h("Lo primero: arma tu espacio"),
+            p("Antes de aprender a pedir cosas, conviene tener tu espacio listo. Un Proyecto es un lugar dentro de Claude donde guardas todo lo de UN mismo tema: unas instrucciones fijas (cómo quieres que Claude te responda), los archivos de ese tema y todas sus conversaciones. La idea NO es tener un solo proyecto para todo, sino crear UN proyecto por cada tema de tu trabajo."),
+            info("Piénsalo como carpetas: en vez de una sola carpeta con todo revuelto, tienes una carpeta por tema. Ejemplos para un asesor: “Cotizaciones”, “Seguimiento de clientes”, “Correos y propuestas”."),
+            image(imgProyecto, "Un proyecto por tema: cada uno con sus propias Instrucciones y Archivos."),
+            h("Paso a paso para crear un proyecto"),
+            list([
+              "Paso 1. Entra a claude.ai.",
+              "Paso 2. En la barra de la izquierda, busca la sección “Proyectos”.",
+              "Paso 3. Haz clic en “Proyecto nuevo” (o el botón +).",
+              "Paso 4. Ponle el nombre del TEMA, por ejemplo: “Cotizaciones” o “Seguimiento de clientes”.",
+              "Paso 5. Haz clic en “Crear”. Repite el proceso para cada tema que manejes.",
+            ]),
+            info("Si no ves la sección “Proyectos” en tu cuenta, avísale a la empresa: puede que tu plan aún no la tenga activada."),
+            h("Configura cada proyecto: las Instrucciones"),
+            p("Dentro de cada proyecto hay un espacio de “Instrucciones”. Ahí le explicas a Claude, para ese tema, cómo quieres que te ayude. Este es un ejemplo para el proyecto “Cotizaciones” (ajústalo a ti):"),
+            prompt(
+              `Actúa como asesor comercial de Ambiente Azul y DOM Design, apoyándome con COTIZACIONES.
+
+Cuando te pida algo:
+- Responde en español (Colombia), con un tono profesional pero cálido.
+- Ordena la información con claridad (por sistemas o capítulos) y resalta los beneficios para el cliente.
+- NUNCA supongas ni inventes datos (precios, garantías, especificaciones, nombres): si te falta información, pregúntame o márcala como "[por confirmar]". Prefiero que preguntes a que adivines.`,
+              "Instrucciones del proyecto “Cotizaciones”",
+            ),
+            h("Agrega los Archivos del tema"),
+            p("En cada proyecto sube los archivos propios de ese tema (plantillas, listas de productos, formatos). Quedan disponibles en todas las conversaciones de ese proyecto, sin volver a subirlos."),
+            tip("Regla simple: ¿tema nuevo? → proyecto nuevo. Abre el proyecto del tema y crea ahí una conversación por cada caso (por ejemplo, una por cliente)."),
+          ],
+        },
+      ],
+      examen: {
+        title: "Evaluación — Tu Proyecto",
+        description: "Crea y organiza tus proyectos por tema.",
+        timeLimitMin: 8,
+        questions: [
+          {
+            question: "¿Cuál es la mejor forma de organizar tus proyectos?",
+            type: "MULTIPLE_CHOICE",
+            options: ["Un solo proyecto para todo", "Un proyecto por cada tema (Cotizaciones, Seguimiento, Correos…)", "No usar proyectos", "Uno por día"],
+            correctAnswer: 1,
+            explanation: "Un proyecto por tema mantiene cada cosa enfocada y ordenada.",
+          },
+          {
+            question: "¿Para qué sirven las “Instrucciones” de un proyecto?",
+            type: "MULTIPLE_CHOICE",
+            options: ["Se escriben una vez y le dicen a Claude cómo ayudarte en ese tema", "Hay que repetirlas en cada mensaje", "No sirven para nada", "Son para otros usuarios"],
+            correctAnswer: 0,
+            explanation: "Las escribes una sola vez y aplican a todas las conversaciones de ese proyecto.",
+          },
+          {
+            question: "Un Proyecto guarda tus instrucciones, tus archivos y tus conversaciones de ese tema.",
+            type: "TRUE_FALSE",
+            options: ["Verdadero", "Falso"],
+            correctAnswer: 0,
+            explanation: "Sí: todo lo del tema queda junto en su proyecto.",
+          },
+        ],
+      },
+    },
+
+    // ======================= MÓDULO 3 =======================
+    {
       title: "Cómo pedirle bien las cosas",
       lecciones: [
         {
-          title: "La receta: contexto + tarea + formato",
-          durationMin: 8,
+          title: "La receta: RAFA (Rol · Acción · Formato · Audiencia)",
+          durationMin: 9,
           blocks: [
-            h("El secreto de una buena respuesta"),
-            p("La calidad de lo que Claude te entrega depende de cómo se lo pidas. La receta sencilla tiene 3 partes:"),
+            h("El método RAFA"),
+            p("La calidad de lo que Claude te entrega depende de cómo se lo pidas. Un método fácil de recordar es RAFA, cuatro partes:"),
             list([
-              "Contexto: cuéntale la situación (quién es el cliente, qué producto, qué pasó).",
-              "Tarea: dile exactamente qué quieres (un correo, un resumen, 3 ideas).",
-              "Formato: cómo lo quieres (corto, en viñetas, tono formal, máximo 5 líneas).",
+              "R — Rol: dile qué papel tomar (ej. “Actúa como asesor de Ambiente Azul…”).",
+              "A — Acción: di exactamente qué quieres (un correo, un resumen, 3 ideas).",
+              "F — Formato: cómo lo quieres (corto, en viñetas, tono formal, máximo 5 líneas).",
+              "A — Audiencia: para quién es (un cliente, un arquitecto, tu jefe).",
             ]),
-            info("Ejemplo: “Un cliente cotizó un jacuzzi hace dos semanas y no ha respondido (contexto). Escríbeme un correo de seguimiento amable (tarea), corto, de máximo 5 líneas y con una invitación a agendar una llamada (formato).”"),
-            tip("No necesitas las 3 partes siempre, pero entre más contexto le des, mejor te responde."),
+            image(imgReceta, "RAFA: Rol + Acción + Formato + Audiencia, con un ejemplo real."),
+            prompt("Actúa como asesor comercial de Ambiente Azul. Escríbeme un correo de seguimiento, corto y cálido, de máximo 5 líneas, para un cliente que cotizó un jacuzzi hace dos semanas y no ha respondido; invítalo a agendar una llamada.", "Prompt con RAFA"),
+            warn("Regla de oro para TODOS tus prompts: pídele que NUNCA suponga ni invente. Si le falta un dato, que te lo pregunte o lo marque como “[por confirmar]” — así no te mete información falsa. Consejo: déjalo fijo en las Instrucciones de tu proyecto para que aplique siempre."),
+            tip("Truco: el Rol puedes dejarlo fijo en las Instrucciones de tu Proyecto. Así, en cada prompt te concentras en la Acción, el Formato y la Audiencia."),
           ],
         },
         {
@@ -211,7 +331,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Enséñale con un ejemplo"),
             p("Si quieres que siga un estilo, muéstraselo. Pégale un correo tuyo que te haya gustado y dile: “usa este mismo tono y estructura para escribir uno nuevo sobre…”."),
-            info("Ejemplo: “Este es un correo que suelo enviar [pegas el correo]. Escríbeme uno con el mismo tono para un cliente que pidió cotización de porcelanato para su terraza.”"),
+            prompt("Actúa como asesor de DOM Design. Este es un correo que suelo enviar: [pega aquí tu correo]. Escríbeme uno con el mismo tono y estructura, para un cliente que pidió cotización de porcelanato para su terraza."),
             tip("También puedes pedirle que te arme una plantilla reutilizable: “Hazme una plantilla de correo de seguimiento donde yo solo cambie el nombre y el producto.”"),
           ],
         },
@@ -239,16 +359,6 @@ async function construirModulos(): Promise<Modulo[]> {
             info("Cuanto más claro sea el documento que le pegas, mejor será el resultado."),
           ],
         },
-        {
-          title: "Video: cómo pedirle bien (prompts)",
-          durationMin: 8,
-          blocks: [
-            h("Aprende a pedir"),
-            p("Este tutorial refuerza cómo escribir buenas instrucciones para obtener mejores respuestas."),
-            video(VIDEO_PROMPTS),
-            warn(NOTA_VIDEO),
-          ],
-        },
       ],
       examen: {
         title: "Evaluación — Cómo pedirle bien",
@@ -256,11 +366,11 @@ async function construirModulos(): Promise<Modulo[]> {
         timeLimitMin: 10,
         questions: [
           {
-            question: "La receta para un buen pedido incluye…",
+            question: "¿Qué significa RAFA, el método para pedir bien?",
             type: "MULTIPLE_CHOICE",
-            options: ["Contexto, tarea y formato", "Solo la palabra “hazlo”", "Códigos y comandos", "El precio del producto"],
+            options: ["Rol, Acción, Formato y Audiencia", "Solo la palabra “hazlo”", "Códigos y comandos", "Rápido, Ágil, Fácil y Ahora"],
             correctAnswer: 0,
-            explanation: "Contexto (la situación) + tarea (qué quieres) + formato (cómo lo quieres).",
+            explanation: "RAFA = Rol (qué papel tome) + Acción (qué quieres) + Formato (cómo) + Audiencia (para quién).",
           },
           {
             question: "¿Cuál es el mejor pedido?",
@@ -294,7 +404,7 @@ async function construirModulos(): Promise<Modulo[]> {
       },
     },
 
-    // ======================= MÓDULO 3 =======================
+    // ======================= MÓDULO 4 =======================
     {
       title: "Claude en tus tareas de venta",
       lecciones: [
@@ -304,10 +414,10 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Correos de seguimiento"),
             p("Es de lo más útil: recordar cotizaciones, retomar clientes fríos, agradecer una visita."),
-            info("Ejemplo: “Cliente visitó el showroom y cotizó un sauna, pero no ha respondido en 10 días. Escríbeme un correo de seguimiento cálido, corto, que invite a resolver dudas por WhatsApp.”"),
+            prompt("Actúa como asesor de Ambiente Azul. Escríbeme un correo de seguimiento cálido y corto, que invite a resolver dudas por WhatsApp, para un cliente que visitó el showroom y cotizó un sauna pero no ha respondido en 10 días."),
             h("Responder con tacto"),
             p("Cuando un cliente pone una objeción o un mensaje difícil, pídele a Claude un borrador amable y profesional."),
-            info("Ejemplo: “Un cliente respondió que lo va a pensar. Escríbeme una respuesta breve, sin presionar, que mantenga vivo el interés y ofrezca ayuda.”"),
+            prompt("Actúa como asesor de Ambiente Azul. Escríbeme una respuesta breve y sin presionar, que mantenga vivo el interés y ofrezca ayuda, para un cliente que respondió que “lo va a pensar”."),
             tip("Siempre léelo antes de enviar: pon el nombre real del cliente y confirma que los datos estén correctos."),
           ],
         },
@@ -317,7 +427,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("De lo técnico a lo simple"),
             p("Muchos clientes no entienden los términos técnicos. Pídele a Claude que los traduzca a un lenguaje claro y con un beneficio concreto."),
-            info("Ejemplo: “Explícale a un cliente, en lenguaje simple y con un beneficio claro, qué es un sistema de cloración salina y por qué le conviene frente al cloro tradicional.”"),
+            prompt("Actúa como asesor de Ambiente Azul. Explica en lenguaje simple y con un beneficio claro, para un cliente sin conocimientos técnicos, qué es un sistema de cloración salina y por qué le conviene frente al cloro tradicional."),
             warn("Si hay datos técnicos (medidas, capacidades, especificaciones), verifícalos con la ficha oficial de la marca antes de dárselos al cliente. Claude redacta muy bien, pero no inventes especificaciones."),
           ],
         },
@@ -327,7 +437,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Resúmenes en segundos"),
             p("Pega un texto largo —una ficha técnica, un correo extenso, una norma— y pídele un resumen a tu medida."),
-            info("Ejemplo: “Resume esta ficha técnica en 5 puntos que le pueda explicar a un cliente, resaltando beneficios y no tecnicismos.”"),
+            prompt("Actúa como asesor de Ambiente Azul. Resume esta ficha técnica en 5 puntos, resaltando beneficios y sin tecnicismos, para explicárselos a un cliente."),
             tip("Puedes pedir “en 5 viñetas”, “en una sola frase”, o “los 3 beneficios para el cliente”."),
           ],
         },
@@ -337,7 +447,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Propuestas más rápidas"),
             p("Dale los datos (producto, necesidad del cliente, puntos a destacar) y pídele una propuesta breve y ordenada que luego tú completas."),
-            info("Ejemplo: “Arma una propuesta breve y ordenada para un cliente que quiere renovar su zona húmeda: destaca durabilidad, acabado y asesoría. Deja espacios para que yo ponga precios.”"),
+            prompt("Actúa como asesor de AA | DOM. Arma una propuesta breve y ordenada, que destaque durabilidad, acabado y asesoría, para un cliente que quiere renovar su zona húmeda. Deja espacios para que yo ponga los precios."),
             h("Objeciones frecuentes"),
             table(
               ["Objeción del cliente", "Qué pedirle a Claude"],
@@ -348,6 +458,45 @@ async function construirModulos(): Promise<Modulo[]> {
               ],
             ),
             warn("No prometas precios, plazos ni garantías que no estén confirmados. Usa Claude para redactar; los números y compromisos los confirmas y los pones tú."),
+          ],
+        },
+        {
+          title: "Más usos para tu día a día",
+          durationMin: 9,
+          blocks: [
+            h("Otros usos que te van a servir"),
+            p("Además de correos y propuestas, hay tres tareas que Claude te resuelve rapidísimo. Copia los prompts y adáptalos a tu caso."),
+            h("1. Correos en inglés (clientes de Miami)"),
+            p("Ambiente Azul tiene showroom en Miami, así que a veces vas a escribirle a un cliente en inglés. No necesitas dominar el idioma: escribe en español y pídele a Claude que lo pase a inglés, bien redactado."),
+            prompt(
+              `Actúa como asesor de Ambiente Azul. Traduce este correo al inglés, en tono profesional y cálido y que suene natural (no traducción literal), para un cliente en Miami interesado en un spa:
+
+[pega aquí tu correo en español]`,
+              "Prompt — Correo en inglés",
+            ),
+            h("2. Convierte las notas de una visita en seguimiento"),
+            p("Después de una visita o una llamada quedas con notas sueltas. Pégaselas a Claude y te las ordena, y hasta te redacta el correo de seguimiento."),
+            prompt(
+              `Actúa como mi asistente comercial. Estas son mis notas sueltas de una visita a un cliente:
+
+[pega aquí tus notas]
+
+Organízalas para mí en: (1) resumen de lo que quiere el cliente, (2) próximos pasos (lista corta), y (3) un correo de seguimiento breve y cálido para el cliente.`,
+              "Prompt — Notas de visita → seguimiento",
+            ),
+            h("3. Compara dos productos para el cliente"),
+            p("Cuando el cliente duda entre dos opciones, una comparación clara lo ayuda a decidir. Pídele a Claude una tabla sencilla."),
+            prompt(
+              `Actúa como asesor de AA | DOM. Compárame estos dos productos en una tabla sencilla (para qué sirve, ventajas de cada uno y para quién es mejor cada opción), pensada para un cliente que no es técnico:
+
+Producto A: [nombre / datos]
+Producto B: [nombre / datos]
+
+No inventes datos; si falta información, márcala como "[por confirmar]".`,
+              "Prompt — Comparar dos productos",
+            ),
+            tip("Guarda estos prompts en tu proyecto (en las Instrucciones o en una nota) para tenerlos siempre a mano."),
+            warn("Antes de enviar cualquier dato técnico o comparación al cliente, verifícalo con la ficha oficial de la marca."),
           ],
         },
       ],
@@ -395,7 +544,7 @@ async function construirModulos(): Promise<Modulo[]> {
       },
     },
 
-    // ======================= MÓDULO 4 =======================
+    // ======================= MÓDULO 5 =======================
     {
       title: "Claude para Ambiente Azul",
       lecciones: [
@@ -417,8 +566,8 @@ async function construirModulos(): Promise<Modulo[]> {
             h("Traduce el bienestar a beneficios"),
             p("El cliente de Ambiente Azul compra una experiencia, no una ficha técnica. Pídele a Claude que hable de sensaciones y beneficios."),
             image(imgSpa, "El spa se vende por la experiencia: relajación y bienestar."),
-            info("Ejemplo: “Explícale a un cliente, en tono cálido y aspiracional, qué es un cold plunge y qué beneficios tiene para su bienestar, sin tecnicismos.”"),
-            info("Ejemplo: “Escríbeme 3 frases para redes sobre el ritual sauna–cold plunge que conecten con el bienestar.”"),
+            prompt("Actúa como asesor de Ambiente Azul. Explica en tono cálido y aspiracional, sin tecnicismos, para un cliente, qué es un cold plunge y qué beneficios tiene para su bienestar."),
+            prompt("Actúa como community manager de Ambiente Azul. Escríbeme 3 frases para redes sociales sobre el ritual sauna–cold plunge, en tono aspiracional, dirigidas a clientes interesados en bienestar."),
             tip("Para spas Hot Spring, si mencionas una colección (Highlife, Limelight, Hotspot, Freeflow), confirma que sea la correcta antes de enviarlo al cliente."),
           ],
         },
@@ -429,7 +578,7 @@ async function construirModulos(): Promise<Modulo[]> {
             h("Temas técnicos, explicados fácil"),
             p("Preguntas típicas: “¿sal o cloro?”, “¿cómo caliento el agua?”, “¿cada cuánto el mantenimiento?”. Claude te ayuda a responder claro."),
             image(imgClima, "La climatización y el tratamiento del agua generan muchas preguntas del cliente."),
-            info("Ejemplo: “Un cliente pregunta si le conviene cloración salina o cloro tradicional. Dame una respuesta corta, equilibrada y en lenguaje simple.”"),
+            prompt("Actúa como asesor de Ambiente Azul. Dame una respuesta corta, equilibrada y en lenguaje simple, para un cliente que pregunta si le conviene cloración salina o cloro tradicional."),
             warn("Para recomendaciones de equipos, capacidades o periodicidad de mantenimiento, apóyate en la ficha oficial y en el área técnica. No prometas resultados ni plazos sin confirmarlos."),
           ],
         },
@@ -440,7 +589,7 @@ async function construirModulos(): Promise<Modulo[]> {
             h("Proyectos comerciales"),
             p("Con clubs y hoteles el tono es más formal y el enfoque más técnico-comercial. Claude te ayuda a redactar propuestas y correos serios y profesionales."),
             image(imgHotel, "Los proyectos de hotel y club piden un tono formal y profesional."),
-            info("Ejemplo: “Redacta un correo formal para el administrador de un hotel presentando nuestra asesoría integral en piscina y zona húmeda, resaltando respaldo y servicio postventa.”"),
+            prompt("Actúa como asesor de Ambiente Azul. Redacta un correo formal para el administrador de un hotel, presentando nuestra asesoría integral en piscina y zona húmeda y resaltando respaldo y servicio postventa."),
             tip("Pídele a Claude que use un tono formal y evite promesas: tú añades luego las condiciones oficiales."),
           ],
         },
@@ -482,7 +631,7 @@ async function construirModulos(): Promise<Modulo[]> {
       },
     },
 
-    // ======================= MÓDULO 5 =======================
+    // ======================= MÓDULO 6 =======================
     {
       title: "Claude para DOM Design",
       lecciones: [
@@ -492,6 +641,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Los detalles importan"),
             p("DOM Design ofrece materiales para piscinas, terrazas y zonas húmedas: enchapes, porcelanatos, mosaicos y piedra natural. Trabaja con cliente final y con un canal de especificadores (arquitectos, diseñadores, constructores) a través de la Zona PRO."),
+            image(imgDom, "Cada material —mosaico, porcelanato, piedra— define la textura y el acabado del espacio."),
             warn("Marcas, colecciones, formatos y especificaciones deben verificarse con la información oficial de cada representada. Claude redacta y explica, pero no inventa referencias. [Completar con el portafolio oficial]"),
             info("El mensaje central de DOM: cada detalle —borde, textura, acabado— define el resultado final. Pídele a Claude que resalte ese enfoque."),
           ],
@@ -502,8 +652,9 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Del catálogo al lenguaje del cliente"),
             p("Los clientes preguntan por diferencias entre materiales, acabados, dónde usar cada uno. Pídele a Claude explicaciones claras y orientadas al uso."),
-            info("Ejemplo: “Explica en lenguaje simple, para un cliente, la diferencia entre porcelanato y cerámica y en qué caso conviene cada uno.” (verifica los datos con la ficha oficial)"),
-            info("Ejemplo: “Dame 3 recomendaciones de acabado para una terraza exterior expuesta al agua, en lenguaje de cliente.”"),
+            prompt("Actúa como asesor de DOM Design. Explica en lenguaje simple, para un cliente, la diferencia entre porcelanato y cerámica y en qué caso conviene cada uno."),
+            info("Recuerda verificar cualquier dato técnico con la ficha oficial antes de enviarlo."),
+            prompt("Actúa como asesor de DOM Design. Dame 3 recomendaciones de acabado, en lenguaje de cliente, para una terraza exterior expuesta al agua."),
             warn("Antes de afirmar resistencias, medidas o usos, confírmalo con la ficha del material. No inventes propiedades."),
           ],
         },
@@ -513,8 +664,8 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Hablar con el canal técnico"),
             p("Con arquitectos, diseñadores y constructores el tono es técnico y preciso. Claude te ayuda a redactar comunicaciones profesionales y a preparar información para especificación."),
-            info("Ejemplo: “Redacta un correo profesional para un arquitecto presentando la Zona PRO y los beneficios de especificar con nosotros (asesoría, disponibilidad y acompañamiento).”"),
-            info("Ejemplo: “Ordena estas características del material en una ficha breve y clara para incluir en una especificación.” (pegas los datos oficiales)"),
+            prompt("Actúa como asesor de DOM Design. Redacta un correo profesional para un arquitecto, presentándole la Zona PRO y los beneficios de especificar con nosotros (asesoría, disponibilidad y acompañamiento)."),
+            prompt("Actúa como asesor técnico de DOM Design. Ordena estas características del material en una ficha breve y clara, para incluir en una especificación dirigida a un arquitecto: [pega aquí los datos oficiales]."),
             tip("Para este público, pídele a Claude un tono técnico y preciso, y evita lenguaje de venta agresivo."),
           ],
         },
@@ -524,7 +675,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Propuestas que enamoran por el detalle"),
             p("Dale el proyecto del cliente (espacio, estilo, necesidad) y pídele una propuesta que destaque cómo los materiales logran el resultado deseado."),
-            info("Ejemplo: “Arma una propuesta breve para un cliente que quiere una terraza tipo spa en casa: destaca textura, antideslizante y estética, con espacios para que yo ponga referencias y precios.”"),
+            prompt("Actúa como asesor de DOM Design. Arma una propuesta breve que destaque textura, antideslizante y estética, para un cliente que quiere una terraza tipo spa en casa. Deja espacios para que yo ponga referencias y precios."),
             warn("Las referencias, formatos y precios los pones tú desde la información oficial. Claude te da la estructura y la redacción."),
           ],
         },
@@ -566,7 +717,7 @@ async function construirModulos(): Promise<Modulo[]> {
       },
     },
 
-    // ======================= MÓDULO 6 =======================
+    // ======================= MÓDULO 7 =======================
     {
       title: "Atención, seguimiento y postventa",
       lecciones: [
@@ -576,7 +727,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Cortos, cálidos y claros"),
             p("Gran parte de la venta pasa por WhatsApp. Pídele a Claude mensajes breves, amables y directos."),
-            info("Ejemplo: “Escríbeme un WhatsApp corto y cálido para recordarle a un cliente su cita en el showroom mañana a las 10 a. m.”"),
+            prompt("Actúa como asesor de AA | DOM. Escríbeme un WhatsApp corto y cálido para un cliente, recordándole su cita en el showroom mañana a las 10 a. m."),
             tip("Pide siempre “corto para WhatsApp”: los mensajes largos se ignoran."),
           ],
         },
@@ -586,7 +737,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Que ningún cliente se enfríe"),
             p("Claude te ayuda a mantener el contacto sin sonar repetitivo."),
-            info("Ejemplo: “Dame 3 mensajes distintos de seguimiento para un cliente que cotizó hace un mes y no responde, cada uno con un ángulo diferente (novedad, beneficio, disponibilidad).”"),
+            prompt("Actúa como asesor de AA | DOM. Dame 3 mensajes de seguimiento distintos (cada uno con un ángulo: novedad, beneficio, disponibilidad), para un cliente que cotizó hace un mes y no responde."),
             tip("Guarda tus mejores mensajes como plantillas y pídele variaciones cuando las necesites."),
           ],
         },
@@ -596,7 +747,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("La venta no termina en la entrega"),
             p("Un buen postventa fideliza y trae recomendaciones. Claude te ayuda con mensajes de agradecimiento, recordatorios de mantenimiento y encuestas."),
-            info("Ejemplo: “Escríbeme un mensaje de postventa para un cliente que acaba de recibir su spa: agradece, ofrece acompañamiento y recuerda el mantenimiento.”"),
+            prompt("Actúa como asesor de Ambiente Azul. Escríbeme un mensaje de postventa, cálido y breve, para un cliente que acaba de recibir su spa: agradece, ofrece acompañamiento y recuérdale el mantenimiento."),
             warn("Para instrucciones de mantenimiento o garantías, usa la información oficial; Claude redacta el mensaje, no define las condiciones."),
           ],
         },
@@ -631,7 +782,318 @@ async function construirModulos(): Promise<Modulo[]> {
       },
     },
 
-    // ======================= MÓDULO 7 =======================
+    // ======================= MÓDULO 8 =======================
+    {
+      title: "Trabaja con tus archivos: cotizaciones, presupuestos y contratos",
+      lecciones: [
+        {
+          title: "Sube tus archivos a Claude",
+          durationMin: 9,
+          blocks: [
+            h("¿Qué significa “adjuntar un archivo”?"),
+            p("“Adjuntar” es simplemente subir un documento de tu computador a la conversación, para que Claude lo pueda leer. Es lo mismo que cuando adjuntas un archivo en un correo. Puedes subir: PDF, Excel, Word, PowerPoint o una foto (por ejemplo, la foto de una ficha técnica). Una vez subido, Claude puede resumirlo, ordenarlo, transformarlo o compararlo con otro."),
+            info("No necesitas instalar nada. Todo se hace desde la página claude.ai en tu navegador (Chrome, Edge, etc.)."),
+            h("Paso a paso (la primera vez)"),
+            image(imgAdjuntar, "Fíjate en el botón + a la izquierda de la caja de texto: ahí se adjuntan los archivos."),
+            list([
+              "Paso 1. Abre tu navegador y entra a la página: claude.ai",
+              "Paso 2. Si te pide iniciar sesión, entra con la cuenta que te dio la empresa.",
+              "Paso 3. Abajo verás una caja de texto (donde se escribe). Justo a su izquierda hay un botón con el signo +. Haz clic ahí.",
+              "Paso 4. Se abrirá una ventana de tu computador. Busca el archivo, haz clic en él y luego en “Abrir”.",
+              "Paso 5. Espera 2–3 segundos: cuando el archivo esté listo, verás su nombre encima de la caja de texto (como una etiqueta).",
+              "Paso 6. Ahora escribe lo que quieres que haga con ese archivo y presiona Enter.",
+            ]),
+            tip("Truco: también puedes arrastrar el archivo con el mouse desde tu carpeta y soltarlo encima de la caja de texto. Hace lo mismo que el botón +."),
+            tip("Antes de subirlo, revisa que el archivo tenga un nombre claro (por ejemplo “COT-2026-0035.pdf”). Si subes varios, así es fácil decirle a Claude a cuál te refieres."),
+            warn("Ojo con la privacidad: antes de subir un documento con datos personales de clientes, precios internos o condiciones comerciales, revisa el módulo “Úsalo con cabeza”. Para practicar, usa un archivo de prueba o borra los datos sensibles."),
+          ],
+        },
+        {
+          title: "Muéstrale una foto (Claude también ve imágenes)",
+          durationMin: 8,
+          blocks: [
+            h("Claude también “ve” imágenes"),
+            p("No solo lee documentos: también puedes mostrarle una foto o una captura de pantalla y pedirle que la lea, la describa o saque los datos. Se adjunta igual que un archivo (botón +), y desde el celular puedes tomar la foto en el momento —justo cuando estás con el cliente o en el sitio—."),
+            image(imgAdjuntar, "Una foto se adjunta igual que un archivo: botón + junto a la caja de texto (o tómala desde el celular)."),
+            h("Usos que te sirven en ventas"),
+            list([
+              "Foto del sitio o la terraza del cliente → “¿qué debo tener en cuenta para instalar aquí un spa/piscina?” (accesos, base, espacio).",
+              "Foto de un material o acabado (enchape, porcelanato, piedra) → “descríbeme este material para explicárselo al cliente” o “sugiere combinaciones”.",
+              "Captura de una cotización de la competencia → “resúmela y compárala con nuestra propuesta punto por punto”.",
+              "Foto de medidas escritas a mano → “pásalas a limpio en una tabla ordenada”.",
+              "Captura de un mensaje largo del cliente → “resúmeme qué me está pidiendo y qué le respondo”.",
+            ]),
+            prompt("Actúa como asesor experto de Ambiente Azul. Te adjunto la foto del espacio del cliente. Descríbeme qué ves y dame una lista de puntos a verificar antes de proponer un spa (accesos, base nivelada, punto eléctrico, espacio alrededor). No supongas datos que no se vean en la foto; si falta algo, dímelo.", "Prompt — foto del sitio (Ambiente Azul)"),
+            prompt("Actúa como especialista en materiales de DOM Design. Te adjunto la foto de un acabado. Descríbelo en lenguaje sencillo para un cliente (color, textura, estilo, dónde queda bien) y sugiere 2 combinaciones. Si no puedes identificar algo con certeza, dilo en vez de inventarlo.", "Prompt — foto de un material (DOM)"),
+            tip("Entre más clara y enfocada esté la foto (buena luz, texto legible), mejor la lee."),
+            warn("Claude puede equivocarse leyendo números o medidas de una imagen: verifica siempre los datos críticos antes de pasárselos a un cliente. Y no subas fotos con información personal o comercial sensible."),
+          ],
+        },
+        {
+          title: "De la cotización al presupuesto final",
+          durationMin: 14,
+          blocks: [
+            h("¿Qué vamos a hacer?"),
+            p("Tienes una cotización detallada (la que sale del cotizador, con todos los ítems, cantidades y precios). Lo que el cliente necesita ver es un presupuesto final: ordenado, agrupado por sistemas, con subtotales, descuentos, valor final y forma de pago. En vez de armarlo a mano, le pasas la cotización a Claude y él lo ordena en segundos. Tú solo revisas."),
+            image(imgFlujo, "El asesor conduce el proceso; Claude ordena y calcula, tú revisas y apruebas."),
+            info("Antes de empezar: ten el archivo de la cotización guardado en tu computador (en PDF o Excel) para poder subirlo."),
+            h("Paso a paso"),
+            list([
+              "Paso 1. Entra a claude.ai, abre el proyecto del tema (ej. “Cotizaciones”) y crea una conversación nueva dentro de él.",
+              "Paso 2. Haz clic en el botón + y sube el archivo de la cotización (espera a que aparezca su nombre).",
+              "Paso 3. Copia el prompt de abajo con el botón “Copiar”.",
+              "Paso 4. Pégalo en la caja de texto (clic derecho → Pegar, o Ctrl+V) y presiona Enter.",
+              "Paso 5. Espera unos segundos: Claude te mostrará el presupuesto.",
+            ]),
+            h("Opción A — Presupuesto en HTML (se ve elegante y se imprime)"),
+            p("El HTML es una página que se abre en el navegador y se ve muy profesional. Copia y pega este prompt (ya trae todo lo que Claude necesita):"),
+            prompt(
+              `Actúa como asesor comercial de Ambiente Azul. Adjunto la cotización detallada del proyecto.
+
+Conviértela en un PRESUPUESTO FINAL en un solo archivo HTML, listo para abrir e imprimir, pensado para presentárselo al cliente. Requisitos:
+- Encabezado con: nombre del proyecto, cliente, asesor, ciudad y fecha (déjalos en blanco si no están).
+- Agrupa los ítems por sistema (motobomba, filtración, desinfección, calefacción, iluminación, etc.), con su subtotal por grupo.
+- Una tabla por grupo con: ítem, cantidad, valor unitario y valor total.
+- Al final: subtotal, IVA (19%), descuentos si los hay y VALOR FINAL.
+- Una sección corta de "Forma de pago" y "Condiciones" con lo que venga en la cotización.
+- Diseño limpio y profesional, colores sobrios, que quepa en 1 o 2 páginas al imprimir. No inventes ítems ni precios: usa solo lo que está en el archivo.`,
+              "Prompt — Presupuesto en HTML (cópialo)",
+            ),
+            h("Cómo convertir ese HTML en PDF para enviarlo"),
+            list([
+              "Paso 1. Claude te mostrará una vista previa o un botón para abrir el HTML. Ábrelo (se abre en una pestaña del navegador).",
+              "Paso 2. Presiona las teclas Ctrl y P al mismo tiempo (esto abre “Imprimir”).",
+              "Paso 3. En “Destino” o “Impresora”, elige “Guardar como PDF”.",
+              "Paso 4. Haz clic en “Guardar” y elige dónde guardarlo. ¡Listo, ya tienes el PDF para enviar!",
+            ]),
+            tip("Si algo no te gusta, escríbeselo en la misma conversación: “hazlo más compacto”, “quita la columna de valor unitario”, “ponle el logo arriba”. Lo rehace al instante."),
+            h("Opción B — Que Claude te entregue el PDF directamente"),
+            p("Si prefieres no hacer el paso de imprimir, pídele el PDF así:"),
+            prompt(
+              `Actúa como asesor comercial de Ambiente Azul. Con la misma cotización adjunta, genera un PRESUPUESTO FINAL en PDF para el cliente, detallado pero ordenado:
+- Portada breve con proyecto, cliente y fecha.
+- Ítems agrupados por sistema con subtotales.
+- Totales claros: subtotal, IVA y valor final.
+- Incluye forma de pago y condiciones comerciales.
+Mantén un diseño profesional y fácil de leer. Usa únicamente la información del archivo; si falta un dato, déjalo indicado como "[por confirmar]".`,
+              "Prompt — Presupuesto en PDF (cópialo)",
+            ),
+            warn("Revisa SIEMPRE antes de enviarlo al cliente: que los totales cuadren, que el IVA esté bien y que no haya aparecido ningún ítem o precio que no estaba en la cotización. Los números son tu responsabilidad; Claude solo los ordena."),
+          ],
+        },
+        {
+          title: "Revisa el contrato contra el presupuesto",
+          durationMin: 12,
+          blocks: [
+            h("¿Para qué sirve esto?"),
+            p("Cuando ya existe un contrato y un presupuesto final del mismo proyecto, conviene compararlos antes de firmar o facturar. Es fácil que se cuele una diferencia: un valor que no coincide, una cantidad distinta, un alcance que cambió o una forma de pago diferente. En vez de leer los dos documentos línea por línea, Claude los lee por ti y te dice en qué se diferencian."),
+            h("Paso a paso"),
+            list([
+              "Paso 1. Entra a claude.ai, abre el proyecto del tema (ej. “Cotizaciones”) y crea una conversación nueva dentro de él.",
+              "Paso 2. Haz clic en el botón + y sube el PRESUPUESTO FINAL.",
+              "Paso 3. Haz clic OTRA VEZ en el botón + y sube también el CONTRATO. (Sí, puedes subir dos archivos en el mismo mensaje.)",
+              "Paso 4. Copia y pega el prompt de abajo, y presiona Enter.",
+              "Paso 5. Lee con calma la tabla y la lista de diferencias que te entrega.",
+            ]),
+            h("Qué le pedimos que revise"),
+            list([
+              "Valor total y valor final del negocio.",
+              "IVA y descuentos.",
+              "Cantidades y equipos (que el contrato liste lo mismo que el presupuesto).",
+              "Alcance (qué incluye y qué no: suministro, instalación, etc.).",
+              "Forma de pago y anticipos (porcentajes y montos).",
+              "Plazos de entrega.",
+            ]),
+            prompt(
+              `Actúa como mi asistente de revisión. Adjunto dos documentos del mismo proyecto: (1) el PRESUPUESTO FINAL y (2) el CONTRATO.
+
+Compáralos y ayúdame a encontrar diferencias o posibles errores (esto es para mí, uso interno). Entrégame:
+1. Una tabla con columnas: Concepto | Valor en el presupuesto | Valor en el contrato | ¿Coincide? (Sí/No).
+   Incluye al menos: valor total, IVA, descuentos, anticipo/forma de pago, alcance y plazos.
+2. Una lista de "Diferencias a revisar" explicando cada punto que no coincida.
+3. Una lista de "Cosas que están en un documento y no en el otro".
+No saques conclusiones legales; solo señala las diferencias para que yo las verifique.`,
+              "Prompt — Comparar contrato vs. presupuesto",
+            ),
+            p("El resultado se ve parecido a esto (ejemplo):"),
+            table(
+              ["Concepto", "Presupuesto", "Contrato", "¿Coincide?"],
+              [
+                ["Valor final", "$276.501.260", "$276.501.260", "Sí"],
+                ["Anticipo", "60%", "60%", "Sí"],
+                ["Plazo de entrega", "70 días", "90 días", "No — revisar"],
+                ["Alcance sauna", "Incluye vidrios", "No incluye vidrios", "No — revisar"],
+              ],
+            ),
+            warn("Claude te ayuda a detectar diferencias, no a decidir. Cualquier tema legal o contractual confírmalo con la persona responsable y, si aplica, con el abogado. Las cifras finales se validan con la fuente oficial."),
+          ],
+        },
+        {
+          title: "Dudas técnicas de equipos (con búsqueda web)",
+          durationMin: 9,
+          blocks: [
+            h("¿Qué es la “búsqueda web”?"),
+            p("Normalmente Claude responde con lo que ya sabe. Pero si activas la “búsqueda web”, además va a buscar en internet (páginas, fichas técnicas) antes de responderte. Sirve para dudas técnicas de un equipo: el caudal de una bomba, el consumo de un calentador, la compatibilidad de un filtro."),
+            image(imgWeb, "El interruptor de “Búsqueda web” está justo debajo de la caja de texto. Actívalo antes de enviar."),
+            h("Paso a paso"),
+            list([
+              "Paso 1. En claude.ai, escribe tu pregunta técnica en la caja de texto.",
+              "Paso 2. Debajo de la caja, busca la opción “Búsqueda web” (a veces aparece como un mundo/globo o como “Buscar en la web”). Haz clic para activarla: el interruptor queda encendido/azul.",
+              "Paso 3. Presiona Enter y espera: Claude buscará y te responderá diciendo de dónde sacó la información.",
+              "Paso 4. Pídele el enlace de la fuente para poder verificarlo tú mismo.",
+            ]),
+            info("¿No ves la opción? A veces está dentro del mismo botón + o de un pequeño menú de ajustes junto a la caja. El nombre puede cambiar con las actualizaciones, pero siempre habla de “web” o “buscar”."),
+            prompt(
+              `Actúa como asesor de Ambiente Azul y activa la búsqueda web para responder esto:
+
+Un cliente quiere saber el caudal (GPM) recomendado y el consumo aproximado de una bomba de calor de 105.000 BTU para una piscina de unos 75 m³.
+- Dame una respuesta corta y en lenguaje sencillo para el cliente.
+- Incluye los enlaces de las fuentes que usaste.
+- Si hay rangos o depende del modelo, dímelo con claridad.`,
+              "Prompt — Pregunta técnica con búsqueda web",
+            ),
+            warn("La búsqueda web ayuda a orientarte, pero puede traer datos de otras marcas o mercados. Antes de darle un dato técnico al cliente, confírmalo con la ficha oficial de la marca que representamos. Nunca prometas una especificación sin verificarla."),
+          ],
+        },
+        {
+          title: "Conecta Claude con tus herramientas",
+          durationMin: 8,
+          blocks: [
+            h("¿Qué son los conectores?"),
+            p("Los conectores dejan que Claude use directamente tus herramientas —como Gmail, Google Drive o Google Calendar— sin que copies y pegues. Por ejemplo: buscar un correo, sacar un archivo de tu Drive o revisar tu agenda."),
+            image(imgConectores, "En Configuración → Conectores activas cada herramienta con “Conectar”."),
+            h("Cómo conectarlos, paso a paso"),
+            list([
+              "Paso 1. En claude.ai, entra a Configuración → Conectores.",
+              "Paso 2. Junto a la herramienta que quieras (Gmail, Google Drive, Calendar…), pulsa “Conectar”.",
+              "Paso 3. Inicia sesión con tu cuenta y autoriza el acceso.",
+              "Paso 4. Listo: en tus conversaciones ya puedes pedirle que use esa herramienta.",
+            ]),
+            h("Cómo administrarlos"),
+            list([
+              "Puedes desconectar una herramienta cuando quieras desde el mismo menú de Conectores.",
+              "Revisa de vez en cuando qué está conectado y deja solo lo que uses.",
+              "Cada conexión pide permisos: concede solo los necesarios.",
+            ]),
+            prompt("Actúa como mi asistente comercial. Busca en mi Google Drive la cotización “COT-2026-0035” y hazme un resumen de una página, en tono claro, para enviárselo al cliente.", "Prompt con un conector (Drive)"),
+            warn("Conecta solo cuentas de la empresa o autorizadas, y concede únicamente los permisos necesarios. No compartas accesos que no debas y desconecta lo que dejes de usar. Ante la duda, consulta con la empresa."),
+          ],
+        },
+        {
+          title: "Explícale al cliente cómo usar su producto",
+          durationMin: 10,
+          blocks: [
+            h("Del manual técnico a una guía sencilla"),
+            p("Los manuales de los equipos suelen ser técnicos y largos. El cliente solo quiere saber “cómo lo prendo”, “cómo lo cuido”, “qué no debo hacer”. Claude convierte ese manual en una guía simple, en pasos, con lenguaje de persona normal."),
+            h("Paso a paso"),
+            list([
+              "Paso 1. Consigue el manual del equipo en PDF (o copia el texto que tengas).",
+              "Paso 2. En claude.ai, súbelo con el botón + (o pega el texto en la caja).",
+              "Paso 3. Copia y pega el prompt de abajo y presiona Enter.",
+              "Paso 4. Copia la guía que te dé y envíasela al cliente (por correo o WhatsApp).",
+            ]),
+            prompt(
+              `Actúa como asesor de Ambiente Azul. Adjunto el manual del equipo (o pego el texto abajo).
+
+Conviértelo en una guía sencilla para el cliente (que no es técnico), así:
+- Título amable y una frase de introducción.
+- Pasos numerados para el uso diario, en lenguaje simple y sin tecnicismos.
+- Una sección corta de "Cuidados" y otra de "Qué NO hacer".
+- Al final, un mensaje corto y cálido para enviar por WhatsApp presentando la guía.
+Marca con "[Captura: …]" los lugares donde convendría poner una foto o pantallazo del equipo para que se entienda mejor.`,
+              "Prompt — Guía de uso para el cliente",
+            ),
+            tip("Pídele versiones: “hazlo más corto”, “en tono más cercano”, “como lista para imprimir y pegar junto al equipo”."),
+            info("Cuando Claude te marque “[Captura: …]”, ahí es donde tú tomas una foto del equipo (o un pantallazo) y le dibujas una flecha o un círculo señalando el botón. Una imagen con una flecha vale más que un párrafo."),
+            h("¡Listo!"),
+            p("Con estas cuatro habilidades —crear presupuestos, cruzar contra el contrato, resolver dudas técnicas y explicarle al cliente— Claude deja de ser solo “para escribir correos” y se vuelve una herramienta de trabajo completa para tu día a día como asesor."),
+          ],
+        },
+      ],
+      examen: {
+        title: "Evaluación — Trabaja con tus archivos",
+        description: "Cotizaciones, presupuestos, contratos y dudas técnicas.",
+        timeLimitMin: 12,
+        questions: [
+          {
+            question: "Para que Claude trabaje sobre tu cotización, primero debes…",
+            type: "MULTIPLE_CHOICE",
+            options: [
+              "Escribirla toda a mano en el chat",
+              "Adjuntar el archivo con el botón +",
+              "Enviársela por correo",
+              "No se puede, Claude no lee archivos",
+            ],
+            correctAnswer: 1,
+            explanation: "Claude lee PDF, Excel, Word e imágenes: los adjuntas con el botón +.",
+          },
+          {
+            question: "Al convertir una cotización en presupuesto, ¿qué NO debe hacer Claude?",
+            type: "MULTIPLE_CHOICE",
+            options: [
+              "Agrupar por sistemas",
+              "Calcular subtotales",
+              "Inventar ítems o precios que no estaban",
+              "Dar un formato limpio",
+            ],
+            correctAnswer: 2,
+            explanation: "Solo debe ordenar la información del archivo; los datos no se inventan.",
+          },
+          {
+            question: "Puedes mostrarle a Claude la foto del sitio del cliente o de un material para que la describa.",
+            type: "TRUE_FALSE",
+            options: ["Verdadero", "Falso"],
+            correctAnswer: 0,
+            explanation: "Verdadero: se adjunta como un archivo. Verifica los datos críticos (medidas/números) antes de usarlos con el cliente.",
+          },
+          {
+            question: "Al comparar contrato y presupuesto, Claude…",
+            type: "MULTIPLE_CHOICE",
+            options: [
+              "Decide legalmente cuál vale",
+              "Señala las diferencias para que tú las verifiques",
+              "Firma el contrato",
+              "Cambia el contrato automáticamente",
+            ],
+            correctAnswer: 1,
+            explanation: "Detecta diferencias; la decisión y lo legal son tuyos (y del abogado si aplica).",
+          },
+          {
+            question: "Para una duda técnica de un equipo conviene…",
+            type: "MULTIPLE_CHOICE",
+            options: [
+              "Activar la búsqueda web y pedir la fuente",
+              "Adivinar el dato",
+              "Prometer la especificación sin verificar",
+              "Preguntarle al cliente",
+            ],
+            correctAnswer: 0,
+            explanation: "La búsqueda web orienta; luego confirmas con la ficha oficial de la marca.",
+          },
+          {
+            question: "Un dato técnico encontrado con búsqueda web se puede dar al cliente sin verificar.",
+            type: "TRUE_FALSE",
+            options: ["Verdadero", "Falso"],
+            correctAnswer: 1,
+            explanation: "Falso: siempre se confirma con la ficha oficial de la marca representada.",
+          },
+          {
+            question: "Para explicarle a un cliente cómo usar su equipo, le pides a Claude…",
+            type: "MULTIPLE_CHOICE",
+            options: [
+              "Que copie el manual técnico tal cual",
+              "Una guía en pasos, en lenguaje simple, y dónde poner capturas",
+              "Que no explique nada",
+              "Un texto en inglés",
+            ],
+            correctAnswer: 1,
+            explanation: "El objetivo es una guía clara y sencilla, con pasos y apoyo visual.",
+          },
+        ],
+      },
+    },
+
+    // ======================= MÓDULO 9 =======================
     {
       title: "Úsalo con cabeza",
       lecciones: [
@@ -642,6 +1104,31 @@ async function construirModulos(): Promise<Modulo[]> {
             h("Claude no es infalible"),
             p("A veces Claude da respuestas que suenan muy seguras pero tienen errores o datos inventados (a esto se le llama “alucinar”). Por eso, tú eres el filtro: lee, corrige nombres y datos, y envía solo cuando estés seguro."),
             tip("Regla de oro: Claude redacta, tú revisas y apruebas."),
+            image(imgChecklist, "Antes de enviar cualquier cosa al cliente, pásale esta lista rápida."),
+          ],
+        },
+        {
+          title: "Cuando Claude se equivoca: cómo arreglarlo",
+          durationMin: 8,
+          blocks: [
+            h("Se equivocó… ¿y ahora qué?"),
+            p("Claude no siempre acierta a la primera, y está bien. La buena noticia: casi todo se arregla en la MISMA conversación, diciéndole qué pasó. No borres y empieces de cero: corrígelo con una frase."),
+            table(
+              ["Qué pasó", "Qué le dices para arreglarlo"],
+              [
+                ["Se inventó un dato (alucinó)", "“¿De dónde sacaste ese dato? Si no estás seguro, dímelo.” Activa la búsqueda web o dale tú el dato correcto."],
+                ["No entendió lo que querías", "“No era eso. Lo que necesito es…”, y reformula con más contexto (usa RAFA)."],
+                ["Quedó muy largo / corto / formal", "“Hazlo más corto”, “más cálido”, “en viñetas”, “de máximo 5 líneas”."],
+                ["Le faltó algo / quedó incompleto", "“Te faltó [X]. Agrégalo.”"],
+                ["Respuesta genérica o floja", "Dale más contexto y un ejemplo: “Usa este correo como modelo: …”."],
+                ["Se cortó a mitad", "Escribe: “continúa”."],
+                ["Se enredó / se fue por las ramas", "“Empecemos de nuevo, solo esto: …”, o abre una conversación nueva."],
+              ],
+            ),
+            prompt("Eso no es lo que necesito. Reescríbelo teniendo en cuenta que [aclara el contexto]. Hazlo [formato, ej. corto y en viñetas] para [audiencia, ej. un cliente].", "Prompt — corregir el rumbo"),
+            prompt("Revisa tu respuesta anterior: ¿hay algún dato del que no estés 100% seguro? Márcalo como \"[por confirmar]\" y dime en qué te basaste.", "Prompt — pídele que se autorrevise"),
+            tip("Entre más claro le digas QUÉ estuvo mal y QUÉ quieres, mejor lo corrige. Es normal ir afinando en 2 o 3 mensajes."),
+            warn("Si aun así no logras el resultado, o el tema es delicado (datos técnicos, precios, garantías, legal), no fuerces la respuesta: verifícalo con la ficha/fuente oficial o con la persona responsable."),
           ],
         },
         {
@@ -649,6 +1136,7 @@ async function construirModulos(): Promise<Modulo[]> {
           durationMin: 6,
           blocks: [
             h("Qué NO pegar en Claude"),
+            image(imgPrivacidad, "Una guía rápida de qué puedes pegar sin problema y qué no."),
             warn("No pegues información sensible o confidencial: datos personales de clientes, condiciones comerciales internas, precios especiales, cifras internas o contratos."),
             p("Para la mayoría de tareas no hace falta pegar datos privados. Si necesitas personalizar, trabaja con datos genéricos y al final tú pones lo real."),
             list([
@@ -715,11 +1203,18 @@ async function construirModulos(): Promise<Modulo[]> {
             correctAnswer: 1,
             explanation: "Las afirmaciones de marca se verifican con la fuente oficial.",
           },
+          {
+            question: "Si Claude responde algo que no era lo que querías, lo mejor es…",
+            type: "MULTIPLE_CHOICE",
+            options: ["Borrar y empezar de cero siempre", "Decirle en la misma conversación qué estuvo mal y qué quieres", "Enviarlo igual", "Dejar de usarlo"],
+            correctAnswer: 1,
+            explanation: "Casi todo se arregla corrigiéndolo en la misma conversación; afinar 2–3 veces es normal.",
+          },
         ],
       },
     },
 
-    // ======================= MÓDULO 8 =======================
+    // ======================= MÓDULO 10 =======================
     {
       title: "Práctica guiada",
       lecciones: [
@@ -728,15 +1223,15 @@ async function construirModulos(): Promise<Modulo[]> {
           durationMin: 8,
           blocks: [
             h("Manos a la obra"),
-            p("Escribe un correo de seguimiento para un cliente de piscina o spa usando la receta. Pasos:"),
+            p("Escribe un correo de seguimiento para un cliente de piscina o spa usando RAFA. Pasos:"),
             list([
               "Piensa el contexto: ¿quién es el cliente y qué cotizó?",
-              "Escribe el pedido con contexto + tarea + formato.",
+              "Escribe el pedido con RAFA: Rol, Acción, Formato y Audiencia.",
               "Lee la respuesta y ajústala (tono, largo, saludo).",
               "Personaliza con el nombre real y los datos correctos.",
               "Revisa y envía.",
             ]),
-            info("Prueba: “Cliente cotizó un spa hace 3 semanas y no responde. Escríbeme un correo cálido y corto, con una invitación a agendar una llamada esta semana.”"),
+            prompt("Actúa como asesor de Ambiente Azul. Escríbeme un correo cálido y corto (máx. 5 líneas) para un cliente que cotizó un spa hace 3 semanas y no responde, invitándolo a agendar una llamada esta semana. No supongas ni inventes datos: si te falta algo, pregúntame o márcalo como [por confirmar].", "Prompt para practicar (RAFA)"),
           ],
         },
         {
@@ -745,7 +1240,7 @@ async function construirModulos(): Promise<Modulo[]> {
           blocks: [
             h("Comunicación con el canal técnico"),
             p("Redacta un correo profesional para un arquitecto presentando un material para un proyecto."),
-            info("Prueba: “Redacta un correo profesional y breve para un arquitecto presentando nuestra Zona PRO y ofreciendo asesoría para especificar materiales en un proyecto de zona húmeda.”"),
+            prompt("Actúa como asesor de DOM Design. Redacta un correo profesional y breve para un arquitecto, presentándole la Zona PRO y ofreciéndole asesoría para especificar materiales en un proyecto de zona húmeda. No supongas ni inventes datos: si te falta algo, pregúntame o márcalo como [por confirmar].", "Prompt para practicar (RAFA)"),
             tip("Pídele tono técnico y preciso; luego agrega las referencias oficiales."),
           ],
         },
@@ -753,9 +1248,9 @@ async function construirModulos(): Promise<Modulo[]> {
           title: "Ejercicio 3: explicar y resumir",
           durationMin: 7,
           blocks: [
-            h("Traduce y resume"),
+            h("Explica y resume en simple"),
             p("Toma un producto o una ficha que te cueste explicar y pídele una versión simple para el cliente."),
-            info("Prueba: “Explica en 3 frases sencillas, sin tecnicismos, un beneficio clave de [producto], para un cliente que no conoce el tema.”"),
+            prompt("Actúa como asesor de AA | DOM. Explica en 3 frases sencillas, sin tecnicismos, un beneficio clave de [producto], para un cliente que no conoce el tema. No supongas ni inventes datos: si te falta algo, pregúntame o márcalo como [por confirmar].", "Prompt para practicar (RAFA)"),
             warn("Verifica cualquier dato técnico del resultado con la ficha oficial antes de enviárselo al cliente."),
             h("¡Felicitaciones!"),
             p("Ya tienes lo necesario para usar Claude en tu día a día como asesor de AA | DOM: pedir bien, aplicarlo a cada empresa y cada tipo de cliente, y hacerlo con criterio. Úsalo como tu aliado para vender mejor y ahorrar tiempo."),
@@ -770,9 +1265,9 @@ async function construirModulos(): Promise<Modulo[]> {
           {
             question: "El orden para usar Claude en un correo es…",
             type: "MULTIPLE_CHOICE",
-            options: ["Enviar y luego pensar", "Contexto → pedir → revisar → personalizar → enviar", "Copiar de otro correo", "No revisar"],
+            options: ["Enviar y luego pensar", "Pídelo con RAFA → revisa → personaliza → envía", "Copiar de otro correo", "No revisar"],
             correctAnswer: 1,
-            explanation: "Primero le das contexto y la tarea, luego revisas y personalizas.",
+            explanation: "Le pides bien con RAFA, revisas, personalizas con los datos reales y envías.",
           },
           {
             question: "Con un cliente de Ambiente Azul el tono ideal suele ser…",
