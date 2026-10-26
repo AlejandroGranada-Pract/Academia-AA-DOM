@@ -29,12 +29,14 @@ export default async function ReportesPage() {
     "Sin iniciar": c.sinIniciar,
   }));
 
-  const examenData = m.examenes
-    .filter((e) => e.promedio != null)
-    .map((e) => ({
-      examen: e.title.length > 24 ? e.title.slice(0, 22) + "…" : e.title,
-      promedio: e.promedio as number,
-      passingScore: e.passingScore,
+  // Promedio de exámenes agrupado por curso (mismo valor que "Prom. examen"
+  // en la tabla de detalle por curso).
+  const examenData = m.cursos
+    .filter((c) => c.promedioExamen != null)
+    .map((c) => ({
+      curso: c.title.length > 24 ? c.title.slice(0, 22) + "…" : c.title,
+      promedio: c.promedioExamen as number,
+      passingScore: c.passingScore,
     }));
 
   return (
@@ -72,7 +74,7 @@ export default async function ReportesPage() {
         <Panel titulo="Avance por curso">
           <AvanceCursosChart data={avanceData} />
         </Panel>
-        <Panel titulo="Promedio de puntaje por examen">
+        <Panel titulo="Promedio de puntaje por curso">
           <PromedioExamenChart data={examenData} />
         </Panel>
       </div>

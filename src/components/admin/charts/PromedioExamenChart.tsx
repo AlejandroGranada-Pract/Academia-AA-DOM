@@ -13,7 +13,7 @@ import {
 import { useChartTheme } from "./useChartTheme";
 
 export type ExamenRow = {
-  examen: string;
+  curso: string;
   promedio: number;
   passingScore: number;
 };
@@ -51,7 +51,7 @@ export function PromedioExamenChart({ data }: { data: ExamenRow[] }) {
         />
         <YAxis
           type="category"
-          dataKey="examen"
+          dataKey="curso"
           width={150}
           fontSize={11}
           stroke={t.axis}

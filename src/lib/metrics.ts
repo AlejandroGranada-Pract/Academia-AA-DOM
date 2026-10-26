@@ -16,6 +16,7 @@ export type CursoMetric = {
   sinIniciar: number;
   tasaFinalizacion: number; // 0-100
   promedioExamen: number | null;
+  passingScore: number;
 };
 
 export type ExamenMetric = {
@@ -77,6 +78,7 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
           title: true,
           category: true,
           company: true,
+          passingScore: true,
           grupos: { select: { id: true } },
           modules: {
             select: {
@@ -247,6 +249,7 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
         ? Math.round((completados / elegibles) * 100)
         : 0,
       promedioExamen,
+      passingScore: c.passingScore,
     };
   });
 
