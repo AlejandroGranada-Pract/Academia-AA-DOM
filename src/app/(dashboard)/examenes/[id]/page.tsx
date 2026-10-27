@@ -3,12 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import {
-  getCompletedLessonIds,
-  getPassedExamIds,
-  buildCourseItems,
-  computeUnlockedIds,
-} from "@/lib/progress";
+import { buildCourseItems } from "@/lib/progress";
+import { getLearnerCourseAccess } from "@/lib/courses";
+import { canPreviewCourse } from "@/lib/staff";
 import { ExamenTomar } from "@/components/examen/ExamenTomar";
 import { ExamenPreview } from "@/components/examen/ExamenPreview";
 import { attemptDeadlineMs } from "@/lib/examenes";
@@ -25,12 +22,7 @@ export default async function ExamenPage({
 }) {
   const session = await auth();
   const userId = session?.user?.id;
-
-  // Vista previa de staff (admin/líder): desbloqueado, solo lectura (sin intentos).
-  const isPreview =
-    searchParams?.preview === "1" &&
-    (session?.user?.role === "SUPER_ADMIN" ||
-      session?.user?.role === "AREA_LEADER");
+  if (!userId) redirect("/login");
 
   const exam = await prisma.exam.findUnique({
     where: { id: params.id },
@@ -55,40 +47,29 @@ export default async function ExamenPage({
   if (!exam) notFound();
 
   const courseId = exam.module?.course.id;
-  const pq = isPreview ? "?preview=1" : "";
-  const courseHref = courseId ? `/cursos/${courseId}${pq}` : `/cursos${pq}`;
+  // Un examen sin curso no se puede presentar.
+  if (!courseId) notFound();
 
-  // Bloqueo secuencial: el examen se desbloquea cuando todos los ítems
-  // anteriores de la secuencia del curso están hechos. (En preview se omite.)
-  if (courseId && !isPreview) {
-    const courseModules = await prisma.module.findMany({
-      where: { courseId },
-      orderBy: { order: "asc" },
-      include: {
-        lessons: { select: { id: true, order: true } },
-        exams: { select: { id: true, order: true } },
-      },
-    });
-    const completedIds = userId
-      ? await getCompletedLessonIds(userId)
-      : new Set<string>();
-    const passedExamIds = userId
-      ? await getPassedExamIds(userId)
-      : new Set<string>();
-    const items = buildCourseItems(courseModules);
-    const doneIds = new Set<string>([
-      ...Array.from(completedIds),
-      ...Array.from(passedExamIds),
-    ]);
-    const unlockedIds = computeUnlockedIds(items, doneIds);
-    if (!unlockedIds.has(exam.id)) redirect(courseHref);
+  // Vista previa de staff que gestiona el curso: desbloqueado, solo lectura
+  // (sin intentos) y con la clave de respuestas visible.
+  const isPreview =
+    searchParams?.preview === "1" && (await canPreviewCourse(courseId));
+  const pq = isPreview ? "?preview=1" : "";
+  const courseHref = `/cursos/${courseId}${pq}`;
+
+  // Acceso: curso publicado y visible para el usuario, y examen desbloqueado
+  // en la secuencia (lecciones + exámenes anteriores hechos).
+  if (!isPreview) {
+    const acceso = await getLearnerCourseAccess(userId, courseId);
+    if (!acceso) redirect("/cursos");
+    if (!acceso.unlockedIds.has(exam.id)) redirect(courseHref);
   }
 
   // Vista previa: módulo del examen (para volver sin reiniciar scroll) y
   // siguiente ítem del curso (botón "Continuar").
   const examModuleId = exam.moduleId ?? "";
   let examNextHref: string | null = null;
-  if (isPreview && courseId) {
+  if (isPreview) {
     const mods = await prisma.module.findMany({
       where: { courseId },
       orderBy: { order: "asc" },
@@ -109,12 +90,10 @@ export default async function ExamenPage({
 
   // Intentos: cuentan todos (en curso, completados y abandonados). Hay intento
   // disponible si quedan cupos o si existe uno en curso vigente para reanudar.
-  const attempts = userId
-    ? await prisma.examAttempt.findMany({
-        where: { userId, examId: exam.id },
-        select: { status: true, score: true, startedAt: true },
-      })
-    : [];
+  const attempts = await prisma.examAttempt.findMany({
+    where: { userId, examId: exam.id },
+    select: { status: true, score: true, startedAt: true },
+  });
   const consumidos = attempts.length;
   const hayVigente = attempts.some(
     (a) =>
@@ -147,7 +126,7 @@ export default async function ExamenPage({
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
-        {exam.module?.course.title ?? "Cursos"}
+        {exam.module?.course.title}
       </Link>
 
       <h1 className="text-3xl text-foreground">{exam.title}</h1>

@@ -27,6 +27,7 @@ function getTransport(): Transporter | null {
     host,
     port,
     secure: port === 465, // 465 = SSL; 587 = STARTTLS
+    requireTLS: port !== 465, // en 587 exige STARTTLS (no enviar en claro)
     auth: { user, pass },
   });
   return cached;

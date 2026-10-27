@@ -1,10 +1,13 @@
 import "dotenv/config";
+import { confirmarDestino } from "./guard-destino";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 // Agrega (o REEMPLAZA) el módulo "Cotizador de Piscinas" al curso "Fundamentos
 // de Piscinas — Ambiente Azul". Idempotente: si el módulo ya existe, lo borra y
-// lo recrea (solo ese módulo; el resto del curso y su progreso quedan intactos).
+// lo recrea. El resto del curso queda intacto, pero al borrar el módulo se
+// pierden en cascada el progreso, vistas de video, comentarios e intentos de
+// examen de ESE módulo para todos los usuarios.
 // Basado en la capacitación en video de Isabel + su transcripción.
 
 const CURSO_TITLE = "Fundamentos de Piscinas — Ambiente Azul";
@@ -14,7 +17,7 @@ const MODULO_TITLE = "Cotizador de Piscinas: paso a paso";
 const VIDEO_URL =
   "https://drive.google.com/file/d/1gABqhdsORv5RAv4JYLVx7x9APv80n1H_/view";
 
-const connectionString = process.env.DATABASE_URL!;
+const connectionString = confirmarDestino(process.env.DATABASE_URL);
 const isLocalDb = /localhost|127\.0\.0\.1/.test(connectionString);
 const prisma = new PrismaClient({
   adapter: new PrismaPg({

@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
+import { SSO_MAX_VIDA_SEG } from "./sso-token";
 
 // Registra el jti como usado. Devuelve false si ya existía (replay).
 export async function consumirJti(jti: string): Promise<boolean> {
@@ -10,9 +11,10 @@ export async function consumirJti(jti: string): Promise<boolean> {
     return false; // violación de unique = token ya canjeado
   }
 
-  // Limpieza oportunista: los tokens viven 60s, así que cualquier fila de
-  // más de 1 hora ya no puede corresponder a un token vigente.
-  const haceUnaHora = new Date(Date.now() - 60 * 60 * 1000);
+  // Limpieza oportunista: verificarTokenSso rechaza tokens que vivan más de
+  // SSO_MAX_VIDA_SEG (1 h), así que una fila más vieja que eso ya no puede
+  // corresponder a un token canjeable. Mantener ambos valores alineados.
+  const haceUnaHora = new Date(Date.now() - SSO_MAX_VIDA_SEG * 1000);
   await prisma.ssoJti.deleteMany({ where: { usadoEn: { lt: haceUnaHora } } }).catch(() => {});
 
   return true;
@@ -20,8 +22,8 @@ export async function consumirJti(jti: string): Promise<boolean> {
 
 // Busca el usuario por email; si no existe lo crea con rol EMPLOYEE y
 // empresa AMBAS (política aprobada en la spec: todo el que está en la
-// intranet puede entrar a la Academia). La contraseña es aleatoria: si
-// algún día quiere entrar directo, usa "recuperar contraseña".
+// intranet puede entrar a la Academia). La contraseña es aleatoria: para
+// entrar directo, un admin debe asignarle una.
 export async function buscarOCrearUsuarioSso(email: string, nombre: string) {
   const existente = await prisma.user.findUnique({ where: { email } });
   if (existente) return existente;

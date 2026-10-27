@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { confirmarDestino } from "./guard-destino";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
@@ -7,7 +8,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 // identifican por título. Idempotente. (El curso de Claude recupera sus tiempos
 // al re-sembrarlo con su propio script.)
 
-const cs = process.env.DATABASE_URL!;
+const cs = confirmarDestino(process.env.DATABASE_URL);
 const prisma = new PrismaClient({
   adapter: new PrismaPg({
     connectionString: cs,

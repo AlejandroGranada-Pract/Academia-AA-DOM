@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { confirmarDestino } from "./guard-destino";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import {
@@ -17,7 +18,7 @@ import {
 // Es para TODOS los empleados (categoría INDUCCION → visible para todos), con
 // ejemplos genéricos (no de ventas). Reutiliza las ilustraciones del otro curso.
 
-const connectionString = process.env.DATABASE_URL!;
+const connectionString = confirmarDestino(process.env.DATABASE_URL);
 const isLocalDb = /localhost|127\.0\.0\.1/.test(connectionString);
 const adapter = new PrismaPg({
   connectionString,

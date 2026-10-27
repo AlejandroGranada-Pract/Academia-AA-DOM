@@ -3,12 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import {
-  getCompletedLessonIds,
-  getPassedExamIds,
-  buildCourseItems,
-  computeUnlockedIds,
-} from "@/lib/progress";
+import { getCompletedLessonIds, buildCourseItems } from "@/lib/progress";
+import { getLearnerCourseAccess } from "@/lib/courses";
+import { canPreviewCourse } from "@/lib/staff";
 import { LeccionViewer } from "@/components/curso/LeccionViewer";
 import { LeccionActions } from "@/components/curso/LeccionActions";
 import { LeccionGate } from "@/components/curso/LeccionGate";
@@ -43,31 +40,23 @@ export default async function LeccionPage({
 
   const session = await auth();
   const userId = session?.user?.id;
-  const completedIds = userId
-    ? await getCompletedLessonIds(userId)
-    : new Set<string>();
-  const passedExamIds = userId
-    ? await getPassedExamIds(userId)
-    : new Set<string>();
+  if (!userId) redirect("/login");
+  const completedIds = await getCompletedLessonIds(userId);
 
-  // Vista previa de staff (admin/líder): todo desbloqueado, sin escribir progreso.
+  // Vista previa de staff que gestiona el curso: todo desbloqueado, sin
+  // escribir progreso.
   const isPreview =
-    searchParams?.preview === "1" &&
-    (session?.user?.role === "SUPER_ADMIN" ||
-      session?.user?.role === "AREA_LEADER");
+    searchParams?.preview === "1" && (await canPreviewCourse(course.id));
   const pq = isPreview ? "?preview=1" : "";
 
-  // Bloqueo secuencial sobre la secuencia mezclada (lecciones + exámenes):
-  // si la lección no está desbloqueada, vuelve al curso.
-  const items = buildCourseItems(course.modules);
-  const doneIds = new Set<string>([
-    ...Array.from(completedIds),
-    ...Array.from(passedExamIds),
-  ]);
-  const unlockedIds = computeUnlockedIds(items, doneIds);
-  if (!isPreview && !unlockedIds.has(lesson.id)) {
-    redirect(`/cursos/${course.id}`);
+  // Acceso: mismo criterio que la página del curso (publicado + visible por
+  // grupo/rol) y bloqueo secuencial sobre la secuencia mezclada.
+  if (!isPreview) {
+    const acceso = await getLearnerCourseAccess(userId, course.id);
+    if (!acceso) redirect("/cursos");
+    if (!acceso.unlockedIds.has(lesson.id)) redirect(`/cursos/${course.id}`);
   }
+  const items = buildCourseItems(course.modules);
 
   // Siguiente ítem de la secuencia (lección o examen) para el botón "Continuar".
   const idxActual = items.findIndex(
@@ -84,13 +73,11 @@ export default async function LeccionPage({
 
   // % ya visto de cada video de esta lección (para mostrarlo y pre-desbloquear).
   const videoPct: Record<string, number> = {};
-  if (userId) {
-    const vistas = await prisma.videoView.findMany({
-      where: { userId, lessonId: lesson.id },
-      select: { url: true, pct: true },
-    });
-    for (const v of vistas) videoPct[v.url] = v.pct;
-  }
+  const vistas = await prisma.videoView.findMany({
+    where: { userId, lessonId: lesson.id },
+    select: { url: true, pct: true },
+  });
+  for (const v of vistas) videoPct[v.url] = v.pct;
 
   // Foro de la lección: preguntas raíz con sus respuestas.
   const comentariosRaw = await prisma.lessonComment.findMany({
@@ -167,7 +154,7 @@ export default async function LeccionPage({
       <LeccionForo
         lessonId={lesson.id}
         courseId={course.id}
-        currentUserId={userId ?? null}
+        currentUserId={userId}
         isAdmin={session?.user?.role === "SUPER_ADMIN"}
         comments={comentarios}
       />

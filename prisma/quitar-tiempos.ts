@@ -1,11 +1,12 @@
 import "dotenv/config";
+import { confirmarDestino } from "./guard-destino";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 // Quita las FECHAS DE VENCIMIENTO de los cursos en toda la base (los exámenes SÍ
 // conservan su cronómetro). Idempotente. Apunta a DATABASE_URL (local o prod).
 
-const cs = process.env.DATABASE_URL!;
+const cs = confirmarDestino(process.env.DATABASE_URL);
 const prisma = new PrismaClient({
   adapter: new PrismaPg({
     connectionString: cs,

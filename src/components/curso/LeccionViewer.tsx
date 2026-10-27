@@ -3,6 +3,7 @@ import { Info, AlertTriangle, Lightbulb, Link2, ExternalLink } from "lucide-reac
 import { VideoEmbed } from "@/components/curso/VideoEmbed";
 import { PdfEmbed } from "@/components/curso/PdfEmbed";
 import { PromptBlock } from "@/components/curso/PromptBlock";
+import { safeHref } from "@/lib/urls";
 
 // Convierte texto plano en nodos con enlaces clicables. Soporta:
 //  - Markdown: [texto](https://…) → enlace con nombre
@@ -98,7 +99,9 @@ function Callout({ style = "info", text }: { style?: Block["style"]; text: strin
   );
 }
 
-function ImageBlock({ url, caption }: { url: string; caption?: string }) {
+function ImageBlock({ url: rawUrl, caption }: { url: string; caption?: string }) {
+  const url = safeHref(rawUrl);
+  if (!url) return null;
   return (
     <figure className="space-y-2">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -190,12 +193,11 @@ function BlockRenderer({ block }: { block: Block }) {
       return block.text ? (
         <PromptBlock text={block.text} label={block.label} />
       ) : null;
-    case "link":
-      return block.url ? (
+    case "link": {
+      const href = safeHref(block.url);
+      return href ? (
         <a
-          href={
-            block.url.startsWith("www.") ? `https://${block.url}` : block.url
-          }
+          href={href}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex max-w-full items-center gap-2 rounded-lg border border-primary bg-primary/8 px-4 py-2.5 font-medium text-primary transition-colors hover:bg-primary/15"
@@ -205,6 +207,7 @@ function BlockRenderer({ block }: { block: Block }) {
           <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-70" />
         </a>
       ) : null;
+    }
     default:
       return null;
   }

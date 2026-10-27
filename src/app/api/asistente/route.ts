@@ -97,6 +97,24 @@ export async function POST(req: Request) {
   if (!objetivo) {
     return new Response("Describe el objetivo del curso.", { status: 400 });
   }
+  if (objetivo.length > 2_000) {
+    return new Response("El objetivo es muy largo (máx. 2.000 caracteres).", {
+      status: 400,
+    });
+  }
+  const empresa = ["AMBIENTE_AZUL", "DOM_DESIGN", "AMBAS"].includes(body.empresa ?? "")
+    ? body.empresa
+    : "AMBAS";
+  const categoria = [
+    "INDUCCION",
+    "CAPACITACION_AREA",
+    "FORMACION_CONTINUA",
+    "TECNICO",
+    "PRODUCTO",
+    "PROCESO",
+  ].includes(body.categoria ?? "")
+    ? body.categoria
+    : "FORMACION_CONTINUA";
   const material = (body.material ?? "").trim();
   if (material.length > 60_000) {
     return new Response(
@@ -107,8 +125,8 @@ export async function POST(req: Request) {
 
   const userPrompt = [
     `Objetivo del curso: ${objetivo}`,
-    `Empresa: ${body.empresa ?? "AMBAS"}`,
-    `Categoría: ${body.categoria ?? "FORMACION_CONTINUA"}`,
+    `Empresa: ${empresa}`,
+    `Categoría: ${categoria}`,
     material ? `\nMaterial de referencia:\n"""\n${material}\n"""` : "",
   ].join("\n");
 

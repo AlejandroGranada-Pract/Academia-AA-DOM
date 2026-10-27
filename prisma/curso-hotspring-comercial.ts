@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { confirmarDestino } from "./guard-destino";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import {
@@ -10,7 +11,7 @@ import {
 // Fuente: paquete de capacitación HotSpring (Ambiente Azul, jul-2026).
 
 const CURSO_TITLE = "HotSpring — Comercial";
-const cs = process.env.DATABASE_URL!;
+const cs = confirmarDestino(process.env.DATABASE_URL);
 const prisma = new PrismaClient({
   adapter: new PrismaPg({
     connectionString: cs,

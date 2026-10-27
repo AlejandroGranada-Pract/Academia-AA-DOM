@@ -31,5 +31,7 @@ declare module "next-auth/jwt" {
     role: AppRole;
     company: AppCompany;
     absExp?: number;
+    // Huella de la contraseña al iniciar sesión: si cambia, la sesión se invalida.
+    pwv?: string;
   }
 }

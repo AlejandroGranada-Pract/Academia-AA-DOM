@@ -43,6 +43,12 @@ export function ResultadoExamen({
       {/* Revisión pregunta por pregunta */}
       <div className="space-y-4">
         <h2 className="text-2xl text-foreground">Revisión</h2>
+        {results.some((r) => r.correctAnswer === null) && (
+          <p className="text-sm text-muted-foreground">
+            Las respuestas correctas se mostrarán cuando apruebes o agotes tus
+            intentos.
+          </p>
+        )}
         {results.map((r, i) => (
           <div key={r.questionId} className="rounded-2xl border bg-card p-6">
             <div className="mb-3 flex items-start gap-2">

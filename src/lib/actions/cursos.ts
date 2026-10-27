@@ -15,6 +15,21 @@ type Category =
 type Company = "AMBIENTE_AZUL" | "DOM_DESIGN" | "AMBAS";
 type Status = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
+const CATEGORIES: Category[] = [
+  "INDUCCION",
+  "CAPACITACION_AREA",
+  "FORMACION_CONTINUA",
+  "TECNICO",
+  "PRODUCTO",
+  "PROCESO",
+];
+const COMPANIES: Company[] = ["AMBIENTE_AZUL", "DOM_DESIGN", "AMBAS"];
+const STATUSES: Status[] = ["DRAFT", "PUBLISHED", "ARCHIVED"];
+
+function oneOf<T extends string>(value: string, allowed: T[], fallback: T): T {
+  return (allowed as string[]).includes(value) ? (value as T) : fallback;
+}
+
 function refresh(courseId?: string) {
   revalidatePath("/admin/cursos");
   revalidatePath("/cursos");
@@ -27,8 +42,8 @@ function refresh(courseId?: string) {
 function parseForm(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  const category = String(formData.get("category") ?? "INDUCCION") as Category;
-  const company = String(formData.get("company") ?? "AMBIENTE_AZUL") as Company;
+  const category = oneOf(String(formData.get("category") ?? ""), CATEGORIES, "INDUCCION");
+  const company = oneOf(String(formData.get("company") ?? ""), COMPANIES, "AMBIENTE_AZUL");
   const hoursRaw = String(formData.get("estimatedHours") ?? "").trim();
   const passingRaw = String(formData.get("passingScore") ?? "70").trim();
   const grupoIds = formData
@@ -62,6 +77,9 @@ export async function createCourse(
   // si no, el curso no sería "suyo" y no podría volver a verlo).
   let grupoIds = f.grupoIds;
   if (staff.role === "AREA_LEADER") {
+    if (staff.ledGroupIds.length === 0) {
+      return { error: "Necesitas liderar al menos un grupo para crear cursos." };
+    }
     grupoIds = grupoIds.filter((id) => staff.ledGroupIds.includes(id));
     if (grupoIds.length === 0) grupoIds = staff.ledGroupIds;
   }
@@ -127,6 +145,7 @@ export async function updateCourse(
 
 export async function setCourseStatus(courseId: string, status: Status) {
   await assertCourse(courseId);
+  if (!STATUSES.includes(status)) throw new Error("Estado inválido");
   await prisma.course.update({ where: { id: courseId }, data: { status } });
   refresh(courseId);
 }

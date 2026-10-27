@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { courseIdOfLesson, getLearnerCourseAccess } from "@/lib/courses";
+import { canPreviewCourse } from "@/lib/staff";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -23,6 +25,17 @@ export async function postComment(input: {
   if (!body) return { ok: false, error: "Escribe un mensaje." };
   if (body.length > MAX_LEN) {
     return { ok: false, error: `Máximo ${MAX_LEN} caracteres.` };
+  }
+
+  // Solo quien puede ver el curso de la lección (o el staff que lo gestiona)
+  // participa en su foro.
+  const courseId = await courseIdOfLesson(input.lessonId);
+  if (!courseId) return { ok: false, error: "Lección no encontrada." };
+  if (
+    !(await getLearnerCourseAccess(userId, courseId)) &&
+    !(await canPreviewCourse(courseId))
+  ) {
+    return { ok: false, error: "No tienes acceso a esta lección." };
   }
 
   // Una respuesta solo puede colgar de una pregunta raíz de la MISMA lección
@@ -46,7 +59,7 @@ export async function postComment(input: {
     },
   });
 
-  revalidatePath(`/cursos/${input.courseId}/leccion/${input.lessonId}`);
+  revalidatePath(`/cursos/${courseId}/leccion/${input.lessonId}`);
   return { ok: true };
 }
 

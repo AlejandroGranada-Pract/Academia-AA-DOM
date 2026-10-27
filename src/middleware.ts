@@ -9,9 +9,12 @@ export const config = {
   // Corre en todas las rutas excepto assets estáticos y los endpoints de auth.
   // api/sso se excluye: es el punto de canje del SSO y debe recibir requests
   // sin sesión (valida su propio token de paso).
-  // Importante: excluir también media (mp4/webm) y fuentes, o el middleware los
-  // redirige a /login y no cargan (ej. el video de fondo del login).
+  // Importante: excluir también los archivos públicos (íconos, el video de fondo
+  // del login), o el middleware los redirige a /login y no cargan. Las
+  // exclusiones van ancladas: solo /Icon/*, /videos/* y archivos en la raíz;
+  // una ruta dinámica con sufijo ".png" (p. ej. /cursos/x/leccion/y.png) NO se
+  // salta el middleware, ni tampoco /api/authX o similares.
   matcher: [
-    "/((?!api/auth|api/cron|api/sso|_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|.*\\.(?:png|jpg|jpeg|gif|svg|ico|mp4|webm|woff2?)$).*)",
+    "/((?!(?:api/auth|api/cron|api/sso)(?:/|$)|_next/static|_next/image|favicon.ico$|manifest.webmanifest$|sw.js$|(?:Icon|videos)/[^/]+$|[^/]+\\.(?:png|jpg|jpeg|gif|svg|ico|mp4|webm|woff2?)$).*)",
   ],
 };

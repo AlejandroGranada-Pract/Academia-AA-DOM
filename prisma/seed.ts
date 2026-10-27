@@ -4,8 +4,17 @@ import { join } from "path";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
+import { confirmarDestino } from "./guard-destino";
 
-const connectionString = process.env.DATABASE_URL!;
+// IMPORT_ONLY: modo "import aditivo" (no borra, no crea usuarios de prueba).
+// Se activa con IMPORT_ONLY=true o con el flag --import-only (este último
+// funciona igual en Windows). Sin él, el seed BORRA datos y crea credenciales
+// de prueba, así que solo se permite contra una base local.
+const IMPORT_ONLY =
+  process.env.IMPORT_ONLY === "true" || process.argv.includes("--import-only");
+const connectionString = confirmarDestino(process.env.DATABASE_URL, {
+  destructivo: !IMPORT_ONLY,
+});
 const isLocalDb = /localhost|127\.0\.0\.1/.test(connectionString);
 const adapter = new PrismaPg({
   connectionString,
@@ -33,9 +42,7 @@ async function crearImagenPiscina(file: string, name: string): Promise<string> {
 async function main() {
   console.log("🌱 Sembrando datos...");
 
-  // IMPORT_ONLY: modo "import aditivo" para producción. No borra nada, usa el
-  // admin que ya existe y no crea usuarios de prueba. (En desarrollo va en false.)
-  const IMPORT_ONLY = process.env.IMPORT_ONLY === "true";
+  // (IMPORT_ONLY se resuelve arriba: en import usa el admin que ya existe.)
 
   // ---------------------------------------------------------------------------
   // Usuarios

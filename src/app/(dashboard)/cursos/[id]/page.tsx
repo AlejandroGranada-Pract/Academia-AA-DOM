@@ -19,6 +19,7 @@ import {
 import { issueCertificateIfComplete } from "@/lib/certificados";
 import { dueStatus, effectiveDueDate } from "@/lib/vencimiento";
 import { canSeeCourse, getViewer } from "@/lib/courses";
+import { canPreviewCourse } from "@/lib/staff";
 import { AlertTriangle } from "lucide-react";
 import type { ItemLite } from "@/components/curso/ModuloAccordion";
 import { ModuloAccordion } from "@/components/curso/ModuloAccordion";
@@ -72,13 +73,11 @@ export default async function CursoDetallePage({
   const userId = session?.user?.id;
 
   // Vista previa de staff ("Ver como estudiante"): todo desbloqueado, sin
-  // escribir progreso. SUPER_ADMIN y AREA_LEADER la activan con ?preview=1.
-  // El staff puede previsualizar cualquier curso (incluso borradores o fuera
-  // de sus grupos), por eso omite los gates de estado y de acceso.
+  // escribir progreso. Se activa con ?preview=1 y solo para quien gestiona el
+  // curso (admin, o líder con canManageCourse); por eso omite los gates de
+  // estado y de acceso.
   const isPreview =
-    searchParams?.preview === "1" &&
-    (session?.user?.role === "SUPER_ADMIN" ||
-      session?.user?.role === "AREA_LEADER");
+    searchParams?.preview === "1" && (await canPreviewCourse(curso.id));
   const pq = isPreview ? "?preview=1" : "";
 
   if (curso.status !== "PUBLISHED" && !isPreview) notFound();

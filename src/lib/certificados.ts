@@ -46,10 +46,13 @@ export async function isCourseComplete(
   return true;
 }
 
-// Código verificable, ej: CERT-2026-A1B2C3D4
+// Código verificable, ej: CERT-2026-A1B2C3D4E5F6A7B8. 64 bits aleatorios: la
+// página pública /verificar muestra nombre y curso, así que el código no debe
+// poder adivinarse por fuerza bruta. (Los códigos antiguos de 32 bits siguen
+// siendo válidos.)
 function generarCodigo(): string {
   const year = new Date().getFullYear();
-  const rand = randomBytes(4).toString("hex").toUpperCase();
+  const rand = randomBytes(8).toString("hex").toUpperCase();
   return `CERT-${year}-${rand}`;
 }
 

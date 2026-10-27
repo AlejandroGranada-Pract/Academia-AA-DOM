@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { isHttpsHost } from "@/lib/urls";
 
 // Borrador generado por el asistente (forma que produce el prompt).
 export type DraftBlock = {
@@ -191,10 +192,16 @@ export async function createCourseFromDraft(
             const blocks = (l.blocks ?? []).filter((b) => {
               if (b.type === "list") return (b.items ?? []).length > 0;
               if (b.type === "video")
-                return /youtube\.com|youtu\.be/.test(b.url ?? "");
+                // URL parseada: https y host de YouTube (no basta con que el
+                // texto "youtube.com" aparezca en algún lado de la cadena).
+                return isHttpsHost(b.url, ["youtube.com", "youtu.be"]);
               if (b.type === "image")
                 // Solo Wikimedia Commons (URLs estables y libres).
-                return (b.url ?? "").startsWith("https://upload.wikimedia.org/");
+                return isHttpsHost(b.url, ["upload.wikimedia.org"]);
+              // El resto deben ser bloques de texto conocidos (sin URL).
+              if (!["heading", "paragraph", "list", "callout"].includes(b.type)) {
+                return false;
+              }
               return (b.text ?? "").trim().length > 0;
             });
 

@@ -5,17 +5,27 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { issueCertificateIfComplete } from "@/lib/certificados";
 import { otorgarLogros, titulosLogros } from "@/lib/badges";
+import { courseIdOfLesson, getLearnerCourseAccess } from "@/lib/courses";
+
+const MAX_URL = 2048;
 
 // Marca/desmarca una lección como completada para el usuario actual.
 // Devuelve los títulos de las insignias recién desbloqueadas (para el toast).
+// El curso se resuelve desde la lección (no se confía en el courseId del
+// cliente) y se exige que el usuario pueda verlo y tenga la lección desbloqueada.
 export async function setLessonProgress(
   lessonId: string,
-  courseId: string,
+  _courseId: string,
   completed: boolean,
 ): Promise<string[]> {
   const session = await auth();
   const userId = session?.user?.id;
   if (!userId) return [];
+
+  const courseId = await courseIdOfLesson(lessonId);
+  if (!courseId) return [];
+  const acceso = await getLearnerCourseAccess(userId, courseId);
+  if (!acceso || !acceso.unlockedIds.has(lessonId)) return [];
 
   await prisma.userProgress.upsert({
     where: { userId_lessonId: { userId, lessonId } },
@@ -59,8 +69,19 @@ export async function registrarAvanceVideo(
 ): Promise<void> {
   const session = await auth();
   const userId = session?.user?.id;
-  if (!userId || !lessonId || !url) return;
-  const p = Math.max(0, Math.min(100, Math.round(pct)));
+  if (!userId || !lessonId || !url || url.length > MAX_URL) return;
+  const p = Math.max(0, Math.min(100, Math.round(Number(pct) || 0)));
+
+  // Solo videos que existen en la lección, de cursos que el usuario puede ver.
+  const lesson = await prisma.lesson.findUnique({
+    where: { id: lessonId },
+    select: { content: true, module: { select: { courseId: true } } },
+  });
+  if (!lesson?.module) return;
+  if (!JSON.stringify(lesson.content ?? null).includes(JSON.stringify(url).slice(1, -1))) {
+    return;
+  }
+  if (!(await getLearnerCourseAccess(userId, lesson.module.courseId))) return;
 
   await prisma.videoView.upsert({
     where: { userId_lessonId_url: { userId, lessonId, url } },

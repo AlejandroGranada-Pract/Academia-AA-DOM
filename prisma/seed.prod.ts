@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { confirmarDestino } from "./guard-destino";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
@@ -19,7 +20,7 @@ import bcrypt from "bcryptjs";
 //   ADMIN_EMAIL=... ADMIN_PASSWORD=... DATABASE_URL=... npm run db:seed:prod
 // ============================================================================
 
-const connectionString = process.env.DATABASE_URL!;
+const connectionString = confirmarDestino(process.env.DATABASE_URL);
 const isLocalDb = /localhost|127\.0\.0\.1/.test(connectionString);
 const adapter = new PrismaPg({
   connectionString,

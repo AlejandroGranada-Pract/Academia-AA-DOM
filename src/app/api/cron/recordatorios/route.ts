@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/db";
 import { effectiveDueDate } from "@/lib/vencimiento";
 import { mailEnabled } from "@/lib/mailer";
@@ -16,6 +17,12 @@ const UMBRAL_DIAS = 7;
 const LEARNER_ROLES = ["EMPLOYEE", "AREA_LEADER"] as const;
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
+function secretoIgual(a: string, b: string): boolean {
+  const ha = createHash("sha256").update(a).digest();
+  const hb = createHash("sha256").update(b).digest();
+  return a.length > 0 && timingSafeEqual(ha, hb);
+}
+
 function fmt(d: Date) {
   return `${d.getUTCDate()} ${MESES[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
@@ -25,9 +32,12 @@ export async function GET(req: Request) {
   if (!secret) {
     return new Response("CRON_SECRET no configurado", { status: 503 });
   }
-  const auth = req.headers.get("authorization");
-  const token = new URL(req.url).searchParams.get("token");
-  if (auth !== `Bearer ${secret}` && token !== secret) {
+  // Preferir la cabecera Authorization: el ?token= queda en logs del router.
+  // Se mantiene por compatibilidad con el Scheduler; comparación en tiempo constante.
+  const auth = req.headers.get("authorization") ?? "";
+  const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  const token = new URL(req.url).searchParams.get("token") ?? "";
+  if (!secretoIgual(bearer, secret) && !secretoIgual(token, secret)) {
     return new Response("No autorizado", { status: 401 });
   }
   if (!mailEnabled()) {

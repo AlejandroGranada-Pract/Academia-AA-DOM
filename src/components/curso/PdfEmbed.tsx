@@ -1,4 +1,5 @@
 import { FileDown, ExternalLink } from "lucide-react";
+import { safeHref } from "@/lib/urls";
 
 // Embebe un PDF (Google Drive o URL directa) y ofrece un enlace para abrirlo.
 function toPreviewUrl(url: string): string {
@@ -8,12 +9,21 @@ function toPreviewUrl(url: string): string {
 }
 
 export function PdfEmbed({
-  url,
+  url: rawUrl,
   title = "Documento PDF",
 }: {
   url: string;
   title?: string;
 }) {
+  // Solo http(s) o rutas del sitio; un esquema como javascript: no se renderiza.
+  const url = safeHref(rawUrl);
+  if (!url) {
+    return (
+      <p className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
+        Este documento no se puede mostrar: el enlace no es válido.
+      </p>
+    );
+  }
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
       <div className="flex items-center justify-between gap-3 border-b bg-muted/40 px-4 py-2.5">

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { CheckCircle2, Eye } from "lucide-react";
 import { useLeccionGate } from "@/components/curso/LeccionGate";
 import { registrarAvanceVideo } from "@/lib/actions/progress";
+import { safeHref } from "@/lib/urls";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
@@ -197,7 +198,15 @@ export function VideoEmbed({
     ? `https://player.vimeo.com/video/${vimeo.id}${vimeo.hash ? `?h=${vimeo.hash}` : ""}`
     : driveId
       ? `https://drive.google.com/file/d/${driveId}/preview`
-      : url;
+      : safeHref(url);
+  // URL con esquema no permitido (p. ej. javascript:): no se embebe.
+  if (!src) {
+    return (
+      <p className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
+        Este video no se puede mostrar: el enlace no es válido.
+      </p>
+    );
+  }
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
       <iframe

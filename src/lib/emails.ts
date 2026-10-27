@@ -12,6 +12,18 @@ const DARK = "#1F1F1F";
 const TEXT = "#3a3a3a";
 const MUTED = "#8a8f98";
 
+// Escapa texto para insertarlo en HTML. Todo dato que viene de la BD o de un
+// usuario (nombres, títulos de curso, credenciales) pasa por aquí: un título con
+// "<a href=…>" no debe convertirse en un enlace dentro del correo oficial.
+function esc(s: string | null | undefined): string {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 type Shell = {
   preheader: string; // texto de vista previa en la bandeja
   eyebrow: string; // etiqueta tipo "pill"
@@ -88,7 +100,7 @@ function infoBox(rows: { label: string; value: string }[]): string {
       (r) =>
         `<tr>
           <td style="padding:4px 14px 4px 0;color:${MUTED};font-size:13px;white-space:nowrap">${r.label}</td>
-          <td style="padding:4px 0;font-weight:bold;color:${DARK};font-size:14px">${r.value}</td>
+          <td style="padding:4px 0;font-weight:bold;color:${DARK};font-size:14px">${esc(r.value)}</td>
         </tr>`,
     )
     .join("");
@@ -109,7 +121,7 @@ export async function enviarBienvenida(p: {
     eyebrow: "Bienvenida",
     color: AZUL,
     tint: AZUL_TINT,
-    titulo: `¡Hola, ${p.nombre}! Te damos la bienvenida 👋`,
+    titulo: `¡Hola, ${esc(p.nombre)}! Te damos la bienvenida 👋`,
     cuerpo: `
       <p style="margin:0 0 14px">Ya tienes acceso a la <strong>Academia AA | DOM</strong>, nuestra plataforma de formación. Aquí encontrarás tus cursos, podrás presentar exámenes y descargar tus certificados.</p>
       <p style="margin:0 0 6px">Tus datos de ingreso:</p>
@@ -130,13 +142,13 @@ export async function enviarCursoAsignado(p: {
   cursoTitle: string;
 }) {
   const html = shell({
-    preheader: `Tienes un curso nuevo disponible: ${p.cursoTitle}.`,
+    preheader: `Tienes un curso nuevo disponible: ${esc(p.cursoTitle)}.`,
     eyebrow: "Nuevo curso",
     color: AZUL,
     tint: AZUL_TINT,
     titulo: "Tienes un curso nuevo 📘",
     cuerpo: `
-      <p style="margin:0 0 14px">Se te asignó el curso <strong style="color:${DARK}">${p.cursoTitle}</strong> en la Academia.</p>
+      <p style="margin:0 0 14px">Se te asignó el curso <strong style="color:${DARK}">${esc(p.cursoTitle)}</strong> en la Academia.</p>
       <p style="margin:0">Ya está disponible para que lo tomes cuando quieras. ¡Anímate a empezar!</p>`,
     ctaTexto: "Ver mis cursos",
     ctaUrl: `${appUrl()}/cursos`,
@@ -152,16 +164,16 @@ export async function enviarCertificado(p: {
   certId: string;
 }) {
   const html = shell({
-    preheader: `Completaste ${p.cursoTitle}. Tu certificado está listo.`,
+    preheader: `Completaste ${esc(p.cursoTitle)}. Tu certificado está listo.`,
     eyebrow: "¡Felicitaciones!",
     color: ORO,
     tint: ORO_TINT,
-    titulo: `¡Lo lograste, ${p.nombre}! 🎉`,
+    titulo: `¡Lo lograste, ${esc(p.nombre)}! 🎉`,
     cuerpo: `
-      <p style="margin:0 0 14px">Completaste el curso <strong style="color:${DARK}">${p.cursoTitle}</strong>. Tu esfuerzo valió la pena. 🏆</p>
+      <p style="margin:0 0 14px">Completaste el curso <strong style="color:${DARK}">${esc(p.cursoTitle)}</strong>. Tu esfuerzo valió la pena. 🏆</p>
       <p style="margin:0">Tu certificado ya está listo para descargar.</p>`,
     ctaTexto: "Descargar mi certificado",
-    ctaUrl: `${appUrl()}/api/certificados/${p.certId}`,
+    ctaUrl: `${appUrl()}/api/certificados/${encodeURIComponent(p.certId)}`,
   });
   await sendMail({ to: p.to, subject: `Tu certificado: ${p.cursoTitle}`, html });
 }
@@ -176,9 +188,9 @@ export async function enviarRecordatorio(p: {
     .map(
       (c, i) =>
         `<tr>
-          <td style="padding:11px 12px 11px 14px;border-top:${i === 0 ? "0" : "1px solid #f0eee9"};font-size:14px;color:${DARK}">${c.title}</td>
+          <td style="padding:11px 12px 11px 14px;border-top:${i === 0 ? "0" : "1px solid #f0eee9"};font-size:14px;color:${DARK}">${esc(c.title)}</td>
           <td style="padding:11px 14px 11px 12px;border-top:${i === 0 ? "0" : "1px solid #f0eee9"};text-align:right;white-space:nowrap">
-            <span style="display:inline-block;background:${c.vencido ? "#fbeaea" : ORO_TINT};color:${c.vencido ? "#c0392b" : ORO};font-size:12px;font-weight:bold;padding:4px 10px;border-radius:999px">${c.vencido ? "Vencido" : "Vence"} · ${c.fecha}</span>
+            <span style="display:inline-block;background:${c.vencido ? "#fbeaea" : ORO_TINT};color:${c.vencido ? "#c0392b" : ORO};font-size:12px;font-weight:bold;padding:4px 10px;border-radius:999px">${c.vencido ? "Vencido" : "Vence"} · ${esc(c.fecha)}</span>
           </td>
         </tr>`,
     )
@@ -188,7 +200,7 @@ export async function enviarRecordatorio(p: {
     eyebrow: "Recordatorio",
     color: "#c0392b",
     tint: "#fbeaea",
-    titulo: `Hola, ${p.nombre} ⏰`,
+    titulo: `Hola, ${esc(p.nombre)} ⏰`,
     cuerpo: `
       <p style="margin:0 0 16px">Tienes cursos pendientes con fecha límite <strong>cercana o vencida</strong>. Ponte al día para no quedarte atrás:</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #f0eee9;border-radius:12px;overflow:hidden">${filas}</table>`,

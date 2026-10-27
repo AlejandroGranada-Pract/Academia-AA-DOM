@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { assertGrupo } from "@/lib/staff";
+import { assertGrupo, manageableCoursesWhere, type Staff } from "@/lib/staff";
 import { mailEnabled } from "@/lib/mailer";
 import { enviarCursoAsignado } from "@/lib/emails";
 
@@ -49,12 +49,29 @@ export async function deleteGrupo(grupoId: string) {
   revalidatePath("/grupos");
 }
 
+// Un líder solo puede vincular a su grupo cursos publicados o que ya gestiona
+// (no borradores/archivados ajenos). Vincular no da permisos de gestión: ver
+// manageableCoursesWhere.
+async function assertLinkableCourses(staff: Staff, courseIds: string[]) {
+  if (staff.role === "SUPER_ADMIN" || courseIds.length === 0) return;
+  const ids = Array.from(new Set(courseIds));
+  const manageable = manageableCoursesWhere(staff) ?? {};
+  const ok = await prisma.course.count({
+    where: {
+      id: { in: ids },
+      OR: [{ status: "PUBLISHED" }, manageable],
+    },
+  });
+  if (ok !== ids.length) throw new Error("No autorizado");
+}
+
 export async function toggleCourseInGrupo(
   grupoId: string,
   courseId: string,
   member: boolean,
 ) {
-  await assertGrupo(grupoId);
+  const staff = await assertGrupo(grupoId);
+  if (member) await assertLinkableCourses(staff, [courseId]);
   await prisma.grupo.update({
     where: { id: grupoId },
     data: {
@@ -92,17 +109,20 @@ export async function setGrupoMembership(
   courseIds: string[],
   userIds: string[],
 ): Promise<string | undefined> {
-  await assertGrupo(grupoId);
+  const staff = await assertGrupo(grupoId);
 
-  // Cursos que se agregan al grupo en este guardado (para avisar a los miembros).
-  const previos = mailEnabled()
-    ? (
-        await prisma.grupo.findUnique({
-          where: { id: grupoId },
-          select: { courses: { select: { id: true } } },
-        })
-      )?.courses.map((c) => c.id) ?? []
-    : [];
+  // Cursos que ya estaban en el grupo (para validar solo los nuevos y avisar).
+  const previos =
+    (
+      await prisma.grupo.findUnique({
+        where: { id: grupoId },
+        select: { courses: { select: { id: true } } },
+      })
+    )?.courses.map((c) => c.id) ?? [];
+  await assertLinkableCourses(
+    staff,
+    courseIds.filter((id) => !previos.includes(id)),
+  );
 
   await prisma.grupo.update({
     where: { id: grupoId },

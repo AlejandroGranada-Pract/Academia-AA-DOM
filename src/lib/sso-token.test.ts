@@ -56,6 +56,25 @@ test("rechaza token sin email o sin jti", async () => {
   assert.strictEqual(await verificarTokenSso(token), null);
 });
 
+test("rechaza token sin expiración", async () => {
+  const token = await new SignJWT({ email: "a@b.co", nombre: "A" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setAudience("academia")
+    .setJti("x")
+    .sign(clave);
+  assert.strictEqual(await verificarTokenSso(token), null);
+});
+
+test("rechaza token con vida mayor a la retención de jti", async () => {
+  const token = await new SignJWT({ email: "a@b.co", nombre: "A" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setAudience("academia")
+    .setJti("x")
+    .setExpirationTime("2h")
+    .sign(clave);
+  assert.strictEqual(await verificarTokenSso(token), null);
+});
+
 test("rechaza basura que no es JWT", async () => {
   assert.strictEqual(await verificarTokenSso("no-soy-un-token"), null);
 });

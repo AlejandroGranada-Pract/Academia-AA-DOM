@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { confirmarDestino } from "./guard-destino";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { PrismaClient } from "../src/generated/prisma/client";
@@ -17,7 +18,7 @@ import {
   SVG_CONECTORES,
 } from "./seed-assets/claude-svgs";
 
-const connectionString = process.env.DATABASE_URL!;
+const connectionString = confirmarDestino(process.env.DATABASE_URL);
 const isLocalDb = /localhost|127\.0\.0\.1/.test(connectionString);
 const adapter = new PrismaPg({
   connectionString,

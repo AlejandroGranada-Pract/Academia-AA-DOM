@@ -20,7 +20,14 @@ export default async function VerificarPage({
 }: {
   params: { code: string };
 }) {
-  const code = decodeURIComponent(params.code).trim().toUpperCase();
+  // El parámetro puede llegar codificado; un "%" suelto haría fallar el decode.
+  let raw = params.code;
+  try {
+    raw = decodeURIComponent(params.code);
+  } catch {
+    // se usa tal cual
+  }
+  const code = raw.trim().toUpperCase().slice(0, 64);
   const cert = await prisma.certificate.findUnique({
     where: { code },
     include: {

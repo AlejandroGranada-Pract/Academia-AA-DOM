@@ -9,6 +9,7 @@ import {
   assertExam,
   assertQuestion,
 } from "@/lib/staff";
+import { isSafeUrl } from "@/lib/urls";
 
 function refresh(courseId: string) {
   revalidatePath(`/admin/cursos/${courseId}/edit`);
@@ -150,6 +151,13 @@ export async function updateLesson(
   await assertLesson(lessonId);
   const title = data.title.trim();
   if (!title) return "El título es obligatorio.";
+  // Política de URLs: solo http(s) o rutas del propio sitio (ver lib/urls).
+  const urlInvalida = data.blocks.find(
+    (b) => (b.url ?? "").trim().length > 0 && !isSafeUrl(b.url),
+  );
+  if (urlInvalida) {
+    return "Hay un enlace no permitido: usa direcciones que empiecen por https://";
+  }
   // Limpieza: quita ítems vacíos de las listas y bloques de texto vacíos.
   const blocks = data.blocks
     .map((b) =>
